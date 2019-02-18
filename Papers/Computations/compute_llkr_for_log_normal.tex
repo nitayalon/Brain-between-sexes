@@ -1,0 +1,76 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath}
+\usepackage{lettrine}
+\usepackage{amsfonts}
+\usepackage{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+ \usepackage{bbm}
+ \usepackage{tikz}
+\newtheorem{remark}{Remark} 
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+
+\newcommand{\maleProb}{\frac{\varepsilon}{\delta + \varepsilon}}
+
+\newcommand{\femaleProb}{\frac{\delta}{\delta + \varepsilon}}
+
+\newcommand{\malellk}{\frac{1}{\sqrt{2\pi}\sigma}e^{-\frac{\big(x - (\mu + \delta)\big)^2}{2\sigma^2}}}
+
+\newcommand{\femalellk}{\frac{1}{\sqrt{2\pi}\sigma}e^{-\frac{\big(x - (\mu - \varepsilon)\big)^2}{2\sigma^2}}}
+
+\newcommand{\purellk}{\frac{1}{\sqrt{2\pi}\sigma}e^{-\frac{\big(x - \mu \big)^2}{2\sigma^2}}}
+
+\title{Computing Stationary matrix}
+
+\begin{document}
+This computation follows a mail and a talk with Isaco from July 12th 2018. We model the distribution of the brain measurements as log normal distribution. This make more sense in terms of the ratio between the median and mean and the support of the measurements is positive.
+
+The alternative hypothesis assumes the existence of 2 pure typed distributions - Male and Female:
+\begin{gather}
+F_{Male}(x) = \malellk
+\\
+F_{Female}(x) = \femalellk
+\end{gather}
+and the men population is a mixture of both Male and Female distributions with mean $\mu$, hence the mixture probabilities are:
+\[
+p(men = Male) = \frac{\varepsilon}{\delta + \varepsilon}, 
+p(men = Female) = \frac{\delta }{\delta + \varepsilon}
+\]
+In contrary the null hypothesis assumes that the men population follows a normal distribution with mean $\mu$.
+Thus the log likelihood ratio:
+\begin{equation}
+\lambda = log(\frac{f_{H_1}(x)}{f_{H_0}(x)}) = log\big(\frac{\maleProb \malellk + \femaleProb \femalellk}{\purellk}\big) 
+\end{equation}
+
+We can re-write the last equation as:
+\begin{equation*}
+\log \big(\frac{\maleProb \malellk }{\purellk} + 
+\frac{\femaleProb \femalellk }{\purellk} \big)
+\end{equation*}
+
+Now we decompose the last equation to 2 parts:
+\begin{multline}
+\frac{\maleProb \malellk }{\purellk} = \maleProb e^{\frac{-(x - (\mu + \delta))^2 + (x - \mu)^2}{2\sigma^2}} = 
+\maleProb e^{\frac{2\delta\big(x - (\mu + \frac{\delta}{2}) \big)}{2 \sigma^2}} = 
+\\
+\maleProb e^{\frac{\delta}{\sigma^2}\big(x - (\mu + \frac{\delta}{2}) \big)}
+\end{multline}
+In the same way we write the right side of the equation:
+\begin{equation}
+\frac{\femaleProb \femalellk }{\purellk} = 
+\femaleProb e^{-\frac{\varepsilon}{\sigma^2}\big(x - (\mu + \frac{\varepsilon}{2}) \big)}
+\end{equation}
+so the llrt reduces to:
+\begin{equation}
+log \big( 
+\maleProb e^{\frac{\delta}{\sigma^2}\big(x - (\mu + \frac{\delta}{2}) \big)}
+ +  
+\femaleProb e^{-\frac{\varepsilon}{\sigma^2}\big(x - (\mu + \frac{\varepsilon}{2}) \big)}
+\big)
+\end{equation}
+and if we denote $x-\mu = A$ we can see that the llrt is a function of both $\frac{\delta}{\sigma ^2}$ and $\frac{\varepsilon}{\sigma^2}$.
+
+In order to estimate the KLD we sample from the mixture distribution and compute the mean llk ratio. We do that over a grid of $\delta,\varepsilon$ and $\sigma^2 = 1$ for the pure types.
+\end{document} 

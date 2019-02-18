@@ -1,0 +1,54 @@
+---
+title: "Brain data distribution EDA"
+author: "Nitay Alon"
+date: "7/4/2018"
+output: html_document
+runtime: shiny
+---
+
+In this report I'm presenting an EDA of the different brain features distribution data.
+Our main goal is to determine if the brain data is normally distributed or asymmetric double exponential distribution. 
+
+## Selecting data set to explore
+```{r "Loading data set",echo=FALSE}
+library(magrittr)
+library(dplyr)
+library(ggplot2)
+```
+
+Selecting feature to plot the histograms and survival function
+
+```{r "data_connectome_VBM Plotting the data", echo=FALSE}
+ plot.data <- select(brain.data, V1, V17)
+ names(plot.data) <- c("Gender","Feature")
+ ggplot(plot.data,aes(x=Feature)) +
+     geom_histogram(data=subset(plot.data,Gender == '1'),
+                    fill = "red", alpha = 0.5, bins = 50) +
+     geom_histogram(data=subset(plot.data,Gender == '2'),
+                    fill = "blue", alpha = 0.5, bins = 50)
+ ggplot(plot.data,aes(x=Feature)) +
+     geom_histogram(data=subset(plot.data,Gender == '1'),
+                    fill = "blue", alpha = 0.5, bins = 50)
+ ggplot(plot.data,aes(x=Feature)) +
+     geom_histogram(data=subset(plot.data,Gender == '2'),
+                    fill = "red", alpha = 0.2, bins = 50)
+ ggplot(plot.data,aes(x=Feature)) +
+     geom_histogram(bins = 50) + facet_wrap(~Gender)
+ plot.data %>%
+   group_by(Gender) %>%
+   summarize(avg = mean(Feature), std = sd(Feature), max(Feature), min(Feature))
+```
+
+ And plotting the log survival function:
+```{r "Plotting survival function"}
+ surviv <- brain.data$V45[brain.data$V45 > 0]
+ prec <- seq(0,4,0.1)
+ tmp <- c()
+ for(i in prec){
+   tmp <- c(tmp,
+   sum(surviv > i) / length(surviv))
+ }
+ plot(log(tmp))
+ plot(tmp)
+```
+

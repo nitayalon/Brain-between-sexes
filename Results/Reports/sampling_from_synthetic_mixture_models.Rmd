@@ -1,0 +1,76 @@
+---
+title: "Sampling mock data from mixture distribution"
+author: "Nitay Alon"
+date: "June 6, 2018"
+output: html_document
+---
+
+#Abstract
+In this notebook we'll present the results of sampling from synthetic mixture distributions (men and women) and the effect of full separation (male and female) on the llk ratio and p-value. 
+
+#Methods
+We create synthetic observations by sampling from a mixture model of 2 normals with known means, variance and mixture proportions. Under the null hypothesis we assume the following mixture proportions:
+\[
+p = 1\\
+q = 0
+\]
+While under the alternative we assume:
+\[
+p << 1\\
+q >> 0
+\]
+After the data is sampled we normalized it to have a mean of 0 and variance of 1.
+
+#Findings
+First we begin by examining the samples from the population and the results of the grid search.
+```{r Loading the data, cache=FALSE, include=FALSE}
+setwd("~/mastersdegree/Thesis/DAPHNA_JOEL/Results/Reports/")
+source("~/mastersdegree/Thesis/DAPHNA_JOEL/Grid_search/source_script_grid_search.R")
+llk_breaks <- seq(0,6,length.out = 100)
+pvalue_breaks <- seq(0,1,length.out = 50)
+pure <- computeMLEAndLlkRatioUnderHypothesis(10000, 0.2, 1, 0, 2000, T)
+mix <- computeMLEAndLlkRatioUnderHypothesis(10000, 0.2, 0.85, 0.1, 2000, T)
+```
+
+```{r Run simple EDA}
+pure$EDA
+pure$MLE_results
+mix$EDA
+mix$MLE_results
+```
+Next we apply the grid search for 100 times and look at the distribution of both the log likelihood ratio and p-value. We start with a sample size of 600 and than rpeat the process for a sample size of 6K.
+
+###Sample size = 600
+```{r Small sample simulation, include=FALSE, cache=FALSE}
+results.null <- computeMLEAndLlkRatioUnderHypothesis(600, 0.2, 1, 0, 100)
+results.alternative <- computeMLEAndLlkRatioUnderHypothesis(600, 0.2, 0.85, 0.1, 100)
+```
+
+```{r Small sample simulation results}
+
+hist(results.null$llk_ratio, breaks = llk_breaks, 
+     col = "blue", main = "histogram of llk_ratio")
+hist(results.alternative$llk_ratio, breaks = llk_breaks, col = "red", add = T)
+
+hist(results.null$p_value, breaks = pvalue_breaks, col = "blue", 
+     main = "histogram of p_value")
+hist(results.alternative$p_value, breaks = pvalue_breaks, col = "red", add = T)
+```
+
+###Sample size = 60000
+
+```{r Large sample simulation, include=FALSE, cache=FALSE}
+results.null <- computeMLEAndLlkRatioUnderHypothesis(60000, 0.2, 1, 0, 100)
+results.alternative <- computeMLEAndLlkRatioUnderHypothesis(60000, 0.2, 0.85, 0.1, 100)
+```
+
+```{r Large sample simulation results}
+
+hist(results.null$llk_ratio, breaks = llk_breaks, 
+     col = "blue", main = "histogram of llk_ratio")
+hist(results.alternative$llk_ratio, breaks = llk_breaks, col = "red", add = T)
+
+hist(results.alternative$p_value, breaks = pvalue_breaks, col = "blue", 
+     main = "histogram of p_value")
+hist(results.null$p_value, breaks = pvalue_breaks, col = "red", add = T)
+```

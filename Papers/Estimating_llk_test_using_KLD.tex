@@ -1,0 +1,137 @@
+\documentclass[a4paper, 10pt, conference]{ieeeconf}      % % The following packages can be found on http:\\www.ctan.org
+%\usepackage{graphics} % for pdf, bitmapped graphics files
+%\usepackage{epsfig} % for postscript graphics files
+%\usepackage{mathptmx} % assumes new font selection scheme installed
+%\usepackage{times} % assumes new font selection scheme installed
+\usepackage{amsmath} % assumes amsmath package installed
+\usepackage{amssymb}  % assumes amsmath package installed
+\usepackage{graphicx}% http://ctan.org/pkg/graphicx
+\makeatletter
+\newcommand{\distas}[1]{\mathbin{\overset{#1}{\kern\z@\sim}}}%
+
+\title{\LARGE \bf
+Estimating log likelihood ratio test power using Kullback Leibler divergence on brain measurements 
+}
+
+\author{Nitay Alon$^{1}$ and Isaac Meilijson$^{1}$% <-this % stops a space <-this % stops a space
+%\thanks{$^{1}$Department of Statistics and Operations Research, Tel Aviv University, Tel Aviv, Israel}%
+}
+
+
+\begin{document}
+
+
+
+\maketitle
+\thispagestyle{empty}
+\pagestyle{empty}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{abstract}
+
+We present an approach to estimate the power of a log likelihood ratio test (llrt) using Kullback Leibler divergence (KLD). Our method allows to estimate the number of samples which a log likelihood ratio test will yield over a 50\% power. The method was applied on brain features measurements data and the findings are reported
+\end{abstract}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{INTRODUCTION}
+
+The human brain is one of the most complex system in the biological world. In recent years mixture models are becoming a major part in estimating the structure of the human brain. It is hypothesize that men and women brains are infect a mixture of base distribution. To test this hypothesis we preform a log-likelihood ratio test between the null, pure typed brain, and the alternative likelihood. %TODO - refer to Neyman-Pearson lemma?
+In order to pre-estimate the hypothesis we've used a relation between the asymptotic distribution of the llrt under the alternative and the KLD to estimate the percentile of the Chi-Square distribution.
+Our findings showed that for some combinations of the mixture model parameters it is highly likely to reject the null hypothesis and for other combinations it is non likely.
+
+\section{Model and Data}
+
+\subsection{Model}
+We model the composition of a human brain as a mixture model of two sex based distributions, that is, a men brain is a mixture model of both masculine and feminine features and a women is the a mixture as well. 
+The genders are separated by the mixture probabilities as seen in the following equations:
+\begin{equation}
+f_{men}(x) = p * f_{masculine}(x) + (1-p) * f_{feminine}(x) 
+\end{equation}
+\begin{equation}
+f_{women}(x) = q * f_{masculine}(x) + (1-q) * f_{feminine}(x)
+\end{equation}
+Where $f_Y(y)$ is an exponential family member distribution.
+
+\subsubsection{Log likelihood ratio test}
+We test the following hypothesis:
+\begin{gather}
+H_0: p = (1-q) = 1 \\
+H_1: 0 < q < p < 1 
+\end{gather}
+And the likelihood ratio between the genders can be written as:
+\begin{equation}
+\lambda = log \big( \frac{p * f_{masculine}(x) + (1-p) * f_{feminine}(x)}{q * f_{masculine}(x) + (1-q) * f_{feminine}(x)\big )}
+\end{equation}
+As we can see, if the null hypothesis is true then the former likelihood ratio test is reduced to:  
+\begin{equation*}
+\lambda = log \big( \frac{f_{masculine}(x)}{f_{feminine}(x)} \big) 
+\end{equation*}
+and since we've assumed that $f_X(x)$ is a continuous member of the exponential family this log likelihood ratio is a linear line with limits:
+\begin{gather*}
+\lim_{x \to -\infty} log \big( \frac{f_{masculine}(x)}{f_{feminine}(x)} \big) = -\infty \\
+\lim_{x \to \infty} log \big( \frac{f_{masculine}(x)}{f_{feminine}(x)} \big) = \infty
+\end{gather*}
+On the other hand, if the alternative is true then the log likelihood ratio is a sigmoid with the following limits:
+\begin{gather*}
+\lim_{x \to -\infty} log \big( \frac{f_{men}(x)}{f_{women}(x)} \big) = \frac{1-p}{1-q}
+\\
+\lim_{x \to \infty} log \big( \frac{f_{masculine}(x)}{f_{feminine}(x)} \big) = \frac{p}{q}
+\end{gather*}
+and we can see that this is true regardless to the underline distribution $f_X(x)$.
+
+\subsection{Data}
+The data was simulated using R software. We've created two simulations - one with Normal distribution and one with Asymmetric Double Exponential distribution as the underling sex distribution. To simulate the data we've created a grid  of the mixture probability $p \in \{0.51,\cdots, 1\}$ and the empirical group means $\bar{x}$ (since the data is normalized the men mean = -women mean). We then computed $\theta$ - the mean of the underling distribution. Using the set $\{theta,p\}$ we were able to compute the group variance and sampled from the mixture model.
+\section{KLD and power estimation}
+We use KLD %TODO - referance to KLD.
+to estimate the power of the test.
+\subsection{KLD}
+We use MC simulation to estimate the KLD between two distributions:
+\begin{equation}
+ \hat{KLD} = \frac{1}{n}\sum_{i=1}^{n} \frac{f_1(x_i)}{f_0(x_i)}
+ \end{equation} 
+and the data was sampled from $f_1(x)$.
+\subsection{Asymptotic distribution of llkr}
+To estimate the power of the test we've used the following relation between the asymptotic distribution of the lltr under the alternative and the KLD:
+\begin{equation}
+2*\sum_{i=1}^{n}\frac{f_1(x_i)}{f_0(x_i)}|_{H_1} \geq n*KLD
+\end{equation}
+\section{Findings}
+We report one the findings in the case of a normal underling distribution and in the case of a ADL distribution.
+
+\subsubsection{Normal distribution} 
+In the case of Normal underling distribution we find that for most pairs $\{\bar{x},p\}$ it is almost impossible to reject the null hypothesis (pure types) even if the data was generated from a mixture model (type 2 error) - thus implying that the log likelihood ratio test has weak power. 
+
+\section{CONCLUSIONS}
+
+A conclusion section is not required. Although a conclusion may review the main points of the paper, do not replicate the abstract as the conclusion. A conclusion might elaborate on the importance of the work or suggest applications and extensions. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{APPENDIX}
+
+
+
+\section*{ACKNOWLEDGMENT}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+References are important to the reader; therefore, each citation must be complete and correct. If at all possible, references should be commonly available publications.
+
+
+
+\begin{thebibliography}{99}
+\end{thebibliography}
+
+
+
+
+\end{document}

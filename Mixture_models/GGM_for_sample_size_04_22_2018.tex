@@ -1,0 +1,95 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath}
+\usepackage{lettrine}
+\usepackage{amsfonts}
+\usepackage{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+ \usepackage{bbm}
+% \usepackage{tikz}
+\usepackage[usenames, dvipsnames]{color}
+\newtheorem{remark}{Remark} 
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+
+\newcommand{\transmatrix}[9]{\begin{bmatrix}
+ #1&#2&#3\\ #4&#5&#6\\ #7&#8&#9 \end{bmatrix}}
+
+\newcommand{\tocomplete}{[To be completed]}
+
+\newcommand{\addcomment}[1]{\textcolor{red}{#1}}
+
+\newcommand{\addanswer}[1]{\textcolor{OliveGreen}{#1}}
+
+
+\title{Gaussian Mixture Model}
+\author{Nitay Alon}
+
+\begin{document}
+\maketitle
+We are testing to see if we can use the given sample size (1120) to perform a likelihood ratio test. \\
+We assume the following mixture of models:
+	\begin{itemize}
+		\item Men:
+		 \begin{equation*}
+		 f_X(x) = p * \mathcal{N}(\theta_{mas},1) + (1-p) * \mathcal{N}(\theta_{fem},1)
+		 \end{equation*}
+		 \item Women:
+		 \begin{equation*}
+		 q * \mathcal{N}(\theta_{mas},1) + (1-q) * \mathcal{N}(\theta_{fem},1)
+		 \end{equation*}
+	\end{itemize}
+We assume that: $\theta_{fem} = -\theta_{mas}$ and also $p \approx 1, q \approx 0$.
+Denoting $x_i$ as the $i^{th}$ observation from the men group and $y_j$ as the $j^{th}$ observation from the women group and 
+using EM algorithm for GMM we can estimate the parameters as follows:
+\begin{multline}
+M_i = P(z_i = M|x_i) = \frac{p * \mathcal{N}(\theta_{mas},1)}{p * \mathcal{N}(\theta_{mas},1) + (1-p) * \mathcal{N}(\theta_{fem},\sigma)
+} = \\
+\big(1 + \frac{1-p}{p}exp^{-\frac{(x_i - (\frac{\theta_{mas}+\theta_{fem})}{2}(\theta_{mas}-\theta_{fem})}{2\sigma^2}} \big)^{-1}
+\end{multline}
+The same formula can be applied to the women data:
+\begin{multline}
+M_j = P(z_i = M|y_j) = \frac{q * \mathcal{N}(\theta_{mas},1)}{q * \mathcal{N}(\theta_{mas},1) + (1-q) * \mathcal{N}(\theta_{fem},\sigma)
+} = \\
+\big(1 + \frac{1-q}{q}exp^{-\frac{(y_j - (\frac{\theta_{mas}+\theta_{fem})}{2}(\theta_{mas}-\theta_{fem})}{2\sigma^2}} \big)^{-1}
+\end{multline}
+And the parameters:
+\begin{gather} 	
+A = \frac{1}{\sum_{i=1}^{m}M_i}\sum_{i=1}^{m}M_i x_i \\
+B = \frac{1}{\sum_{j=1}^{n}M_j}\sum_{j=1}^{n}M_j y_j \\
+p = \frac{\sum_{i=1}^{m}M_i}{m} \\
+q = \frac{\sum_{j=1}^{n}M_j}{n} \\
+\end{gather}
+Denoting:
+\begin{gather} 	
+m_{men} = \bar{x} \\
+mm_{men} = \bar{x^2} \\
+m_{women} = \bar{y} \\
+mm_{women} = \bar{y^2}
+\end{gather}
+we can estimate the parameters:
+\begin{gather} 	
+\theta_{mas} = \frac{A + B}{p + q} \\
+\theta_{fem} = \frac{m1 + m2 - A - B}{2 - p - q} \\
+\sigma^2 = \frac{mm_{mas} + mm_{fem}}{2} - \theta_{fem}^2 + \big(\frac{p + q}{2} \big)(\theta_{fem}^2  - \theta_{mas}^2 )
+\end{gather}
+
+\section{Log likelihood ratio} 
+Using the EM results we can compute the log likelihood of the mixture model and the log likelihood of the null model	
+\begin{gather*}
+H_0: p = q \\
+H_0: p \neq q 
+\end{gather*}
+By computing the delta between the llk we can learn about the significance of the delta (recall that $\lambda \sim exp(\theta)$). 
+
+\subsection{30/5/2018 - Update}
+After some not satisfying results, we're going over the EM equations again. This time we begin with a constrained version of the problem:
+\begin{gather}
+p = \frac{\theta_2 + \mu}{\theta_2 + \theta_1} \\
+q = \frac{\theta_2 - \mu}{\theta_2 + \theta_1} \\
+\sigma^2 = 1 + \theta_1 \theta_2
+\end{gather}
+
+
+\end{document} 

@@ -1,0 +1,509 @@
+---
+title: "UKBioBank data exploration - version 2.0"
+author: "Nitay Alon"
+date: "December 16, 2018"
+output: html_document
+---
+
+In this report we explore the Human Brain Data from UK-Bio Bank as a preliminary step of applying our mixture of sexes model and hypothesis testing. We begin with extraction of relevant data for our research, as described in the 15/11/2018 meeting summary and analysis of the data using EM algorithm.
+
+# EDA
+```{r loading relevant libraries and data,message=FALSE,warning=FALSE,include=FALSE}
+library(dplyr)
+library(knitr)
+library(tidyr)
+library(magrittr)
+library(ggplot2)
+library(Jmisc)
+library(e1071)
+library(effsize)
+sourceAll("../BioBank_data_analysis/Data_preparation_methods/")
+sourceAll("../BioBank_data_analysis/Visualization_methods/")
+sourceAll("../BioBank_data_analysis/Hypothesis_testing_methods/")
+sourceAll("../BioBank_data_analysis/Hypothesis_testing_methods/single_vs_composite/")
+source("../Mixture_models/source_script.R")
+# Load the BioBank data:
+bio.bank.data <- read.csv("../Data/Biobank/ukb24562.csv", 
+                          header = T, stringsAsFactors = F)
+
+relevant_region <- c(seq(45,92)
+                     ,seq(141,167)
+                     ,seq(93,140)
+                     ,seq(177,194)
+                     ,seq(195,333))
+relevant_data <- bio.bank.data[,relevant_region]
+# Adding sex,DOB,Ethnicity
+demographic_data <- bio.bank.data[,c(2,3,seq(13,15))]
+names(demographic_data) <- c("Sex","Year_Of_Birth",
+                             "Ethnic_BG_1",
+                             "Ethnic_BG_2",
+                             "Ethnic_BG_3")
+# Join
+full_relevant_data <- cbind(demographic_data, relevant_data)
+save(full_relevant_data, file = "shiny_app/BioBank_data_for_analysis.RData")
+```
+
+```{r exploring sex and ethnicity, echo=TRUE,warning=FALSE,include=FALSE}
+# Removing missing data
+# sapply(full_relevant_data, function(x){sum(is.na(x))})
+
+# Some statistics on the demographic data 
+full_relevant_data$Sex %>% table() %>% prop.table()
+full_relevant_data$Ethnic_BG_1 %>% table()
+```
+And we can see that sex wise our data is balanced, however, from ethnic point of view we have high bias toward white population.
+
+## Kolmogorov Smirnov test
+
+Next we apply K-S test for each column to determine if the data is Log-Normally distributed. We begin with testing for normal distribution.
+```{r applying KS Test over features,warning=FALSE,include=FALSE}
+ks_results_log_normal_data <- applyKSTestForDataFrame(relevant_data,"L")
+```
+
+Now, we can compute the number of features for which the KS test wasn't rejected:
+```{r computing number of non significant features}
+hist(ks_results_log_normal_data$P_Value,
+     breaks = 50,
+     main = "Histogram of KS pvalue",
+     xlab = "P-Value")
+
+hist(ks_results_log_normal_data$KS_Statistics,
+     breaks = 50,
+     main = "Histogram of KS statistics",
+     xlab = "P-Value")
+```
+
+the results above indicate that the log-normal model fits the data, but further analysis is required.
+
+### KS test by gender
+Moreover, the testing above assumes a single distribution model, while we assume mixture model, thus it might be beneficial to split the data according to the sex and apply KS test per gender data.
+
+```{r separating the feature data to genders and apply ks test,warning=FALSE,include=FALSE}
+gender_sex <- full_relevant_data$Sex
+feature_data_for_gender_ks_test <- relevant_data
+ks_results_per_feature <- lapply(feature_data_for_gender_ks_test,
+                                 FUN = function(x){applyKSTestForMixtureFeature(x,gender_sex)})
+men_ks_test <- lapply(ks_results_per_feature, function(x){x$men})
+women_ks_test <- lapply(ks_results_per_feature, function(x){x$women})
+```
+
+```{r plotting the ks by gender statistic}
+hist(unlist(lapply(men_ks_test, function(x){x$statistic})),
+     breaks = 50,
+     main = "KS statistic histogram",sub = "men",
+     xlab = "KS-statistic"
+     )
+hist(unlist(lapply(women_ks_test, function(x){x$statistic})),
+     breaks = 50,
+     main = "KS statistic histogram",sub = "women",
+     xlab = "KS-statistic"
+     )
+```
+
+```{r histograms of KS pvalue by gender}
+hist(unlist(lapply(men_ks_test, function(x){x$p.value})),
+     breaks = 50,
+     main = "KS pvalue histogram",sub = "men",
+     xlab = "KS-pvalue"
+     )
+hist(unlist(lapply(women_ks_test, function(x){x$p.value})),
+     breaks = 50,
+     main = "KS pvalue histogram",sub = "women",
+     xlab = "KS-pvalue"
+     )
+
+```
+
+looking at the last histogram it is clear that the null hypothesis is probably not true since the p-value doesn't follow the expected uniform distribution.
+
+## Validating the log-normal transformations
+
+To validate the log transformation we examine if the third and froth moment of the logged data follow the expected behavior of the moments of normal distribution - 
+\[
+E(X^3) = 0 \\
+E(X^4) = 3
+\]
+```{r validate 3rd and 4th moment}
+data_for_log_and_scaled <- sapply(relevant_data, prepareDataForLogTransformation)
+data_for_log_and_scaled %<>% data.frame()
+logged_and_scaled <- sapply(data_for_log_and_scaled, function(x)
+  {
+  scale(log(x))
+  })
+logged_and_scaled %<>% data.frame()
+moments_validation <- sapply(logged_and_scaled, validateMoments)
+moments_validation %<>% t()
+
+hist(moments_validation[,1],breaks = 100, main = "Histogram of 3rd moment")
+hist(moments_validation[,2],breaks = 100, main = "Histogram of 4th moment")
+```
+
+
+```{r standard deviation of the third moment}
+sd(moments_validation[,1])
+(4 / sqrt(sapply(data_for_log_and_scaled, length)))[1]
+```
+
+Here we can see that some features do not follow the log-normal assumption. We can drill down and see some examples of features that violates our model:
+```{r log normal violating features}
+extreme_feature_name_fourth_moment <- names(which.max(moments_validation[,2]))
+
+extreme_feature_name_third_moment <- names(which.max(moments_validation[,1]))
+
+hist(logged_and_scaled[extreme_feature_name_fourth_moment][,1]
+     ,breaks = 100
+     ,main = "Histogram of maximal frouth moment feature"
+     ,xlab = "Value")
+
+summary(logged_and_scaled[extreme_feature_name_fourth_moment][,1])
+head(sort(logged_and_scaled[extreme_feature_name_fourth_moment][,1], decreasing = F),10)
+
+hist(logged_and_scaled[extreme_feature_name_third_moment][,1]
+  , breaks = 100
+  ,main = "Histogram of maximal third moment feature"
+  ,xlab = "Value")
+summary(logged_and_scaled[extreme_feature_name_third_moment][,1])
+
+quantile(logged_and_scaled[extreme_feature_name_third_moment][,1], 0.02, na.rm = T)
+sum(logged_and_scaled[extreme_feature_name_third_moment][,1] > 6, na.rm = T)
+head(sort(logged_and_scaled[extreme_feature_name_third_moment][,1], decreasing = T),5)
+prop.table(table(full_relevant_data$Sex[logged_and_scaled[extreme_feature_name_third_moment][,1] >= 6]))
+prop.table(table(full_relevant_data$Sex))
+```
+
+here we see that in the first case the problem can be addressed by outlier removal but in the second case it is not the case.
+
+### Deeper dive to skewed distribution analysis
+
+We take a deeper look in the distributions that show high skewness:
+```{r Kurtosis features}
+head(rownames(moments_validation)[order(moments_validation[,2],decreasing = T)],5)
+
+hist(logged_and_scaled$X25069.2.0, breaks = 100)
+summary(logged_and_scaled$X25069.2.0)
+
+hist(logged_and_scaled$X25068.2.0, breaks = 100)
+summary(logged_and_scaled$X25068.2.0)
+
+hist(logged_and_scaled$X25075.2.0, breaks = 100)
+summary(logged_and_scaled$X25075.2.0)
+
+hist(logged_and_scaled$X25077.2.0, breaks = 100)
+summary(logged_and_scaled$X25077.2.0)
+
+hist(logged_and_scaled$X25122.2.0, breaks = 100)
+summary(logged_and_scaled$X25122.2.0)
+```
+
+And it seems that those distributions are indeed centered, but they have one or two outliers.
+
+```{r skewed features}
+head(rownames(moments_validation)[order(moments_validation[,1],decreasing = T)],5)
+
+hist(logged_and_scaled$X25147.2.0, breaks = 100)
+summary(logged_and_scaled$X25147.2.0)
+
+hist(logged_and_scaled$X25146.2.0, breaks = 100)
+summary(logged_and_scaled$X25146.2.0)
+
+hist(logged_and_scaled$X25115.2.0, breaks = 100)
+summary(logged_and_scaled$X25115.2.0)
+
+hist(logged_and_scaled$X25131.2.0, breaks = 100)
+summary(logged_and_scaled$X25131.2.0)
+
+hist(logged_and_scaled$X25130.2.0, breaks = 100)
+summary(logged_and_scaled$X25130.2.0)
+```
+
+Summing the results of the above analysis we've decided to trim the logged data using the following trimming schema:
+1. Any value outside the interval $(-5,10)$ is winzorised.
+2. If the minimum higher than -5 but the 2nd minimal is higher (say -4, -2.8) we trim the minimum.
+3. The upper tail is trimmed only at 10
+
+## Composite vs simple hypothesis testing
+First we test the single distribution vs composite distribution hypotheses:
+\[
+H_0:f_X(x) = f_X(x) \\
+H_1:f_X(x) = pf_X(x) + (1-p)g_X(x)
+\]
+
+```{r composite hypothesis log-normal assumption,warning=FALSE,include=FALSE}
+hypothesis_result <- 
+ sapply(relevant_data, function(x){
+   simpleDistributionVsCompositeDistribution(x,
+ full_relevant_data$Sex,"L")
+ })
+```
+
+hypothesis testing:
+```{r single distribution vs composite distribution hypothesis testing}
+hist(hypothesis_result, breaks = 70, main = "llrt of simple vs composite hypothesis")
+abline(v = qexp(0.99,0.5), col = "red")
+mean(hypothesis_result > qexp(0.99,0.5))
+```
+for 96% of the features we reject the null hypothesis.
+
+Next we plot a histogram for the features that we haven't rejected the null hypothesis for. The goal is to try and characterize them:
+```{r check which features do not reject the null hypothesis}
+not_rejecting_the_null_hypothesis <- names(which(hypothesis_result < qchisq(0.99,2)))
+
+i <- 1
+
+df <- data.frame(feature = full_relevant_data[not_rejecting_the_null_hypothesis[i]],
+                 "Sex" = full_relevant_data$Sex)
+bioBankHistogramBySex(df,not_rejecting_the_null_hypothesis[i])
+names(df) = c("Feature","Sex")
+df %>% 
+  group_by(Sex) %>% 
+  filter(!is.na(Feature)) %>% 
+  summarise(average = mean(Feature), minimun = min(Feature), maximum = max(Feature), std = sd(Feature))
+```
+
+### Summarizng the first hypothesis test
+
+In order to decide for which features we reject the null hypothesis we compare the $llrt$ with the critical value of the proper $\chi^2$ statistic. Using Wald's theorem we know that under the null hypothesis the llrt is distributed $\chi^2$ with $4-2$ df (We have 2 parameters in the null hypothesis and 4 in the alternative).
+The red line in the above histogram indicate the location of the rejecting limit. Moreover an inspection of the non rejected features indicate that those features have low within variance. This analysis is presented in the following histogram:
+```{r comparing within std between features}
+std_non_rejected <- computingStandardDeviationWithInGroups(not_rejecting_the_null_hypothesis)
+hist(std_non_rejected$men_std,breaks = 5, col = rgb(1,0,1,alpha = 0.2))
+hist(std_non_rejected$women_std,breaks = 5, col = rgb(1,1,0,alpha = 0.2))
+```
+
+# Mixture model - pure type vs Mixture of Mixtures
+Our main focus is on testing our mixture of mixture model, to test these hypotheses we apply the composite hypothesis log-likelihood ratio test.
+
+## Log normal assumption
+
+We start with assuming log-normal model
+```{r compute llrt for mixture models assuming log-normal ,warning=FALSE,include=FALSE}
+load("~/mastersdegree/Thesis/DAPHNA_JOEL/BioBank_data_analysis/shiny_app/EM_results_pure_type_vs_mixture_model.RData")
+```
+
+Now, We plot the llrt results:
+```{r plotting llrt results}
+composite_hypothesis_result_llrt <- 
+  unlist(lapply(composite_hypothesis_result, function(x){x$llrt}))
+hist(composite_hypothesis_result_llrt, breaks = 50, 
+     main = "Log likelihood ratio pure type vs mixture model",
+     xlab = "LLRT")
+abline(v = qexp(0.99,0.5), col = "red")
+```
+(red line indicating the $99\%$ percentile of $exp(\frac{1}{2})$).
+
+```{r compute t test and cohens d for gender diff ,warning=FALSE,include=FALSE}
+load("~/mastersdegree/Thesis/DAPHNA_JOEL/BioBank_data_analysis/shiny_app/Cohens_D_and_T_test.RData")
+```
+
+
+```{r analysis of t test and cohens d ,warning=FALSE,include=FALSE}
+t_test_by_gender_analysis <-
+  lapply(t_test_and_cohens_d_by_gender, function(x){x$t_test})
+```
+
+### Analyzing low llrt
+We see that some features have llrt less than 1 - let's review them separately.
+```{r validating weird llrt, warning=FALSE,include=FALSE}
+composite_hypothesis_result_llrt %<>% data.frame()
+names(composite_hypothesis_result_llrt) <- "llrt"
+
+composite_hypothesis_result_llrt$feature_id <- 
+  rownames(composite_hypothesis_result_llrt)
+
+list_of_zero_llrt_features_pure_type_vs_mix_model <- composite_hypothesis_result_llrt$feature_id[
+  which(composite_hypothesis_result_llrt$llrt < 0)]
+```
+
+First we notice that one feature has Nan llrt:
+```{r manual examination of low llrt}
+X25098.2.0 <- na.omit(relevant_data$X25098.2.0)
+X25098.2.0[X25098.2.0 > 0] %>% 
+  logNormalDataPreparation %>% 
+  summary()
+X25098.2.0[X25098.2.0 > 0] %>% 
+  logNormalDataPreparation %>% 
+  hist(., breaks = 100)
+
+pureTypeMixtureVsCompositeMixture(X25098.2.0,
+full_relevant_data$Sex,"L")
+
+```
+
+Checking the lowest llrt features:
+```{r analysis of low llrt features pure type vs mixture model}
+low_llrt_features <- composite_hypothesis_result_llrt[
+  composite_hypothesis_result_llrt$feature_id %in% list_of_zero_llrt_features_pure_type_vs_mix_model,]
+```
+Selecting the lowest llrt feature
+```{r analyzing low llrt for main hypothesis, warning=FALSE,include=FALSE}
+less_than_zero_llrt_features_col_location <- 
+  names(relevant_data) %in% 
+  low_llrt_features$feature_id
+
+data_for_composite_hypothesis_testing_small_llrt <- 
+  relevant_data[,less_than_zero_llrt_features_col_location]
+
+composite_hypothesis_less_than_zero_llrt_em <- 
+lapply(data_for_composite_hypothesis_testing_small_llrt, 
+       function(x){
+  pureTypeMixtureVsCompositeMixture(x,
+full_relevant_data$Sex,"L",T)
+})            
+```
+
+Selecting the smallest value:
+```{r analyzing low llrt,warning=FALSE,include=FALSE}
+llrt_less_than_0 <- 
+  lapply(composite_hypothesis_less_than_zero_llrt_em, function(x)x$llrt)
+
+minimal_llrt_feature <- which.min(llrt_less_than_0)
+
+composite_hypothesis_less_than_zero_llrt_em[[minimal_llrt_feature]]$alternative_hypothesis$m_parameters
+
+tail(composite_hypothesis_less_than_zero_llrt_em[[minimal_llrt_feature]]$alternative_hypothesis$llk,1)
+
+composite_hypothesis_less_than_zero_llrt_em[[minimal_llrt_feature]]$null_hypothesis
+```
+
+Plotting the distribution:
+
+```{r low llrt log normal data}
+
+X25799.2.0  <- na.omit(relevant_data$X25799.2.0)
+X25799.2.0 %>% 
+  prepareDataForLogTransformation() %>% 
+  log() %>% 
+  summary()
+
+gender_data_for_X25799.2.0 <- 
+  full_relevant_data$Sex[!is.na(relevant_data$X25799.2.0)]
+
+data_for_ggplot_X25799.2.0 = data.frame(value = X25799.2.0 %>% 
+  logNormalDataPreparation() 
+  ,bio_sex = gender_data_for_X25799.2.0)
+
+ggplot(data_for_ggplot_X25799.2.0, aes(value, fill = factor(bio_sex))) + 
+  geom_histogram(bins = 100, aes(y = (..density..))) + 
+  geom_vline(xintercept = c(composite_hypothesis_less_than_zero_llrt_em[[minimal_llrt_feature]]$null_hypothesis$men_mean, composite_hypothesis_less_than_zero_llrt_em[[minimal_llrt_feature]]$null_hypothesis$women_mean),linetype="dotted", 
+                color = "blue", size=0.3) +
+  geom_vline(xintercept = c(composite_hypothesis_less_than_zero_llrt_em[[minimal_llrt_feature]]$alternative_hypothesis$m_parameters$mu_1, composite_hypothesis_less_than_zero_llrt_em[[minimal_llrt_feature]]$alternative_hypothesis$m_parameters$mu_2),linetype="dotted", 
+                color = "black", size=0.3) 
+```
+
+The vertical lines indicate the location of the null hypothesis and alternative gender means (blue and black respectively).
+
+### Analysis of composite hypothesis testing:
+
+In order to determine the number of significant features we use Wald's theorem again this time with $\chi^2_2$ distribution.
+```{r number of significant features composite hypothesis}
+critical_value <- qexp(0.99,1/2)
+
+composite_hypothesis_result_llrt$reject_the_null_hypothesis <- 
+  composite_hypothesis_result_llrt$llrt > critical_value
+
+composite_hypothesis_result_llrt$reject_the_null_hypothesis %>% 
+  table() %>% 
+  prop.table()
+```
+So, for the small majority of the features we reject the null hypothesis.
+
+#### Distribution of the p-value
+One aspect of analysis is the distribution of the $p-value$. If it doesn't follow a uniform distribution is may imply that the null hypothesis isn't true.
+```{r distribution of pvalue}
+ifelse(composite_hypothesis_result_llrt$llrt < 0,
+       0 , composite_hypothesis_result_llrt$llrt)
+pvalue <- 1 - pchisq(ifelse(composite_hypothesis_result_llrt$llrt < 0, 0 , composite_hypothesis_result_llrt$llrt),2)
+hist(pvalue, breaks = 100)
+```
+The distribution follows a U shape. If we plot the features and their corresponding p-value:
+```{r distribution of pvalue and features}
+composite_hypothesis_result_llrt$pvalue <- 1 - pchisq(ifelse(composite_hypothesis_result_llrt$llrt < 0, 0 , composite_hypothesis_result_llrt$llrt),2)
+ggplot(composite_hypothesis_result_llrt, aes(feature_id, pvalue)) + 
+  geom_point() + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
+```
+
+While it's hard to read the features names we can see some pattern in the distribution of the p-value which might indicate that some regions of the brain are pure masculine-feminine and some are mixture of the two.
+
+<!-- # Normal distribution assumption analysis -->
+<!-- Next we repeat the analysis, but assuming normal distribution instead of log-normal. -->
+
+<!-- ## Simple vs composite -->
+<!-- ```{r composite hypothesis normal assumption,warning=FALSE,include=FALSE} -->
+<!-- simple_hypothesis_result_normal_assumption <-  -->
+<!-- sapply(relevant_data, function(x){ -->
+<!--   simpleDistributionVsCompositeDistribution(x, -->
+<!-- full_relevant_data$Sex,"N") -->
+<!-- }) -->
+<!-- ``` -->
+
+<!-- ### Summarizng the simple vs composite hypothesis -->
+
+<!-- As before, we use the same critical value to reject the null hypothesis. -->
+
+<!-- ```{r computing the rejection region normal assumption} -->
+<!-- critical_value <- qchisq(0.99,3) -->
+<!-- simple_hypothesis_result_normal_assumption %<>% as.data.frame() -->
+<!-- names(simple_hypothesis_result_normal_assumption) <- c("llrt") -->
+<!-- simple_hypothesis_result_normal_assumption$reject_the_null_hypothesis <-  -->
+<!--   simple_hypothesis_result_normal_assumption$llrt > critical_value -->
+<!-- simple_hypothesis_result_normal_assumption$reject_the_null_hypothesis %>% -->
+<!--   table() %>%  -->
+<!--   prop.table() -->
+<!-- ``` -->
+<!-- And we can see that almost $90\%$ of the features are assumed to be a mixture model and not pure, single distribution. -->
+
+<!-- ## Pure type mixture model vs mixture of mixture -->
+<!-- As before, we now test the hypotheses that the data was generated by a mixture model of 2 pure types (null) vs the alternative, that the data is generated by a mixture of mixtures. -->
+<!-- ```{r removing non significant features, warning=FALSE,include=FALSE} -->
+<!-- composite_features_normal <- rownames(simple_hypothesis_result_normal_assumption[simple_hypothesis_result_normal_assumption$reject_the_null_hypothesis,]) -->
+
+<!-- which_features_are_sig_normal <- names(relevant_data) %in% composite_features_normal -->
+
+<!-- data_for_composite_hypothesis_testing_normal_assumption <-  -->
+<!--   relevant_data[,which_features_are_sig_normal] -->
+<!-- ``` -->
+
+<!-- using EM we can compute the llrt: -->
+<!-- Now we apply the composite hypothesis log-likelihood ratio test: -->
+<!-- ```{r compute llrt for mixture models under normal assumption,warning=FALSE,include=FALSE} -->
+<!-- composite_hypothesis_result_normal_assumption <-  -->
+<!-- sapply(data_for_composite_hypothesis_testing_normal_assumption, function(x){ -->
+<!--   pureTypeMixtureVsCompositeMixture(x, -->
+<!-- full_relevant_data$Sex,"N") -->
+<!-- }) -->
+<!-- ``` -->
+<!-- As before, we begin with visual inquiry: -->
+<!-- Now, We plot the llrt results: -->
+<!-- ```{r plotting llrt results for normal data} -->
+<!-- hist(composite_hypothesis_result_normal_assumption,  -->
+<!--      col = rgb(1,0,1,alpha = 0.3), breaks = 50, -->
+<!--      main = "Histogram of llrt for normal data") -->
+<!-- ``` -->
+<!-- And we can compare the performance of the log-normal assumption vs the normal assumption: -->
+<!-- ```{r comparing normal to log normal assumption} -->
+<!-- hist(composite_hypothesis_result_normal_assumption,  -->
+<!--      col = rgb(1,0,1,alpha = 0.3), breaks = 50, -->
+<!--      main = "Histogram of llrt for normal data") -->
+<!-- hist(composite_hypothesis_result[,1],  -->
+<!--      col = rgb(1,1,0,alpha = 0.3), -->
+<!--      breaks = 50, add = T) -->
+<!-- legend("topright", c("Normal", "Log normal"), -->
+<!--        col=c("Pink", "Orange"), lwd=10) -->
+<!-- ``` -->
+
+<!-- Analysis of llrt: -->
+<!-- ```{r number of significant features composite hypothesis normal daat assumption} -->
+<!-- critical_value <- qexp(0.99,1/2) -->
+<!-- composite_hypothesis_result_normal_assumption %<>% as.data.frame() -->
+<!-- names(composite_hypothesis_result_normal_assumption) <- c("llrt") -->
+<!-- composite_hypothesis_result_normal_assumption$reject_the_null_hypothesis <-  -->
+<!--   composite_hypothesis_result_normal_assumption$llrt > critical_value -->
+<!-- composite_hypothesis_result_normal_assumption$reject_the_null_hypothesis %>%  -->
+<!--   table() %>%  -->
+<!--   prop.table() -->
+<!-- ``` -->
+<!-- And we see that the normal assumption yields poor results when compared to the log-normal data. -->
+
+# Summary
+

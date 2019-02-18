@@ -1,0 +1,7 @@
+library(Jmisc)
+sourceAll("~/mastersdegree/Thesis/DAPHNA_JOEL/Mixture_models/EM/Estep/")
+sourceAll("~/mastersdegree/Thesis/DAPHNA_JOEL/Mixture_models/EM/Mstep/")
+sourceAll("~/mastersdegree/Thesis/DAPHNA_JOEL/Mixture_models/EM/EM/")
+source("~/mastersdegree/Thesis/DAPHNA_JOEL/Mixture_models/EM/EM_Class/source_EM_class.R")
+source("~/mastersdegree/Thesis/DAPHNA_JOEL/Mixture_models/compute_log_likelihood_for_normal.R")
+source("~/mastersdegree/Thesis/DAPHNA_JOEL/Mixture_models/EM/main_function_for_gender_mixture_model.R")

@@ -1,0 +1,151 @@
+---
+title: "Mock_data_power_estimation_using_KLD"
+author: "Nitay Alon"
+date: "6/14/2018"
+output: html_document
+---
+```{r Loading the data, cache=FALSE, include=FALSE}
+# library(plotly)
+setwd("~/mastersdegree/Thesis/DAPHNA_JOEL/Results/Reports/")
+source("~/mastersdegree/Thesis/DAPHNA_JOEL/Grid_search/source_script_grid_search.R")
+llk_breaks <- seq(0,6,length.out = 100)
+pvalue_breaks <- seq(0,1,length.out = 50)
+```
+
+In this report I'll go through a method to estimate the power of a LLRT for a given sample given that the alternative is true. In the framework of our research we assume the following model:
+\[
+f_{men} = p * f_{masculine} + (1-p) * f_{feminine} \\
+f_{women} = q * f_{masculine} + (1-q) * f_{feminine}
+\]
+under the null hypothesis:
+\[
+p = 1 \\
+q = 0
+\]
+and under the  alternative:
+\[
+0 << q < p << 1
+\]
+#Compute power under the alternative
+Compute KLD when the sex means are apart:
+```{r "Compute KLD big distance"}
+theta_men <- 0.2
+theta_women <- -theta_men
+p <- 0.85; q <- 0.1
+sigma_men <- sigma_women <- 0.98
+N <- 5e3
+pop.data <- sampleMockData(theta_men,theta_women, p,q,sigma_men,
+                           N,T)
+pop.data$men_avg
+pop.data$women_avg
+mean(c(pop.data$men,
+       pop.data$women))
+
+var(c(pop.data$men,
+       pop.data$women))
+
+hist(pop.data$men, breaks = sqrt(N), col = "red")
+hist(pop.data$women, breaks = sqrt(N), col = "blue", add = T)
+normalized_pop <- normalizingData(pop.data$men, 
+                                  pop.data$women)
+mean(c(normalized_pop$men,
+       normalized_pop$women))
+
+var(c(normalized_pop$men,
+       normalized_pop$women))
+
+simpleKLDComputation(normalized_pop$men, p, theta_men,theta_women,
+                     sigma_men, sigma_women, 
+                     mean(pop.data$men), var(pop.data$men))
+
+```
+
+Compute KLD when the sex means are close:
+```{r "Compute KLD big distance"}
+theta_men <- 0.1
+theta_women <- -theta_men
+p <- 0.85; q <- 0.1
+sigma_men <- sigma_women <- 0.98
+N <- 5e3
+pop.data <- sampleMockData(theta_men,theta_women, p,q,sigma_men,
+                           N,T)
+pop.data$men_avg
+pop.data$women_avg
+mean(c(pop.data$men,
+       pop.data$women))
+
+var(c(,
+       pop.data$women))
+
+hist(pop.data$men, breaks = sqrt(N), col = "red")
+hist(pop.data$women, breaks = sqrt(N), col = "blue", add = T)
+normalized_pop <- normalizingData(pop.data$men, 
+                                  pop.data$women)
+mean(c(normalized_pop$men,
+       normalized_pop$women))
+
+var(c(normalized_pop$men,
+       normalized_pop$women))
+
+simpleKLDComputation(normalized_pop$men, p, theta_men,theta_women,
+                     sigma_men, sigma_women, 
+                     mean(pop.data$men), var(pop.data$men))
+
+```
+#Apply the KLD procedure over the data
+Now we use the same method to estimate the probability of making a discovery over the data. We begin with one file.
+```{r}
+brain.data <- read.csv("~/mastersdegree/Thesis/DAPHNA_JOEL/Data/data_GSP_VBM.csv")
+res <- computeMLEOverGridMixtureModel(brain.data)
+```
+Using the MLE's we can compute the KLD bound:
+```{r}
+empirical_KLD <- computeKLDOverFile(brain.data, res)
+hist(empirical_KLD$X0, breaks = seq(0,max(empirical_KLD$X0), length.out = 50),
+     main = paste0("Histogram of KLD (sample size= 662), feature = GSP_VBM"))
+```
+Now we apply the same routine over other files:
+```{r}
+brain.data <- read.csv("~/mastersdegree/Thesis/DAPHNA_JOEL/Data/data_GSP_thickness.csv")
+names(brain.data)
+res_GSP_thickness <- computeMLEOverGridMixtureModel(brain.data)
+empirical_KLD_GSP_thickness <- computeKLDOverFile(brain.data, res_GSP_thickness)
+hist(empirical_KLD_GSP_thickness$X0, 
+     breaks = seq(0,max(empirical_KLD_GSP_thickness$X0), length.out = 50),
+     main = paste0("Histogram of KLD (sample size= 662), feature = GSP_thickness"))
+```
+We can see that for some features we get a strong evidance in favor of the alternative ($KLD > 4$). Applying the procedure over the rest of the brain data:
+```{r "applying grid search and KLD over data file", echo=FALSE}
+gridAndKLDOverFile <- function(file_name){
+  brain_data <- read.csv(
+    file.path("~/mastersdegree/Thesis/DAPHNA_JOEL/Data/",
+              file_name))
+  mle_per_feature <- computeMLEOverGridMixtureModel(brain_data)
+  empirical_KLD_per_feature <- computeKLDOverFile(brain_data, mle_per_feature)
+  hist(empirical_KLD_GSP_thickness$X0, 
+     breaks = seq(0,max(empirical_KLD_GSP_thickness$X0), length.out = 50),
+     main = paste0("Histogram of KLD (sample size= 662), feature = " ,file_name))
+  return(list(
+    mle_per_feature <- cbind(file_name, mle_per_feature),
+    KLD_per_feature <- empirical_KLD_GSP_thickness
+  ))
+}
+```
+```{r}
+file.list <- c(
+  # "data_GSP_thickness.csv",
+  "data_GSP_volume_divide_power.csv",
+  "data_GSP_volume.csv"
+  # "data_GSP_VBM.csv"
+  )
+results <- list()
+for(file.name in file.list){
+  tmp <- gridAndKLDOverFile(file.name)
+  results[[file.name]] <- tmp
+}
+hist(tmp[[2]]$X0, 
+     breaks = seq(0,max(tmp[[2]]$X0), length.out = 50),
+     main = paste0("Histogram of KLD (sample size= 662), feature = " ,file.name))
+```
+
+
