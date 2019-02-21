@@ -2,7 +2,8 @@
 # distribution hypothesis test
 simpleDistributionVsCompositeDistribution <- function(feature_data
                                                       ,gender_data
-                                                      ,distribution_model=c("LogNormal","Normal"))
+                                                      ,distribution_model=c("LogNormal","Normal"),
+                                                      is_data_scaled_and_logged = T)
 {
   distribution_model=match.arg(distribution_model)
   
@@ -10,19 +11,28 @@ simpleDistributionVsCompositeDistribution <- function(feature_data
   full_data <- na.omit(full_data) %>% as.data.frame()
   names(full_data) <- c("value","bio_sex")
   
-  processed_data <- switch (
-    distribution_model,
-    LogNormal = logNormalDataPreparation(full_data$value[full_data$value > 0]),
-    Normal = normalDataPreparation(full_data$value)
-                        )
-  
-  data_for_EM <- switch (
-    distribution_model,
-    LogNormal = full_data[full_data$value > 0,],
-    Normal = full_data
-                        )
+  if(!is_data_scaled_and_logged)
+  {
+    processed_data <- switch (
+      distribution_model,
+      LogNormal = logNormalDataPreparation(full_data$value[full_data$value > 0]),
+      Normal = normalDataPreparation(full_data$value)
+                          )
     
-  data_for_EM$value <- processed_data
+    data_for_EM <- switch (
+      distribution_model,
+      LogNormal = full_data[full_data$value > 0,],
+      Normal = full_data
+                          )
+      
+    data_for_EM$value <- processed_data
+  }
+  else
+  {
+    processed_data <- full_data$value
+    data_for_EM <- full_data
+    names(data_for_EM) <- c("bio_sex","value")
+  }
   # null hypothesis llk
   null_hypothesis_llk <- singleDistributionHypothesisLoglikelihood(processed_data)
   # composite hypothesis llk

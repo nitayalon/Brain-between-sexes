@@ -9,7 +9,11 @@ validateEStepParameters <- function(parameters)
   {
     return(F)
   }
-  if(parameters$sigma_2 < 0)
+  if(parameters$sigma_2_men < 0)
+  {
+    return(F)
+  }
+  if(parameters$sigma_2_women < 0)
   {
     return(F)
   }

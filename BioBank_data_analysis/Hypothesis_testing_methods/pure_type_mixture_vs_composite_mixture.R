@@ -3,7 +3,8 @@
 pureTypeMixtureVsCompositeMixture <- function(feature_data
                                               ,gender_data
                                               ,distribution_model=c("LogNormal","Normal")
-                                              ,return_full_data = F)
+                                              ,return_full_data = F,
+                                              data_needs_preparation = T)
 {
   distribution_model=match.arg(distribution_model)
   
@@ -11,16 +12,23 @@ pureTypeMixtureVsCompositeMixture <- function(feature_data
   full_data <- na.omit(full_data) %>% as.data.frame()
   names(full_data) <- c("value","bio_sex")
   
-  processed_data <- switch (distribution_model,
-                            LogNormal = logNormalDataPreparation(full_data$value[full_data$value > 0]),
-                            Normal = normalDataPreparation(full_data$value)
-  )
-  data_for_EM <- switch (distribution_model,
-                         LogNormal = full_data[full_data$value > 0,],
-                         Normal = full_data
-  )
-  
-  data_for_EM$value <- processed_data
+  if(data_needs_preparation)
+  {
+    processed_data <- switch (distribution_model,
+                              LogNormal = logNormalDataPreparation(full_data$value[full_data$value > 0]),
+                              Normal = normalDataPreparation(full_data$value)
+    )
+    data_for_EM <- switch (distribution_model,
+                           LogNormal = full_data[full_data$value > 0,],
+                           Normal = full_data
+    )
+    
+    data_for_EM$value <- processed_data
+  }
+  else
+  {
+    data_for_EM <- full_data
+  }
   # null hypothesis llk
   null_hypothesis_llk <- 
     pureTypeMixtureModelHypothesis(data_for_EM)

@@ -35,7 +35,14 @@ MStep <- function(parameters
   sigma_2 <- as.numeric((I %*% (men - mu_1)^2 + (1-I) %*% (men - mu_2)^2 + 
                 J %*% (women - mu_1)^2 + (1-J) %*% (women - mu_2)^2) / 
     (m + n))
-  
-  m_step <- list(p = p, q = q, mu_1 = mu_1, mu_2 = mu_2, sigma_2 = sigma_2)
+  sigma_2_men <- as.numeric((I %*% (men - mu_1)^2  + J %*% (women - mu_1)^2) / 
+                          (sum(I) + sum(J)))  
+  sigma_2_women <- as.numeric(
+    ((1-I) %*% (men - mu_2)^2 +  (1-J) %*% (women - mu_2)^2) / 
+                            (m + n - (sum(I) + sum(J)))
+    )  
+  # m_step <- list(p = p, q = q, mu_1 = mu_1, mu_2 = mu_2, sigma_2 = sigma_2)
+  m_step <- list(p = p, q = q, mu_1 = mu_1, mu_2 = mu_2, 
+                 sigma_2_men = sigma_2_men, sigma_2_women = sigma_2_women)
   return(m_step)
 }

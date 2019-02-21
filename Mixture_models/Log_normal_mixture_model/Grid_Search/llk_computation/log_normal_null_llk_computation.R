@@ -4,8 +4,10 @@ logNormalNullLlkComputation <- function(feature_data,
 {
   if(is_bio_bank_data)
   {
-    men <- feature_data$men
-    women <- feature_data$women
+    # men <- feature_data$men
+    # women <- feature_data$women
+    men <- feature_data$value[feature_data$bio_sex == 1]
+    women <- feature_data$value[feature_data$bio_sex == 0]
   }
   else
   {
@@ -16,9 +18,11 @@ logNormalNullLlkComputation <- function(feature_data,
   theta_fem <- mean(women)
   p <- 1
   q <- 0
-  sigma_2 = computePooledVariance(men,women)
-  parameter_row <- c(theta_mas,theta_fem,p,q,sigma_2)
-  llk <- logLikelihoodComputationForFeatureSet(feature_data,parameter_row,
+  sigma_2_men = sd(men)
+  sigma_2_women = sd(women)
+  parameter_row <- c(theta_mas,theta_fem,p,q,sigma_2_men,sigma_2_women)
+  llk <- logLikelihoodComputationForFeatureSet(feature_data,
+                                               parameter_row,
                                                is_bio_bank_data)
   return(list(llk = llk,
               men_mean = theta_mas,
