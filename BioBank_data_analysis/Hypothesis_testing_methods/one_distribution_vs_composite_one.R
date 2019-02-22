@@ -7,7 +7,7 @@ simpleDistributionVsCompositeDistribution <- function(feature_data
 {
   distribution_model=match.arg(distribution_model)
   
-  full_data <- cbind(feature_data, gender_data)
+  full_data <- cbind(feature_data,gender_data)
   full_data <- na.omit(full_data) %>% as.data.frame()
   names(full_data) <- c("value","bio_sex")
   
@@ -31,7 +31,7 @@ simpleDistributionVsCompositeDistribution <- function(feature_data
   {
     processed_data <- full_data$value
     data_for_EM <- full_data
-    names(data_for_EM) <- c("bio_sex","value")
+    names(data_for_EM) <- c("value","bio_sex")
   }
   # null hypothesis llk
   null_hypothesis_llk <- singleDistributionHypothesisLoglikelihood(processed_data)
