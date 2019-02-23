@@ -4,7 +4,11 @@
 
 library(dplyr)
 library(ggplot2)
+library(Jmisc)
+
+source("~/Documents/Human_brain_research/DAPHNA_JOEL/Mixture_models/source_script.R")
 total.brain.volum.data <- bio.bank.data %>% select("X25010.2.0","X25004.2.0")
+
 # Apply LM on a single feature:
 feature.location <- sample(6:dim(full_relevant_data)[2], 1, F)
 
@@ -37,11 +41,25 @@ residuals.first.feature <-
 ggplot(residuals.first.feature, aes(x = trimmed_z_score, fill = factor(sex))) + 
   geom_histogram(bins = 150)
 
+### Testing the function:
+feature.name <- names(full_relevant_data)[feature.location]
+test.residuals.function <- applyLinearModelOverBrainFeature(feature.name)
+
+ggplot(residuals.first.feature, 
+       aes(x = trimmed_z_score, fill = factor(sex))) + 
+  geom_histogram(bins = 150)
+
+ggplot(test.residuals.function, 
+       aes(x = trimmed_z_score, fill = factor(sex))) + 
+  geom_histogram(bins = 150)
+
 # Now the data is scaled and logged
-simple.vs.compostie.llrt <- simpleDistributionVsCompositeDistribution(
+simple.vs.compostie.llrt <- 
+  simpleDistributionVsCompositeDistribution(
+  residuals.first.feature$trimmed_z_score,
   residuals.first.feature$sex,
-  residuals.first.feature$trimmed_z_score,"L")
--simple.vs.compostie.llrt
+  "L")
+
 
 t.test(residuals.first.feature$trimmed_z_score[residuals.first.feature$sex == 0],
        residuals.first.feature$trimmed_z_score[residuals.first.feature$sex == 1])
@@ -51,3 +69,11 @@ pure.vs.mixed <-
                                     residuals.first.feature$sex,
                                     distribution_model = "L",
                                     data_needs_preparation = F)
+
+all.hypothesis.test <- 
+  applyHypothesisOverResiduals(test.residuals.function)
+
+list.of.names <- names(full_relevant_data)
+full.function.test <- fullBrainFeatureAnalysis(feature.name,list.of.names)
+full.function.test$hypothesis_results$simple_vs_compostie_llrt
+analyzeFullBrainFeature(full.function.test,plot = T)

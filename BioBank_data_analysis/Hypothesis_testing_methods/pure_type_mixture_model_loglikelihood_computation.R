@@ -1,5 +1,6 @@
 #' Computing llk for pure types mixture model
-pureTypeMixtureModelHypothesis <- function(feature_data,is_data_processed = F)
+pureTypeMixtureModelHypothesis <- function(feature_data,
+                                           is_data_processed = F)
 {
   if(is_data_processed)
   {

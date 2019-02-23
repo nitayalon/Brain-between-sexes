@@ -47,7 +47,9 @@ pureTypeMixtureVsCompositeMixture <- function(feature_data
   llrt <- tail(composite_hypothesis_llk$llk, n=1) - null_hypothesis_llk$llk
   composite_results <- list(alternative_hypothesis = composite_hypothesis_llk,
                             null_hypothesis = null_hypothesis_llk,
-                            llrt = llrt)
+                            llrt = llrt,
+                            wilks_statistic = 
+                              tail(composite_hypothesis_llk$llk, n=1) - null_hypothesis_llk$llk)
   if(return_full_data)
   {
     return(composite_results)

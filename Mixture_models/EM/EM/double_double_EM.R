@@ -24,7 +24,9 @@ doubleDoubleEM <- function(observations
     men_bar <- mean(observations$men)
     women_bar <- mean(observations$women)
     distributions_parameters <- computeInitParameters(p,q,men_bar,women_bar)
-    m_parameters <- list(p = p, q = q, mu_1 = distributions_parameters$mu_1,
+    m_parameters <- list(p = p, 
+                         q = q, 
+                         mu_1 = distributions_parameters$mu_1,
                          mu_2 = distributions_parameters$mu_2, 
                          sigma_2_men = distributions_parameters$sigma_2,
                          sigma_2_women = distributions_parameters$sigma_2)
