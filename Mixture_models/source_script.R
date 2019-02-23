@@ -2,11 +2,14 @@
 # EM dir:
 source("~/Documents/Human_brain_research/DAPHNA_JOEL/Mixture_models/EM/source_file_EM.R")
 source("~/Documents/Human_brain_research/DAPHNA_JOEL/Mixture_models/EM/main_function_for_gender_mixture_model.R")
+<<<<<<< HEAD
 source("~/Documents/Human_brain_research/DAPHNA_JOEL/Mixture_models/compute_log_likelihood_for_data.R")
 source("~/Documents/Human_brain_research/DAPHNA_JOEL/Mixture_models/compute_log_likelihood_for_normal.R")
 source("~/Documents/Human_brain_research/DAPHNA_JOEL/Mixture_models/compute_loglikelihood_and_mixture_params_per_feature.R")
 source("~/Documents/Human_brain_research/DAPHNA_JOEL/Mixture_models/computing_em_and_llk_for_data_file.R")
 sourceAll("~/Documents/Human_brain_research/DAPHNA_JOEL/Mixture_models/EM/")
+=======
+>>>>>>> d1adb395003c7ddef164ab6333e18b1c800c3e49
 # Remove columns name
 sourceAll("~/Documents/Human_brain_research/DAPHNA_JOEL/Mixture_models/Log_normal_mixture_model/data_processing_methods/")
 source("~/Documents/Human_brain_research/DAPHNA_JOEL/Data/Full_Data/read_data_from_excel_file.R")
