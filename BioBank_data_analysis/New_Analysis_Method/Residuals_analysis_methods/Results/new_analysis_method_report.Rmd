@@ -21,12 +21,12 @@ y = cVolume^\alpha \implies log(y) = log(c) + \alpha log(Volume)
 # Section 2 - Over all results
 ```{r loading the analysis results, warning=FALSE, include=FALSE}
 library(dplyr)
-load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results.RData")
-source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/analyze_full_brain_feature.R")
-source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/method_helper.R")
-source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/load_biobank_data.R")
+load("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results.RData")
+source("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/analyze_full_brain_feature.R")
+source("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/method_helper.R")
+source("~/HumanBrainResearch/BioBank_data_analysis/load_biobank_data.R")
 
-list.of.names <- names(full_relevant_data)[-c(1:5)]
+list.of.names <- names(results.list)
 ```
 
 ## Single distribution vs Mixture model
