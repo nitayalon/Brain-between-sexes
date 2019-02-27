@@ -98,11 +98,11 @@ analyzeFullBrainFeature(results.list[names(results.list) == list_of_mixture_type
 ```
 
 A special interest in our work are features that exhibit strong gender preference:
-```{r features with strong gender preferance}
+```{r features with weak gender preferance}
 mixture_features <- pure_vs_mixture_candidates[list_of_mixture_type_distribution_features]
 
-p_level <- 0.75
-q_level <- 0.25
+p_level <- 0.5
+q_level <- 0.5
 
 gender_preference_features_names <- sapply(mixture_features, 
                   function(x){x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters$p > p_level &&                       x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters$q < q_level})
@@ -113,9 +113,23 @@ gender_preference_features <- mixture_features[gender_preference_features_names]
 
 analyzeFullBrainFeature(gender_preference_features[1],plot = T)
 analyzeFullBrainFeature(gender_preference_features[2],plot = T)
+```
 
-analyzeFullBrainFeature(gender_preference_features[10],plot = T)
-analyzeFullBrainFeature(gender_preference_features[32],plot = T)
+```{r features with strong gender preferance}
+mixture_features <- pure_vs_mixture_candidates[list_of_mixture_type_distribution_features]
+
+p_level <- 0.65
+q_level <- 0.35
+
+gender_preference_features_names <- sapply(mixture_features, 
+                  function(x){x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters$p > p_level &&                       x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters$q < q_level})
+
+gender_preference_features_names %>% table() %>% prop.table()
+
+gender_preference_features <- mixture_features[gender_preference_features_names]
+
+analyzeFullBrainFeature(gender_preference_features[1],plot = T)
+analyzeFullBrainFeature(gender_preference_features[2],plot = T)
 ```
 
 # Summary
