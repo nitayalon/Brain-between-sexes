@@ -15,13 +15,16 @@ Previous research indicated a problem on non normality (highly skewed, kurtosis 
 y = cVolume^\alpha \implies log(y) = log(c) + \alpha log(Volume) 
 \]
 2. Replace each residual with the proper *z-score*
-2.1. Winsorized observations with absolut value over 3 
+2.1. Winsorized observations with absolute value over 3 
 3. Apply un constrained EM over the main hypothesis of our work
 
 # Section 2 - Over all results
 ```{r loading the analysis results, warning=FALSE, include=FALSE}
 library(dplyr)
 load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results.RData")
+source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/analyze_full_brain_feature.R")
+source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/load_biobank_data.R")
+
 list.of.names <- names(full_relevant_data)[-c(1:5)]
 ```
 
@@ -58,4 +61,59 @@ analyzeFullBrainFeature(results.list[names(results.list) == list_of_composite_di
 analyzeFullBrainFeature(results.list[names(results.list) == list_of_composite_distribution_features[10]],plot = T)
 ```
 
+## Pure types vs Mixture model
+
+Next we test the hypothesis of pure types vs mixture model:
+```{r pure type vs mixture model llrt histogram, warning=FALSE, include=FALSE}
+pure_vs_mixture_candidates <- results.list[list_of_composite_distribution_features]
+
+list_of_names_pure_vs_mixture <- names(pure_vs_mixture_candidates)
+
+pure_vs_mixture_model_llrt <- sapply(pure_vs_mixture_candidates, function(x){-2*x$hypothesis_results$pure_vs_mixed_llrt})
+```
+
+```{r histogram of llrt for pure vs composite}
+hist(pure_vs_mixture_model_llrt, breaks = 100, main = "Histogram of llr",sub = "Pure type vs Composite", xlab = "llr")
+rejection_region <- qchisq(0.99,2)
+(pure_vs_mixture_model_llrt > rejection_region) %>% table() %>% prop.table()
+```
+Selecting some examples from both groups for visual inspection, starting with pure types:
+
+```{r low llr feature likely pure types}
+list_of_pure_type_distribution_features <- list_of_names_pure_vs_mixture[pure_vs_mixture_model_llrt < rejection_region]
+
+analyzeFullBrainFeature(results.list[names(results.list) == list_of_pure_type_distribution_features[2]],plot = T)
+
+analyzeFullBrainFeature(results.list[names(results.list) == list_of_pure_type_distribution_features[10]],plot = T)
+```
+
+and mixture features:
+```{r high llr feature likely pure types}
+list_of_mixture_type_distribution_features <- list_of_names_pure_vs_mixture[pure_vs_mixture_model_llrt > rejection_region]
+
+analyzeFullBrainFeature(results.list[names(results.list) == list_of_mixture_type_distribution_features[2]],plot = T)
+
+analyzeFullBrainFeature(results.list[names(results.list) == list_of_mixture_type_distribution_features[10]],plot = T)
+```
+
+A special interest in our work are features that exhibit strong gender preference:
+```{r features with strong gender preferance}
+mixture_features <- pure_vs_mixture_candidates[list_of_mixture_type_distribution_features]
+
+mixture_features[[1]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters$p
+
+mixture_features[[1]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters$q
+
+gender_preference_features_names <- sapply(mixture_features, 
+                  function(x){x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters$p > 0.5 &&                       x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters$q < 0.5})
+
+gender_preference_features_names %>% table() %>% prop.table()
+
+gender_preference_features <- mixture_features[gender_preference_features_names]
+
+analyzeFullBrainFeature(gender_preference_features[1],plot = T)
+
+analyzeFullBrainFeature(gender_preference_features[10],plot = T)
+analyzeFullBrainFeature(gender_preference_features[32],plot = T)
+```
 

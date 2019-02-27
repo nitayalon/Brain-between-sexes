@@ -31,7 +31,7 @@ analyzeFullBrainFeature <- function(full_analysis_results,
       stat_function(geom = "line", 
                     fun = plot_mix_comps,
                     args = list(mu = em_data$mu_2, sigma = sqrt(em_data$sigma_2_women) , lambda = 1 - em_data$p),
-                    colour = "blue", lwd = 1.2) + 
+                    colour = "blue", lwd = 1.2,linetype = "dashed") + 
       stat_function(geom = "line", 
                     fun = plot_mix_comps,
                     args = list(mu = em_data$mu_1, sigma = sqrt(em_data$sigma_2_men), lambda = em_data$q),
@@ -39,7 +39,7 @@ analyzeFullBrainFeature <- function(full_analysis_results,
       stat_function(geom = "line", 
                     fun = plot_mix_comps,
                     args = list(mu = em_data$mu_2, sigma = sqrt(em_data$sigma_2_women) , lambda = 1 - em_data$q),
-                    colour = "red", lwd = 1.0) + 
+                    colour = "red", lwd = 1.0,linetype = "dashed") + 
       ggtitle(paste0("Histogram of gender data"))
     }
 }
