@@ -15,6 +15,7 @@ Previous research indicated a problem on non normality (highly skewed, kurtosis 
 y = cVolume^\alpha \implies log(y) = log(c) + \alpha log(Volume) 
 \]
 2. Replace each residual with the proper *z-score*
+2.1. Winsorized observations with absolut value over 3 
 3. Apply un constrained EM over the main hypothesis of our work
 
 # Section 2 - Over all results
@@ -46,6 +47,15 @@ list_of_single_distribution_features <- list.of.names[simple_vs_mixture_model_ll
 analyzeFullBrainFeature(results.list[names(results.list) == list_of_single_distribution_features[1]],plot = T)
 
 analyzeFullBrainFeature(results.list[names(results.list) == list_of_single_distribution_features[10]],plot = T)
+```
+
+In contrary, if we take for example a high llr feature:
+```{r plotting significant features to validate the llr}
+list_of_composite_distribution_features <- list.of.names[simple_vs_mixture_model_llrt > rejection_region]
+
+analyzeFullBrainFeature(results.list[names(results.list) == list_of_composite_distribution_features[2]],plot = T)
+
+analyzeFullBrainFeature(results.list[names(results.list) == list_of_composite_distribution_features[10]],plot = T)
 ```
 
 
