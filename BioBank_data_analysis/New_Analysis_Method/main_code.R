@@ -21,3 +21,6 @@ for(feature.name in list.of.names)
 save(results.list, file = "New_analysis_method_results.RData")
 
 analyzeFullBrainFeature(full.function.test,plot = T)
+
+
+results.list[[feature.name]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$null_hypothesis
