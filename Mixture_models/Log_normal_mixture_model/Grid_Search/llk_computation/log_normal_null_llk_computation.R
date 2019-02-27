@@ -27,7 +27,8 @@ logNormalNullLlkComputation <- function(feature_data,
   return(list(llk = llk,
               men_mean = theta_mas,
               women_mean = theta_fem,
-              null_var = sigma_2))
+              sigma_2_men = sigma_2_men,
+              sigma_2_women = sigma_2_women))
 }
 
 computePooledVariance <- function(men,women)

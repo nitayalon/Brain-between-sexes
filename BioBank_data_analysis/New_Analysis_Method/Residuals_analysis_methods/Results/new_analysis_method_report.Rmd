@@ -23,6 +23,7 @@ y = cVolume^\alpha \implies log(y) = log(c) + \alpha log(Volume)
 library(dplyr)
 load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results.RData")
 source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/analyze_full_brain_feature.R")
+source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/method_helper.R")
 source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/load_biobank_data.R")
 
 list.of.names <- names(full_relevant_data)[-c(1:5)]
@@ -100,20 +101,22 @@ A special interest in our work are features that exhibit strong gender preferenc
 ```{r features with strong gender preferance}
 mixture_features <- pure_vs_mixture_candidates[list_of_mixture_type_distribution_features]
 
-mixture_features[[1]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters$p
-
-mixture_features[[1]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters$q
+p_level <- 0.75
+q_level <- 0.25
 
 gender_preference_features_names <- sapply(mixture_features, 
-                  function(x){x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters$p > 0.5 &&                       x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters$q < 0.5})
+                  function(x){x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters$p > p_level &&                       x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters$q < q_level})
 
 gender_preference_features_names %>% table() %>% prop.table()
 
 gender_preference_features <- mixture_features[gender_preference_features_names]
 
 analyzeFullBrainFeature(gender_preference_features[1],plot = T)
+analyzeFullBrainFeature(gender_preference_features[2],plot = T)
 
 analyzeFullBrainFeature(gender_preference_features[10],plot = T)
 analyzeFullBrainFeature(gender_preference_features[32],plot = T)
 ```
 
+# Summary
+The new analysis method yields very intersting results. First is seems that more features fits the single distribution model than before. Second, a visual inspection of the results shows that the new analysis method separates between pure types and mixture models with greater power.  
