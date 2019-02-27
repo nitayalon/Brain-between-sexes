@@ -6,6 +6,7 @@ library(ggplot2)
 analyzeFullBrainFeature <- function(full_analysis_results,
                                     plot = F) 
 {
+  full_analysis_results <- full_analysis_results[[1]]
   stopifnot(names(full_analysis_results) == c("feature_residuals","hypothesis_results"))
   rejection_region_for_wald_test_simple_vs_composite <- qchisq(0.99,3)
   rejection_region_for_wald_test_pure_vs_composite <- qchisq(0.99,2)

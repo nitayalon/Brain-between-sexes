@@ -1,0 +1,51 @@
+---
+title: "New analysis method - Human Brain Research"
+author: "Nitay Alon"
+date: "February 27, 2019"
+output: html_document
+---
+
+In this paper we use a new analysis method to examine the Human Brain structure as a function of sex. The analysis method is described in section 1, the over all results are presented in section 2 followed by selected examples in section 3 and a summary.
+
+# Section 1 - New analysis method
+Previous research indicated a problem on non normality (highly skewed, kurtosis data). In addition the overall brain volume has an effect on the distribution of each feature and it is necessary to adjust the feature size for the brain volume. The new analysis method is based on three steps, for each feature:
+
+1. Apply linear regression on the feature size as a function of the over all brain volume:
+\[
+y = cVolume^\alpha \implies log(y) = log(c) + \alpha log(Volume) 
+\]
+2. Replace each residual with the proper *z-score*
+3. Apply un constrained EM over the main hypothesis of our work
+
+# Section 2 - Over all results
+```{r loading the analysis results, warning=FALSE, include=FALSE}
+library(dplyr)
+load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results.RData")
+list.of.names <- names(full_relevant_data)[-c(1:5)]
+```
+
+## Single distribution vs Mixture model
+First we analyze the simple single distribution vs mixture model hypothesis:
+```{r simple vs mixture model hypothesis}
+simple_vs_mixture_model_llrt <- sapply(results.list, function(x){x$hypothesis_results$simple_vs_compostie_llrt})
+hist(simple_vs_mixture_model_llrt, breaks = 150, main = "histogram of llr statistic", sub = "Single distribution vs mixture model",xlab = "LLR")
+```
+
+It is visible that for some features the null hypothesis isn't rejected:
+```{r proportion of non significant single population hypothesis}
+rejection_region <- qchisq(0.99,4)
+(simple_vs_mixture_model_llrt > rejection_region) %>% 
+  table() %>% 
+  prop.table()
+```
+
+Taking in random some non significant features:
+```{r plotting non significant features to validate the llrt}
+list_of_single_distribution_features <- list.of.names[simple_vs_mixture_model_llrt < rejection_region]
+
+analyzeFullBrainFeature(results.list[names(results.list) == list_of_single_distribution_features[1]],plot = T)
+
+analyzeFullBrainFeature(results.list[names(results.list) == list_of_single_distribution_features[10]],plot = T)
+```
+
+
