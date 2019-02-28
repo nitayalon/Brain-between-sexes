@@ -1,0 +1,51 @@
+---
+title: "Exploring the distribution of gender proportions in mixture model"
+author: "Nitay Alon"
+date: "2/28/2019"
+output: html_document
+---
+
+In this report we explore the joint distribution (structure) of the mixture proportions of brain features volumes. In the first section a short explanation on the meaning of the proportions is given followed by a set of plots exploring the structure of these variables. 
+
+# Gender preference proprtions
+The mixture model assumes that the distribution of each brain feature measures is a mixture of 2 underline normal distributions (assuming unequal variance and mean). Since the data is scaled one of those distributions will have a mean over 0 and the other one below it. 
+
+In turn each gender "selects" the proportion of high mean distribution and low mean distribution, denoted $p,q$ in this report. The goal of this report is to explore the distribution of these proportions.
+
+# Joint distribution of proportions:
+```{r sourcing methods, warning=FALSE,include=FALSE}
+library(ggplot2)
+library(dplyr)
+load("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results.RData")
+source("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/convert_em_probs_to_pq_space.R")
+
+results_list_m_parameters <- convertEMProbabiltiesToPQSpace(results.list)
+
+p_and_q <- sapply(results_list_m_parameters, function(x){c(x$p, x$q)})
+```
+
+```{r plot p vs q}
+p_and_q %>% t() %>% as.data.frame() %>% 
+  ggplot(., aes(x=V1, y=V2)) + 
+  geom_point() +
+  theme_bw() + 
+  xlim(c(0,1)) + 
+  ylim(c(0,1)) + 
+  geom_abline(intercept = 0, slope = 1, color="red", 
+              linetype="dashed", size=1.5) + 
+  ggtitle("p vs q") +
+  xlab("p") + 
+  ylab("q")
+```
+
+a visual inspection shows a cluster on the upper right corner and on the opposite corner. An interesting observation is the lack of randomness in the data, plotting the data in log scale shades extra light on this property
+```{r plot p vs q log scale}
+p_and_q %>% t() %>% as.data.frame() %>% 
+  ggplot(., aes(x=log(V1), y=log(V2))) + 
+  geom_point() +
+  theme_bw() + 
+  ggtitle("p vs q", subtitle = "log scale") +
+  xlab("p") + 
+  ylab("q")
+```
+

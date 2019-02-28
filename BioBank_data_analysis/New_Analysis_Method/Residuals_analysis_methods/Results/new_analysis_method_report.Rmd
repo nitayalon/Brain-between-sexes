@@ -21,41 +21,50 @@ y = cVolume^\alpha \implies log(y) = log(c) + \alpha log(Volume)
 # Section 2 - Over all results
 ```{r loading the analysis results, warning=FALSE, include=FALSE}
 library(dplyr)
-load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results.RData")
-source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/analyze_full_brain_feature.R")
-source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/method_helper.R")
-source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/load_biobank_data.R")
+load("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results.RData")
+source("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/analyze_full_brain_feature.R")
+source("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/method_helper.R")
+source("~/HumanBrainResearch/BioBank_data_analysis/load_biobank_data.R")
 
-list.of.names <- names(full_relevant_data)[-c(1:5)]
+list.of.names <- names(results.list)
 ```
 
 ## Single distribution vs Mixture model
 First we analyze the simple single distribution vs mixture model hypothesis:
 ```{r simple vs mixture model hypothesis}
 simple_vs_mixture_model_llrt <- sapply(results.list, function(x){x$hypothesis_results$simple_vs_compostie_llrt})
+
 hist(simple_vs_mixture_model_llrt, breaks = 150, main = "histogram of llr statistic", sub = "Single distribution vs mixture model",xlab = "LLR")
 ```
 
+Plotting the p-value for the first hypothesis:
+```{r p value of single distribution vs composite distribution}
+simple_vs_mixture_model_pvalue <- sapply(results.list, function(x){log(max(1 - pchisq(x$hypothesis_results$simple_vs_compostie_llrt, 4),1e-8))})
+
+hist(simple_vs_mixture_model_pvalue, 1e-8, breaks = 100)
+```
+
+
 It is visible that for some features the null hypothesis isn't rejected:
 ```{r proportion of non significant single population hypothesis}
-rejection_region <- qchisq(0.99,4)
-(simple_vs_mixture_model_llrt > rejection_region) %>% 
+significat_level = log(0.001)
+(simple_vs_mixture_model_pvalue < significat_level) %>% 
   table() %>% 
   prop.table()
 ```
 
 Taking in random some non significant features:
 ```{r plotting non significant features to validate the llrt}
-list_of_single_distribution_features <- list.of.names[simple_vs_mixture_model_llrt < rejection_region]
+list_of_single_distribution_features <- list.of.names[simple_vs_mixture_model_pvalue > significat_level]
 
 analyzeFullBrainFeature(results.list[names(results.list) == list_of_single_distribution_features[1]],plot = T)
 
-analyzeFullBrainFeature(results.list[names(results.list) == list_of_single_distribution_features[10]],plot = T)
+analyzeFullBrainFeature(results.list[names(results.list) == list_of_single_distribution_features[2]],plot = T)
 ```
 
 In contrary, if we take for example a high llr feature:
 ```{r plotting significant features to validate the llr}
-list_of_composite_distribution_features <- list.of.names[simple_vs_mixture_model_llrt > rejection_region]
+list_of_composite_distribution_features <- list.of.names[simple_vs_mixture_model_pvalue < significat_level]
 
 analyzeFullBrainFeature(results.list[names(results.list) == list_of_composite_distribution_features[2]],plot = T)
 
@@ -71,17 +80,23 @@ pure_vs_mixture_candidates <- results.list[list_of_composite_distribution_featur
 list_of_names_pure_vs_mixture <- names(pure_vs_mixture_candidates)
 
 pure_vs_mixture_model_llrt <- sapply(pure_vs_mixture_candidates, function(x){-2*x$hypothesis_results$pure_vs_mixed_llrt})
+
+pure_vs_mixture_model_pvalue <- sapply(pure_vs_mixture_candidates, function(x){log(max(1 - pchisq(-2*x$hypothesis_results$pure_vs_mixed_llrt,2), 1e-8))})
 ```
 
 ```{r histogram of llrt for pure vs composite}
 hist(pure_vs_mixture_model_llrt, breaks = 100, main = "Histogram of llr",sub = "Pure type vs Composite", xlab = "llr")
-rejection_region <- qchisq(0.99,2)
-(pure_vs_mixture_model_llrt > rejection_region) %>% table() %>% prop.table()
+
+hist(pure_vs_mixture_model_pvalue, breaks = 100, main = "Histogram of log(pv)",sub = "Pure type vs Composite", xlab = "log(pv)")
+
+(pure_vs_mixture_model_pvalue < log(0.001)) %>% table() %>% prop.table()
 ```
+Add histogram of **p-values**
+
 Selecting some examples from both groups for visual inspection, starting with pure types:
 
 ```{r low llr feature likely pure types}
-list_of_pure_type_distribution_features <- list_of_names_pure_vs_mixture[pure_vs_mixture_model_llrt < rejection_region]
+list_of_pure_type_distribution_features <- list_of_names_pure_vs_mixture[pure_vs_mixture_model_pvalue > significat_level]
 
 analyzeFullBrainFeature(results.list[names(results.list) == list_of_pure_type_distribution_features[2]],plot = T)
 
@@ -90,7 +105,7 @@ analyzeFullBrainFeature(results.list[names(results.list) == list_of_pure_type_di
 
 and mixture features:
 ```{r high llr feature likely pure types}
-list_of_mixture_type_distribution_features <- list_of_names_pure_vs_mixture[pure_vs_mixture_model_llrt > rejection_region]
+list_of_mixture_type_distribution_features <- list_of_names_pure_vs_mixture[pure_vs_mixture_model_pvalue < significat_level]
 
 analyzeFullBrainFeature(results.list[names(results.list) == list_of_mixture_type_distribution_features[2]],plot = T)
 
