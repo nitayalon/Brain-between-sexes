@@ -18,33 +18,46 @@ library(ggplot2)
 library(dplyr)
 load("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results.RData")
 source("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/convert_em_probs_to_pq_space.R")
+source("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/merge_data_frames_by_column_names.R")
 
 results_list_m_parameters <- convertEMProbabiltiesToPQSpace(results.list)
 
 p_and_q <- sapply(results_list_m_parameters, function(x){c(x$p, x$q)})
 ```
 
-```{r plot p vs q}
-p_and_q %>% t() %>% as.data.frame() %>% 
-  ggplot(., aes(x=V1, y=V2)) + 
-  geom_point() +
-  theme_bw() + 
-  xlim(c(0,1)) + 
-  ylim(c(0,1)) + 
-  geom_abline(intercept = 0, slope = 1, color="red", 
-              linetype="dashed", size=1.5) + 
-  ggtitle("p vs q") +
-  xlab("p") + 
-  ylab("q")
+### P-Value color schema pure vs mixture
+First we add a colouring schema based on the *p-value* of the llrt, when the hypothesis is pure type vs mixture model. 
+```{r pure type vs mixture model colouring schema, include=FALSE,warning=FALSE}
+pvalue_per_feature <- pullPvaluePerHypothesis(results.list)
+pvalue_per_feature_df <- t(pvalue_per_feature) %>% as.data.frame() 
+p_and_q_df <- p_and_q %>% as.data.frame()
+combined_df <- mergeDataFramesByColumnNames(pvalue_per_feature_df, p_and_q_df)
+rownames(combined_df) <- c("p_values","p","q")
 ```
 
-a visual inspection shows a cluster on the upper right corner and on the opposite corner. An interesting observation is the lack of randomness in the data, plotting the data in log scale shades extra light on this property
+```{r pure type vs mixture model plotting with colors}
+combined_df_long <- combined_df %>% t() %>% as.data.frame()
+combined_df_long$bins_of_pv <- cut(combined_df_long$p_values, c(1e-9,1e-8,1e-3,1e-2,1))
+ggplot(combined_df_long, aes(p,q, colour = bins_of_pv)) + 
+  geom_point() + 
+  ggtitle("Values of p and q", subtitle = "No correction")
+```
+### FDR
+```{r fdr}
+N <- nrow(combined_df_long)
+combined_df_long_sorted <- combined_df_long[order(combined_df_long$p_values,decreasing = F),]
+combined_df_long_sorted$fdr <- combined_df_long_sorted$p_values * N
+combined_df_long_sorted$bins_for_fdr <- cut(combined_df_long_sorted$fdr, c(0,1e-2,1e-1,1000))
+
+ggplot(combined_df_long_sorted, aes(p,q, colour = bins_for_fdr)) + geom_point() + ggtitle("Values of p and q", subtitle = "FDR correction")
+```
+
+A visual inspection of the FDR coloring schema shows that the "region of discovery" are in the low-left and far-right corners. Plotting using the same colouring schema, but this time of the *logit* transformation
+
 ```{r plot p vs q log scale}
-p_and_q %>% t() %>% as.data.frame() %>% 
-  ggplot(., aes(x=log(V1), y=log(V2))) + 
-  geom_point() +
+ggplot(combined_df_long_sorted, aes(log(p / (1-p)),log(q / (1-q)), colour = bins_for_fdr)) + geom_point() + 
+  ggtitle("Values of logit(p) and logit(q)", subtitle = "FDR correction") + 
   theme_bw() + 
-  ggtitle("p vs q", subtitle = "log scale") +
   xlab("p") + 
   ylab("q")
 ```
