@@ -19,7 +19,7 @@ analyzeFullBrainFeature <- function(full_analysis_results,
     plot_data <- full_analysis_results$feature_residuals
     em_data <- full_analysis_results$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters
     
-    ggplot(plot_data, aes(x=trimmed_z_score, fill=factor(sex))) +
+    ggplot(plot_data, aes(x=value, fill=factor(sex))) +
       geom_histogram(aes(y=..density..),
                      bins = 150, 
                      alpha=.8, 

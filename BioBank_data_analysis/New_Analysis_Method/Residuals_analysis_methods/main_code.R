@@ -15,5 +15,5 @@ for(feature.name in list.of.names)
   results.list[[feature.name]] <- full.function.test
 }  
 
-
+save(x = results.list, file = "~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results_normalized.RData")
 analyzeFullBrainFeature(full.function.test,plot = T)

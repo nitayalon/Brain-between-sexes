@@ -5,17 +5,17 @@ applyHypothesisOverResiduals <- function(residual_data) {
   
   simple_vs_compostie_hypothesis_test <- 
     simpleDistributionVsCompositeDistribution(
-        residual_data$trimmed_z_score,
+        residual_data$value,
         residual_data$sex,
         "L")
   simple_vs_compostie_llrt <- simple_vs_compostie_hypothesis_test
   
   t_test_for_difference_between_genders <- 
-    t.test(residual_data$trimmed_z_score[residual_data$sex == 0],
-           residual_data$trimmed_z_score[residual_data$sex == 1])
+    t.test(residual_data$value[residual_data$sex == 0],
+           residual_data$value[residual_data$sex == 1])
   
   pure_types_vs_mixed_gender_hypothesis <- 
-    pureTypeMixtureVsCompositeMixture(residual_data$trimmed_z_score,
+    pureTypeMixtureVsCompositeMixture(residual_data$value,
                                       residual_data$sex,
                                       distribution_model = "L",
                                       return_full_data = T, 

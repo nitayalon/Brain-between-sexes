@@ -21,10 +21,11 @@ y = cVolume^\alpha \implies log(y) = log(c) + \alpha log(Volume)
 # Section 2 - Over all results
 ```{r loading the analysis results, warning=FALSE, include=FALSE}
 library(dplyr)
-load("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results.RData")
-source("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/analyze_full_brain_feature.R")
-source("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/method_helper.R")
-source("~/HumanBrainResearch/BioBank_data_analysis/load_biobank_data.R")
+local_server_prefix <- "~/Documents/Human_brain_research/DAPHNA_JOEL/"
+load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results_normalized.RData")
+source(paste0(local_server_prefix,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/analyze_full_brain_feature.R"))
+source(paste0(local_server_prefix,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/method_helper.R"))
+source(paste0(local_server_prefix,"BioBank_data_analysis/load_biobank_data.R"))
 
 list.of.names <- names(results.list)
 ```
@@ -98,9 +99,7 @@ Selecting some examples from both groups for visual inspection, starting with pu
 ```{r low llr feature likely pure types}
 list_of_pure_type_distribution_features <- list_of_names_pure_vs_mixture[pure_vs_mixture_model_pvalue > significat_level]
 
-analyzeFullBrainFeature(results.list[names(results.list) == list_of_pure_type_distribution_features[2]],plot = T)
-
-analyzeFullBrainFeature(results.list[names(results.list) == list_of_pure_type_distribution_features[10]],plot = T)
+analyzeFullBrainFeature(results.list[names(results.list) == list_of_pure_type_distribution_features[1]],plot = T)
 ```
 
 and mixture features:
