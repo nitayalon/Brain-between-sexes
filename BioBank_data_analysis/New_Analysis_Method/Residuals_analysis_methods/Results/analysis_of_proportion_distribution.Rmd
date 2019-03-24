@@ -57,7 +57,12 @@ combined_df_long_sorted <- combined_df_long[order(combined_df_long$p_values,decr
 combined_df_long_sorted$fdr <- combined_df_long_sorted$p_values * N
 combined_df_long_sorted$bins_for_fdr <- cut(combined_df_long_sorted$fdr, c(0,1e-2,1e-1,1000))
 
-ggplot(combined_df_long_sorted, aes(p,q, colour = bins_for_fdr)) + geom_point() + ggtitle("Values of p and q", subtitle = "FDR correction")
+ggplot(combined_df_long_sorted, aes(p,q, colour = bins_for_fdr)) +  
+  geom_point() + 
+  ggtitle("Values of p and q", subtitle = "FDR correction") +
+  geom_vline(xintercept = 0.5) + 
+  geom_hline(yintercept = 0.5)
+  
 ```
 
 A visual inspection of the FDR coloring schema shows that the "region of discovery" are in the low-left and far-right corners. Plotting using the same colouring schema, but this time of the *logit* transformation
@@ -68,5 +73,68 @@ ggplot(combined_df_long_sorted, aes(log(p / (1-p)),log(q / (1-q)), colour = bins
   theme_bw() + 
   xlab("p") + 
   ylab("q")
+```
+
+# Post hoc analysis
+
+## Main diagonal
+Analyzing the features based on the *p-values*:
+```{r upper main diagonal features}
+upper_main_diagonal_feature_names <- 
+  rownames(combined_df_long_sorted)[
+    with(combined_df_long_sorted,(p_values < 1e-6 & p > 0.5 & q > 0.5))]  
+  
+upper_main_diagonal_features <- 
+  results.list[names(results.list) %in% upper_main_diagonal_feature_names]
+```
+
+Appling the same plotting schema as in the shiny app:
+```{r plotting upper diagonal feature}
+i <- 3
+plotGenderHistogram(upper_main_diagonal_features[[i]], upper_main_diagonal_feature_names[i])
+```
+
+it is clear that in the case of the upper diagonal the mixture model yields higher likelihood ratio only due to right tailed observations.
+
+## antidiagonal
+Our interest lays in the antidiagonal. 
+
+### Upper
+```{r high q low p}
+upper_antidiagonal_feature_names <- 
+  rownames(combined_df_long_sorted)[
+    with(combined_df_long_sorted,(p_values < 1e-6 & p < 0.5 & q > 0.5))]  
+  
+upper_antidiagonal_features <- 
+  results.list[names(results.list) %in% upper_antidiagonal_feature_names]
+```
+
+```{r plotting upper anti diagonal feature}
+i <- sample(1:length(upper_antidiagonal_feature_names), 1)
+plotGenderHistogram(upper_antidiagonal_features[[i]], upper_antidiagonal_feature_names[i])
+```
+
+### Lower 
+```{r low q high p}
+lower_antidiagonal_feature_names <- 
+  rownames(combined_df_long_sorted)[
+    with(combined_df_long_sorted,(p_values < 1e-6 & p > 0.5 & q < 0.5))]  
+  
+lower_antidiagonal_features <- 
+  results.list[names(results.list) %in% lower_antidiagonal_feature_names]
+```
+
+```{r plotting lower anti diagonal feature}
+i <- sample(1:length(lower_antidiagonal_feature_names), 1)
+plotGenderHistogram(lower_antidiagonal_features[[i]], lower_antidiagonal_feature_names[i])
+
+tibble(p = lower_antidiagonal_features[[i]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters$p,
+       q = lower_antidiagonal_features[[i]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters$q)
+```
+
+
+```{r}
+findInterestingRegion(lower_antidiagonal_features)
+plotGenderHistogram(lower_antidiagonal_features[["X25872.2.0"]], "X25872.2.0")
 ```
 
