@@ -28,7 +28,7 @@ adaptProbabilitiesToSize <- function(m_parameters)
 pullPvaluePerHypothesis <- function(em_results)
 {
   sapply(em_results, function(x){
-    max(1e-8, 1 - pchisq(x$hypothesis_results$pure_type_vs_mixed_gender_em_results$wilks_statistic,2))})
+    max(1e-6, 1 - pchisq(x$hypothesis_results$pure_type_vs_mixed_gender_em_results$wilks_statistic,2))})
 }
 
 
