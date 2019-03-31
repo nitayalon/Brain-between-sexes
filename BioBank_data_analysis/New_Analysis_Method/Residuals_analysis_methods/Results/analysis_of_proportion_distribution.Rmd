@@ -17,16 +17,17 @@ In turn each gender "selects" the proportion of high mean distribution and low m
 library(ggplot2)
 library(dplyr)
 
-load("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results_normalized.RData")
-source("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/convert_em_probs_to_pq_space.R")
-source("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/merge_data_frames_by_column_names.R")
+# load("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results_normalized.RData")
+# source("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/convert_em_probs_to_pq_space.R")
+# source("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/merge_data_frames_by_column_names.R")
+
 # load("/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results.RData")
 # source("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/convert_em_probs_to_pq_space.R")
 # source("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/merge_data_frames_by_column_names.R")
 
-# load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results.RData")
-# source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/convert_em_probs_to_pq_space.R")
-# source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/merge_data_frames_by_column_names.R")
+load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results_normalized.RData")
+source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/convert_em_probs_to_pq_space.R")
+source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/merge_data_frames_by_column_names.R")
 
 results_list_m_parameters <- convertEMProbabiltiesToPQSpace(results.list)
 
@@ -54,9 +55,16 @@ ggplot(combined_df_long, aes(p,q, colour = bins_of_pv)) +
 ```{r fdr}
 N <- nrow(combined_df_long)
 combined_df_long_sorted <- combined_df_long[order(combined_df_long$p_values,decreasing = F),]
-combined_df_long_sorted$fdr <- combined_df_long_sorted$p_values * N
-combined_df_long_sorted$bins_for_fdr <- cut(combined_df_long_sorted$fdr, c(0,1e-2,1e-1,1000))
+combined_df_long_sorted$n <- seq(1:N)
+combined_df_long_sorted$fdr_p_value <- with(combined_df_long_sorted, p_values * N / n)
+combined_df_long_sorted$bins_for_fdr <- cut(combined_df_long_sorted$fdr_p_value, c(0,1e-3,1e-1,10000))
 
+ggplot(combined_df_long_sorted, aes(p,q, colour = bins_for_fdr)) + 
+  geom_point() +
+  geom_vline(xintercept = 0.5) +
+  geom_hline(yintercept = 0.5) +
+  ggtitle("Values of p and q", subtitle = "FDR correction") + 
+  geom_abline(slope = 1, intercept = 0)
 ggplot(combined_df_long_sorted, aes(p,q, colour = bins_for_fdr)) +  
   geom_point() + 
   ggtitle("Values of p and q", subtitle = "FDR correction") +
@@ -82,7 +90,7 @@ Analyzing the features based on the *p-values*:
 ```{r upper main diagonal features}
 upper_main_diagonal_feature_names <- 
   rownames(combined_df_long_sorted)[
-    with(combined_df_long_sorted,(p_values < 1e-6 & p > 0.5 & q > 0.5))]  
+    with(combined_df_long_sorted,(p_values < 1e-5 & p > 0.5 & q > 0.5))]  
   
 upper_main_diagonal_features <- 
   results.list[names(results.list) %in% upper_main_diagonal_feature_names]

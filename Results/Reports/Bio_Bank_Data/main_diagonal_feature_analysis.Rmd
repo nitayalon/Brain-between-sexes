@@ -1,0 +1,39 @@
+---
+title: "Analysis of main diagonal features"
+author: "Nitay Alon"
+date: "March 31, 2019"
+output: html_document
+---
+In this report our goal is to examine the features found on the main diagonal of the $p-q$ plot.
+```{r main diagonal features, include=FALSE}
+i <- sample(upper_main_diagonal_feature_names,1)
+brain_feature <- results.list[[i]]
+```
+
+```{r histogram and CDF}
+hist(brain_feature$feature_residuals$value, 
+     breaks = 100,
+     main = sprintf("Histogram of %s", upper_main_diagonal_feature_names[1]),
+     xlab = "value", freq = FALSE)
+plot(ecdf(brain_feature$feature_residuals$value), main = "CDF")
+```
+
+repeating the process for various features show similar picture - even after normalization there is a tail with equal proportion of men and women in these tails.
+
+```{r histograms by gender}
+ggplot(brain_feature$feature_residuals, aes(value)) + 
+  facet_wrap(sex ~ .) +
+  geom_histogram(bins = 150)
+```
+
+and computing non parametric log-likelihood by the formula:
+\[
+F_X(x) = \sum_{i=1}^{n}\mathbf{1}_{x < x_i}\frac{1}{n}
+\]
+
+```{r log likelihood ratio between men and women}
+men_density <- density(brain_feature$feature_residuals$value[brain_feature$feature_residuals$sex == 0], n = 80)
+women_density <- density(brain_feature$feature_residuals$value[brain_feature$feature_residuals$sex == 1], n = 80)
+plot(men_density$x, log(men_density$y / women_density$y))
+```
+

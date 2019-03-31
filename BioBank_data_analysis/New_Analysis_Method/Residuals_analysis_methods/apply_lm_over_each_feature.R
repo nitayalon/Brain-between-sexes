@@ -28,14 +28,5 @@ applyLinearModelOverBrainFeature <- function(feature_name,
   residuals_first_feature <- 
     residuals_first_feature %>% 
     normalizeResiduales()
-  # residuals_first_feature <-
-  #   residuals_first_feature %>% 
-  #   mutate(z_score = (value - mean(value)) / sd(value)) 
-  # 
-  # residuals_first_feature <-
-  #   residuals_first_feature %>% 
-  #   mutate(trimmed_z_score = ifelse(abs(z_score) > trimming_limit,
-  #                                   sign(z_score) * trimming_limit,z_score)) 
-  
   return(residuals_first_feature)
 }

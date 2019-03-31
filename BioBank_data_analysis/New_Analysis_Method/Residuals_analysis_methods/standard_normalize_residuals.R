@@ -3,12 +3,21 @@
 #' @param residuals - linear model residuals
 #' @return standard normally distributed residuals
 
-normalizeResiduales <- function(residuals_tibble)
+normalizeResiduales <- function(residuals_tibble, use_standard_data = F)
 {
   residuals <- residuals_tibble$value
   residuals_location <- order(residuals)
   n <- length(residuals)
   standard_normal <- qnorm(residuals_location / (n+1))
-  residuals_tibble$value <- residuals
+  if(use_standard_data)
+  {
+    residuals_tibble$value <- standard_normal
+  }
+  else
+  {
+    residuals_tibble$value <- sapply(residuals,function(x){
+      (x - mean(residuals)) / sd(residuals)
+      })
+  }
   return(residuals_tibble)
 }

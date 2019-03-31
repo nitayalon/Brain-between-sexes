@@ -4,10 +4,10 @@ logNormalNullLlkComputation <- function(feature_data,
 {
   if(is_bio_bank_data)
   {
-    # men <- feature_data$men
-    # women <- feature_data$women
-    men <- feature_data$value[feature_data$bio_sex == 1]
-    women <- feature_data$value[feature_data$bio_sex == 0]
+    men <- feature_data$men
+    women <- feature_data$women
+    # men <- feature_data$value[feature_data$bio_sex == 1]
+    # women <- feature_data$value[feature_data$bio_sex == 0]
   }
   else
   {
