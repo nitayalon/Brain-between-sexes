@@ -6,6 +6,8 @@ output: html_document
 ---
 In this report our goal is to examine the features found on the main diagonal of the $p-q$ plot.
 ```{r main diagonal features, include=FALSE}
+library(ggplot2)
+library(logcondens)
 i <- sample(upper_main_diagonal_feature_names,1)
 brain_feature <- results.list[[i]]
 ```
@@ -32,8 +34,12 @@ F_X(x) = \sum_{i=1}^{n}\mathbf{1}_{x < x_i}\frac{1}{n}
 \]
 
 ```{r log likelihood ratio between men and women}
-men_density <- density(brain_feature$feature_residuals$value[brain_feature$feature_residuals$sex == 0], n = 80)
-women_density <- density(brain_feature$feature_residuals$value[brain_feature$feature_residuals$sex == 1], n = 80)
-plot(men_density$x, log(men_density$y / women_density$y))
+grid <- seq(min(brain_feature$feature_residuals$value) - 0.5, max(brain_feature$feature_residuals$value) + 0.5, by = 0.01)
+
+men_density <- logConDens(brain_feature$feature_residuals$value[brain_feature$feature_residuals$sex == 0], xgrid = grid)
+women_density <- logConDens(brain_feature$feature_residuals$value[brain_feature$feature_residuals$sex == 1], xgrid = grid)
+# plot(men_density)
+# plot(women_density)
+plot(log(men_density$w / women_density$w))
 ```
 

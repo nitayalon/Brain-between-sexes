@@ -3,8 +3,8 @@ library(tidyr)
 library(ggplot2)
 
 # Load the BioBank data:
-# bio.bank.data <- read.csv("~/HumanBrainResearch/Data/Biobank/ukb24562.csv", 
-#                           header = T, stringsAsFactors = F)
+bio.bank.data <- read.csv("~/Documents/Human_brain_research/DAPHNA_JOEL/Data/Biobank/ukb24562.csv",
+                          header = T, stringsAsFactors = F)
 
 
 # Clean data --------------------------------------------------------------

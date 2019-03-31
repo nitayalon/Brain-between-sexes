@@ -20,6 +20,7 @@ y = cVolume^\alpha \implies log(y) = log(c) + \alpha log(Volume)
 
 # Section 2 - Over all results
 ```{r loading the analysis results, warning=FALSE, include=FALSE}
+# install.packages("tidyr")
 library(dplyr)
 local_server_prefix <- "~/Documents/Human_brain_research/DAPHNA_JOEL/"
 load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results_normalized.RData")
