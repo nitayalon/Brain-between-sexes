@@ -34,12 +34,14 @@ F_X(x) = \sum_{i=1}^{n}\mathbf{1}_{x < x_i}\frac{1}{n}
 \]
 
 ```{r log likelihood ratio between men and women}
-grid <- seq(min(brain_feature$feature_residuals$value) - 0.5, max(brain_feature$feature_residuals$value) + 0.5, by = 0.01)
+nonParametricLLRT(i)
+```
 
-men_density <- logConDens(brain_feature$feature_residuals$value[brain_feature$feature_residuals$sex == 0], xgrid = grid)
-women_density <- logConDens(brain_feature$feature_residuals$value[brain_feature$feature_residuals$sex == 1], xgrid = grid)
-# plot(men_density)
-# plot(women_density)
-plot(log(men_density$w / women_density$w))
+Examination of the anti diagonal features:
+```{r plot llrt anti diagonal}
+brain_feature <- results.list[[upper_antidiagonal_feature_names[10]]]
+plotGenderHistogram(brain_feature, upper_antidiagonal_feature_names[10])
+qplot(brain_feature$feature_residuals$value, bins = 100)
+nonParametricLLRT(upper_antidiagonal_feature_names[10], T)
 ```
 
