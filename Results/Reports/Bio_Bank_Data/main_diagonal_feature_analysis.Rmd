@@ -56,6 +56,5 @@ brain_feature <- results.list[[extrme_upper_anti_diagonl[10]]]
 plotGenderHistogram(brain_feature, extrme_upper_anti_diagonl[10])
 qplot(brain_feature$feature_residuals$value, bins = 100)
 nonParametricLLRT(extrme_upper_anti_diagonl[10], T)
-
 ```
 

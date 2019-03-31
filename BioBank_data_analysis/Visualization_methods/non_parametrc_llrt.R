@@ -11,7 +11,10 @@ nonParametricLLRT <- function(feature_name, include_sex_densities = T)
   women_density <- logConDens(brain_feature$feature_residuals$value[brain_feature$feature_residuals$sex == 1], xgrid = grid ,smoothed = T)
   if(include_sex_densities)
   {
-    plot(log(men_density$w / women_density$w), main = feature_name)
+    plot(log((men_density$phi * men_density$w) /
+               (women_density$phi * women_density$w)), main = feature_name)
+    # plot(log(men_density$f.smoothed / 
+    #            women_density$f.smoothed), main = feature_name)
     plot(men_density)    
     plot(women_density)
     return(NULL)
