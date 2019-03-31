@@ -34,7 +34,7 @@ F_X(x) = \sum_{i=1}^{n}\mathbf{1}_{x < x_i}\frac{1}{n}
 \]
 
 ```{r log likelihood ratio between men and women}
-nonParametricLLRT(i)
+nonParametricLLRT(i,F)
 ```
 
 Examination of the anti diagonal features:
@@ -43,5 +43,19 @@ brain_feature <- results.list[[upper_antidiagonal_feature_names[10]]]
 plotGenderHistogram(brain_feature, upper_antidiagonal_feature_names[10])
 qplot(brain_feature$feature_residuals$value, bins = 100)
 nonParametricLLRT(upper_antidiagonal_feature_names[10], T)
+```
+
+Selecting significant features with low $p$ and high $p$:
+```{r extreme upper anti diagonal}
+extrme_upper_anti_diagonl <- rownames(combined_df_long_sorted)[
+    with(combined_df_long_sorted,(p_values < 1e-3 & p < 0.25 & q > 0.75))]  
+```
+LLRT:
+```{r llrt extreme antidiagonal}
+brain_feature <- results.list[[extrme_upper_anti_diagonl[10]]]
+plotGenderHistogram(brain_feature, extrme_upper_anti_diagonl[10])
+qplot(brain_feature$feature_residuals$value, bins = 100)
+nonParametricLLRT(extrme_upper_anti_diagonl[10], T)
+
 ```
 
