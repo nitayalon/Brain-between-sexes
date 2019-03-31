@@ -9,6 +9,6 @@ normalizeResiduales <- function(residuals_tibble)
   residuals_location <- order(residuals)
   n <- length(residuals)
   standard_normal <- qnorm(residuals_location / (n+1))
-  residuals_tibble$value <- residuals
+  residuals_tibble$value <- standard_normal
   return(residuals_tibble)
 }

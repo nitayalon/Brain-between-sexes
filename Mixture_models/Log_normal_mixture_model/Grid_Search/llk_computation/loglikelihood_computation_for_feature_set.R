@@ -8,10 +8,10 @@ logLikelihoodComputationForFeatureSet <- function(feature_data,
   # stopifnot(length(parameter_row) == 5)
   if(is_bioBank_data)
   {
-    # men_data <- feature_data$men
-    # women_data <- feature_data$women
-    men_data <- feature_data$value[feature_data$bio_sex == 1]
-    women_data <- feature_data$value[feature_data$bio_sex == 0]
+    men_data <- feature_data$men
+    women_data <- feature_data$women
+    # men_data <- feature_data$value[feature_data$bio_sex == 1]
+    # women_data <- feature_data$value[feature_data$bio_sex == 0]
   }
   else
   {
