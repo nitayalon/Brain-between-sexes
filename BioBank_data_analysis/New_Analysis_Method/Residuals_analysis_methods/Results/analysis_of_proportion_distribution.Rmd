@@ -133,8 +133,7 @@ tibble(p = lower_antidiagonal_features[[i]]$hypothesis_results$pure_type_vs_mixe
 ```
 
 
-```{r}
+```{r find interesting regions}
 findInterestingRegion(lower_antidiagonal_features)
-plotGenderHistogram(lower_antidiagonal_features[["X25872.2.0"]], "X25872.2.0")
 ```
 

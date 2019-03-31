@@ -46,3 +46,15 @@ plotFullBrainFeature <- function(full_analysis_results)
                   colour = "red", lwd = 1.0,linetype = "dashed") + 
     ggtitle(paste0("Histogram of gender data"))
 }
+
+findInterestingRegion <- function(list_of_features, k = 5)
+{
+  if(length(list_of_features) <= 1)
+  {
+    return(list_of_features[[1]])
+  }
+  means_distance <- sapply(list_of_features,
+                           function(x){x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters$mu_1 - 
+                               x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters$mu_2})
+  return(sort(means_distance, decreasing = T)[1:k])
+}
