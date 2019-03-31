@@ -57,7 +57,7 @@ N <- nrow(combined_df_long)
 combined_df_long_sorted <- combined_df_long[order(combined_df_long$p_values,decreasing = F),]
 combined_df_long_sorted$n <- seq(1:N)
 combined_df_long_sorted$fdr_p_value <- with(combined_df_long_sorted, p_values * N / n)
-combined_df_long_sorted$bins_for_fdr <- cut(combined_df_long_sorted$fdr_p_value, c(0,1e-3,1e-1,1000))
+combined_df_long_sorted$bins_for_fdr <- cut(combined_df_long_sorted$fdr_p_value, c(0,1e-3,1e-1,10000))
 
 ggplot(combined_df_long_sorted, aes(p,q, colour = bins_for_fdr)) + 
   geom_point() +

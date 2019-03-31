@@ -15,7 +15,9 @@ normalizeResiduales <- function(residuals_tibble, use_standard_data = F)
   }
   else
   {
-    residuals_tibble$value <- residuals
+    residuals_tibble$value <- sapply(residuals,function(x){
+      (x - mean(residuals)) / sd(residuals)
+      })
   }
   return(residuals_tibble)
 }
