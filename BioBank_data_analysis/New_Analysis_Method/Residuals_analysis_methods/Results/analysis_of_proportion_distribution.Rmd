@@ -90,7 +90,7 @@ Analyzing the features based on the *p-values*:
 ```{r upper main diagonal features}
 upper_main_diagonal_feature_names <- 
   rownames(combined_df_long_sorted)[
-    with(combined_df_long_sorted,(p_values < 1e-5 & p > 0.5 & q > 0.5))]  
+    with(combined_df_long_sorted,(p_values < 1e-3 & p > 0.5 & q > 0.5))]  
   
 upper_main_diagonal_features <- 
   results.list[names(results.list) %in% upper_main_diagonal_feature_names]
@@ -104,6 +104,13 @@ plotGenderHistogram(upper_main_diagonal_features[[i]], upper_main_diagonal_featu
 
 it is clear that in the case of the upper diagonal the mixture model yields higher likelihood ratio only due to right tailed observations.
 
+### Non parametric LLRT
+```{r non parametric llrt of main diagonal}
+library(logcondens)
+men_density <- logConDens()
+```
+
+
 ## antidiagonal
 Our interest lays in the antidiagonal. 
 
@@ -111,7 +118,7 @@ Our interest lays in the antidiagonal.
 ```{r high q low p}
 upper_antidiagonal_feature_names <- 
   rownames(combined_df_long_sorted)[
-    with(combined_df_long_sorted,(p_values < 1e-6 & p < 0.5 & q > 0.5))]  
+    with(combined_df_long_sorted,(p_values < 1e-3 & p < 0.5 & q > 0.5))]  
   
 upper_antidiagonal_features <- 
   results.list[names(results.list) %in% upper_antidiagonal_feature_names]
@@ -126,7 +133,7 @@ plotGenderHistogram(upper_antidiagonal_features[[i]], upper_antidiagonal_feature
 ```{r low q high p}
 lower_antidiagonal_feature_names <- 
   rownames(combined_df_long_sorted)[
-    with(combined_df_long_sorted,(p_values < 1e-6 & p > 0.5 & q < 0.5))]  
+    with(combined_df_long_sorted,(p_values < 1e-3 & p > 0.5 & q < 0.5))]  
   
 lower_antidiagonal_features <- 
   results.list[names(results.list) %in% lower_antidiagonal_feature_names]
