@@ -90,7 +90,7 @@ Analyzing the features based on the *p-values*:
 ```{r upper main diagonal features}
 upper_main_diagonal_feature_names <- 
   rownames(combined_df_long_sorted)[
-    with(combined_df_long_sorted,(p_values < 1e-6 & p > 0.5 & q > 0.5))]  
+    with(combined_df_long_sorted,(p_values < 1e-5 & p > 0.5 & q > 0.5))]  
   
 upper_main_diagonal_features <- 
   results.list[names(results.list) %in% upper_main_diagonal_feature_names]

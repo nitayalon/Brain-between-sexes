@@ -1,0 +1,20 @@
+---
+title: "Analysis of main diagonal features"
+author: "Nitay Alon"
+date: "March 31, 2019"
+output: html_document
+---
+In this report our goal is to examine the features found on the main diagonal of the $p-q$ plot.
+```{r main diagonal features, include=FALSE}
+i <- sample(upper_main_diagonal_feature_names,1)
+brain_feature <- results.list[[i]]
+```
+
+```{r histogram and CDF}
+hist(brain_feature$feature_residuals$value, 
+     breaks = 100,
+     main = sprintf("Histogram of %s", upper_main_diagonal_feature_names[1]),
+     xlab = "value")
+plot(ecdf(brain_feature$feature_residuals$value), main = "CDF")
+```
+
