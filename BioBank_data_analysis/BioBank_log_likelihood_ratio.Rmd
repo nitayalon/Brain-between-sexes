@@ -14,6 +14,27 @@ source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_A
 ```
 
 ```{r compute llrt per feature using EM parameters}
+# i <- sample(upper_antidiagonal_feature_names,1)
+set.seed(11)
+i <- sample(lower_antidiagonal_feature_names,1)
 
+em_params <- results.list[[i]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters
+men_resid <- results.list[[i]]$feature_residuals$value[results.list[[i]]$feature_residuals$sex == 0]
+women_resid <- results.list[[i]]$feature_residuals$value[results.list[[i]]$feature_residuals$sex == 1]
+trim_level <- 4
+llrt <- computeModelBasedLogLikeihoodRatio(em_params,
+                                          sample(men_resid,length(women_resid)),
+                                           women_resid,
+                                          trim_level)
+
+plot(sort(sample(men_resid[men_resid > -trim_level & men_resid < trim_level],length(llrt$men_likelihood))), llrt$men_likelihood,
+     cex = 0.5, col = "blue")
+
+points(sort(sample(women_resid[women_resid > -trim_level & women_resid < trim_level],length(llrt$women_likelihood))), llrt$women_likelihood,
+       cex = 0.5, col = "red")
+
+plot(sort(sample(men_resid[men_resid > -trim_level & men_resid < trim_level],length(llrt$llrt))), llrt$llrt)
+abline(h = log((1-em_params$p) / (1-em_params$q)), col = "green")
+abline(h = log(em_params$p / em_params$q), col = "red")
 ```
 
