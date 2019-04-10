@@ -1,0 +1,19 @@
+---
+title: "non parametric log likelihood computation"
+author: "Nitay Alon"
+date: "April 10, 2019"
+output: html_document
+---
+
+In this report our goal is to compute a non parametric log likelihood ratio for each brain feature in question. First we compute the model based log likelihood ratio using the MLE parameters of the EM. Second we use a log concave approximation of the empiric data to plot the log-likelihood ratio.
+
+```{r import analysis results, include=FALSE, warning=FALSE}
+load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results_normalized.RData")
+source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/convert_em_probs_to_pq_space.R")
+source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/merge_data_frames_by_column_names.R")
+```
+
+```{r compute llrt per feature using EM parameters}
+
+```
+
