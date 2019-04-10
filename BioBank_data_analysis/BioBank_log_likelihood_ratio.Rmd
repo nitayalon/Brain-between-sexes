@@ -8,14 +8,14 @@ output: html_document
 In this report our goal is to compute a non parametric log likelihood ratio for each brain feature in question. First we compute the model based log likelihood ratio using the MLE parameters of the EM. Second we use a log concave approximation of the empiric data to plot the log-likelihood ratio.
 
 ```{r import analysis results, include=FALSE, warning=FALSE}
+library(ggplot2)
 load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results_normalized.RData")
 source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/convert_em_probs_to_pq_space.R")
 source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/merge_data_frames_by_column_names.R")
 ```
 
-```{r compute llrt per feature using EM parameters}
+```{r compute llrt per feature using EM parameters, warning=FALSE}
 # i <- sample(upper_antidiagonal_feature_names,1)
-set.seed(11)
 i <- sample(lower_antidiagonal_feature_names,1)
 
 em_params <- results.list[[i]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters
@@ -27,11 +27,7 @@ llrt <- computeModelBasedLogLikeihoodRatio(em_params,
                                            women_resid,
                                           trim_level)
 
-plot(sort(sample(men_resid[men_resid > -trim_level & men_resid < trim_level],length(llrt$men_likelihood))), llrt$men_likelihood,
-     cex = 0.5, col = "blue")
-
-points(sort(sample(women_resid[women_resid > -trim_level & women_resid < trim_level],length(llrt$women_likelihood))), llrt$women_likelihood,
-       cex = 0.5, col = "red")
+plotGenderHistogram(results.list[[i]], lower_antidiagonal_feature_names[i])
 
 plot(sort(sample(men_resid[men_resid > -trim_level & men_resid < trim_level],length(llrt$llrt))), llrt$llrt)
 abline(h = log((1-em_params$p) / (1-em_params$q)), col = "green")
