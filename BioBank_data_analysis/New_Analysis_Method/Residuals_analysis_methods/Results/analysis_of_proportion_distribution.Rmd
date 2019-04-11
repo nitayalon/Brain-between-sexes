@@ -120,7 +120,7 @@ Our interest lays in the antidiagonal.
 upper_antidiagonal_feature_names <- 
   rownames(combined_df_long_sorted)[
     with(combined_df_long_sorted,(p_values < 1e-3 & p < 0.5 & q > 0.5))]  
-  
+save(upper_antidiagonal_feature_names, file = "upper_diagonal_feature_names.RData")    
 upper_antidiagonal_features <- 
   results.list[names(results.list) %in% upper_antidiagonal_feature_names]
 ```

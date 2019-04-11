@@ -10,12 +10,15 @@ In this report our goal is to compute a non parametric log likelihood ratio for 
 ```{r import analysis results, include=FALSE, warning=FALSE}
 library(ggplot2)
 library(logcondens)
+library(Jmisc)
 load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results_normalized.RData")
 source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/convert_em_probs_to_pq_space.R")
 source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/merge_data_frames_by_column_names.R")
 source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/Log_likelihood_ratio_computation/compute_em_based_llrt.R")
+sourceAll("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/Visualization_methods/")
 load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/upper_diagonal_feature_names.RData")  
 load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/lower_diagonal_feature_names.RData")  
+set.seed(11547)
 ```
 
 Lower Antidiagonal:
