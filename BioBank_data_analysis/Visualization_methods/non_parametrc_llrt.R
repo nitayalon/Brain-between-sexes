@@ -8,15 +8,15 @@ nonParametricLLRT <- function(feature_name,
     return(NULL)
   }
   brain_feature <- results.list[[feature_name]]
-  grid <- seq(-4, 4, by = 0.01)
-  men_resid <- brain_feature$feature_residuals$value[brain_feature$feature_residuals$sex == 0]
+  grid <- seq(-4, 6, by = 0.01)
+  men_resid <- brain_feature$feature_residuals$value[brain_feature$feature_residuals$sex == 1]
   men_resid_trimmed <- men_resid[men_resid > (-1 * trim_value) & men_resid < trim_value]
   
-  women_resid <- brain_feature$feature_residuals$value[brain_feature$feature_residuals$sex == 1]
+  women_resid <- brain_feature$feature_residuals$value[brain_feature$feature_residuals$sex == 0]
   women_resid_trimmed <- women_resid[women_resid > (-1 * trim_value) & women_resid < trim_value]
   
-  men_density <- logConDens(men_resid_trimmed, xgrid = grid ,smoothed = T)
-  women_density <- logConDens(women_resid_trimmed, xgrid = grid ,smoothed = T)
+  men_density <- logConDens(men_resid_trimmed ,smoothed = T)
+  women_density <- logConDens(women_resid_trimmed ,smoothed = T)
   
   if(include_sex_densities)
   {

@@ -19,6 +19,7 @@ sourceAll("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/Vi
 load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/upper_diagonal_feature_names.RData")  
 load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/lower_diagonal_feature_names.RData")  
 set.seed(11547)
+population <- seq(-4,4, length.out = 10000)
 ```
 
 Lower Antidiagonal:
@@ -35,8 +36,8 @@ llrt <- computeModelBasedLogLikeihoodRatio(em_params,
                                            women_resid,
                                           trim_level)
 
+plot(population, llrt$llrt)
 plotGenderHistogram(results.list[[i]], lower_antidiagonal_feature_names[i])
-
 plot(sort(sample(men_resid[men_resid > -trim_level & men_resid < trim_level],length(llrt$llrt))), llrt$llrt, xlab = "Measurments", ylab = "Llrt",
      main = "Model based llrt")
 ### Adding the empirical llrt
@@ -57,7 +58,7 @@ llrt <- computeModelBasedLogLikeihoodRatio(em_params,
                                           sample(men_resid,length(women_resid)),
                                            women_resid,
                                           trim_level)
-
+plot(population, llrt$llrt)
 plotGenderHistogram(results.list[[i]], lower_antidiagonal_feature_names[i])
 
 plot(sort(sample(men_resid[men_resid > -trim_level & men_resid < trim_level],length(llrt$llrt))), llrt$llrt, xlab = "Measurments", ylab = "Llrt",
