@@ -20,10 +20,10 @@ computeModelBasedLogLikeihoodRatio <- function(em_paramters_per_feature,
   # women_likelihood <- q * dnorm(women_resid_sorted, mu_1, sigma_2_men) + 
   #   (1-q) * dnorm(women_resid_sorted, mu_2, sigma_2_women)
   
-  men_likelihood <- p * dnorm(population, mu_1, sigma_2_men) + 
-    (1-p) * dnorm(population, mu_2, sigma_2_women)
-  women_likelihood <- q * dnorm(population, mu_1, sigma_2_men) + 
-    (1-q) * dnorm(population, mu_2, sigma_2_women)
+  men_likelihood <- p * dnorm(population, mu_1, sqrt(sigma_2_men)) + 
+    (1-p) * dnorm(population, mu_2, sqrt(sigma_2_women))
+  women_likelihood <- q * dnorm(population, mu_1, sqrt(sigma_2_men)) + 
+    (1-q) * dnorm(population, mu_2, sqrt(sigma_2_women))
   
   llrt = log(men_likelihood/ women_likelihood)
   

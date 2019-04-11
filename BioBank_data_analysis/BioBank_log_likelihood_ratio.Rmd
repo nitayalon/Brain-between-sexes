@@ -25,46 +25,42 @@ population <- seq(-4,4, length.out = 10000)
 Lower Antidiagonal:
 
 ```{r lower antidiagonal model and empiric llrt, warning=FALSE}
-i <- sample(lower_antidiagonal_feature_names,1)
+k = sample(lower_antidiagonal_feature_names,1)
 
-em_params <- results.list[[i]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters
-men_resid <- results.list[[i]]$feature_residuals$value[results.list[[i]]$feature_residuals$sex == 0]
-women_resid <- results.list[[i]]$feature_residuals$value[results.list[[i]]$feature_residuals$sex == 1]
-trim_level <- 4
-llrt <- computeModelBasedLogLikeihoodRatio(em_params,
-                                          sample(men_resid,length(women_resid)),
-                                           women_resid,
-                                          trim_level)
+em_params <- results.list[[k]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters
+men_resid <- results.list[[k]]$feature_residuals$value[results.list[[k]]$feature_residuals$sex == 1]
+women_resid <- results.list[[k]]$feature_residuals$value[results.list[[k]]$feature_residuals$sex == 0]
+grid <- seq(-4, 4, by = 0.01)
+men_density <- logConDens(men_resid, xgrid = grid ,smoothed = T)
+women_density <- logConDens(women_resid, xgrid = grid ,smoothed = T)
 
-plot(population, llrt$llrt)
-plotGenderHistogram(results.list[[i]], lower_antidiagonal_feature_names[i])
-plot(sort(sample(men_resid[men_resid > -trim_level & men_resid < trim_level],length(llrt$llrt))), llrt$llrt, xlab = "Measurments", ylab = "Llrt",
-     main = "Model based llrt")
-### Adding the empirical llrt
-nonParametricLLRT(i, F,trim_value = 4)
-abline(h = log((1-em_params$p) / (1-em_params$q)), col = "green")
-abline(h = log(em_params$p / em_params$q), col = "red")
+pop_llk <- computeModelBasedLogLikeihoodRatio(em_params, men_resid, women_resid)
+plotGenderHistogram(results.list[[k]], lower_antidiagonal_feature_names[k])
+plot(pop_llk$population, pop_llk$llrt)
+abline(h = 0)
+plot(pop_llk$population, pop_llk$men_likelihood, 
+     cex = 0.5, col = "blue", ylim = c(0,0.5))
+points(pop_llk$population, pop_llk$women_likelihood, cex = 0.5, col = "red")
+non_parametric_llrt <- nonParametricLLRT(feature_name = k)
 ```
 
 Upper antidiagonal:
 ```{r upper antidiagonal model and empiric llrt, warning=FALSE}
-i <- sample(upper_antidiagonal_feature_names,1)
+j <- sample(upper_antidiagonal_feature_names,1)
 
-em_params <- results.list[[i]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters
-men_resid <- results.list[[i]]$feature_residuals$value[results.list[[i]]$feature_residuals$sex == 0]
-women_resid <- results.list[[i]]$feature_residuals$value[results.list[[i]]$feature_residuals$sex == 1]
-trim_level <- 4
-llrt <- computeModelBasedLogLikeihoodRatio(em_params,
-                                          sample(men_resid,length(women_resid)),
-                                           women_resid,
-                                          trim_level)
-plot(population, llrt$llrt)
-plotGenderHistogram(results.list[[i]], lower_antidiagonal_feature_names[i])
+em_params <- results.list[[j]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters
+men_resid <- results.list[[j]]$feature_residuals$value[results.list[[j]]$feature_residuals$sex == 1]
+women_resid <- results.list[[j]]$feature_residuals$value[results.list[[j]]$feature_residuals$sex == 0]
+grid <- seq(-4, 4, by = 0.01)
+men_density <- logConDens(men_resid, xgrid = grid ,smoothed = T)
+women_density <- logConDens(women_resid, xgrid = grid ,smoothed = T)
 
-plot(sort(sample(men_resid[men_resid > -trim_level & men_resid < trim_level],length(llrt$llrt))), llrt$llrt, xlab = "Measurments", ylab = "Llrt",
-     main = "Model based llrt")
-### Adding the empirical llrt
-nonParametricLLRT(i, F,trim_value = 4)
-abline(h = log((1-em_params$p) / (1-em_params$q)), col = "green")
-abline(h = log(em_params$p / em_params$q), col = "red")
+pop_llk <- computeModelBasedLogLikeihoodRatio(em_params, men_resid, women_resid)
+plotGenderHistogram(results.list[[j]], upper_antidiagonal_feature_names[j])
+plot(pop_llk$population, pop_llk$llrt)
+abline(h = 0)
+plot(pop_llk$population, pop_llk$men_likelihood, 
+     cex = 0.5, col = "blue", ylim = c(0,0.5))
+points(pop_llk$population, pop_llk$women_likelihood, cex = 0.5, col = "red")
+non_parametric_llrt <- nonParametricLLRT(feature_name = j)
 ```
