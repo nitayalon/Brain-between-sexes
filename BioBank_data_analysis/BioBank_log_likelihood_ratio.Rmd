@@ -9,13 +9,17 @@ In this report our goal is to compute a non parametric log likelihood ratio for 
 
 ```{r import analysis results, include=FALSE, warning=FALSE}
 library(ggplot2)
+library(logcondens)
 load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results_normalized.RData")
 source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/convert_em_probs_to_pq_space.R")
 source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/merge_data_frames_by_column_names.R")
+source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/Log_likelihood_ratio_computation/compute_em_based_llrt.R")
+load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/Log_likelihood_ratio_computation/upper_diagonal_feature_names.RData")  
 ```
 
-```{r compute llrt per feature using EM parameters, warning=FALSE}
-# i <- sample(upper_antidiagonal_feature_names,1)
+Lower Antidiagonal:
+
+```{r lower antidiagonal model and empiric llrt, warning=FALSE}
 i <- sample(lower_antidiagonal_feature_names,1)
 
 em_params <- results.list[[i]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters
@@ -29,8 +33,33 @@ llrt <- computeModelBasedLogLikeihoodRatio(em_params,
 
 plotGenderHistogram(results.list[[i]], lower_antidiagonal_feature_names[i])
 
-plot(sort(sample(men_resid[men_resid > -trim_level & men_resid < trim_level],length(llrt$llrt))), llrt$llrt)
+plot(sort(sample(men_resid[men_resid > -trim_level & men_resid < trim_level],length(llrt$llrt))), llrt$llrt, xlab = "Measurments", ylab = "Llrt",
+     main = "Model based llrt")
+### Adding the empirical llrt
+nonParametricLLRT(i, F,trim_value = 4)
 abline(h = log((1-em_params$p) / (1-em_params$q)), col = "green")
 abline(h = log(em_params$p / em_params$q), col = "red")
 ```
 
+Upper antidiagonal:
+```{r upper antidiagonal model and empiric llrt, warning=FALSE}
+i <- sample(upper_antidiagonal_feature_names,1)
+
+em_params <- results.list[[i]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters
+men_resid <- results.list[[i]]$feature_residuals$value[results.list[[i]]$feature_residuals$sex == 0]
+women_resid <- results.list[[i]]$feature_residuals$value[results.list[[i]]$feature_residuals$sex == 1]
+trim_level <- 4
+llrt <- computeModelBasedLogLikeihoodRatio(em_params,
+                                          sample(men_resid,length(women_resid)),
+                                           women_resid,
+                                          trim_level)
+
+plotGenderHistogram(results.list[[i]], lower_antidiagonal_feature_names[i])
+
+plot(sort(sample(men_resid[men_resid > -trim_level & men_resid < trim_level],length(llrt$llrt))), llrt$llrt, xlab = "Measurments", ylab = "Llrt",
+     main = "Model based llrt")
+### Adding the empirical llrt
+nonParametricLLRT(i, F,trim_value = 4)
+abline(h = log((1-em_params$p) / (1-em_params$q)), col = "green")
+abline(h = log(em_params$p / em_params$q), col = "red")
+```

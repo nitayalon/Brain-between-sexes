@@ -91,7 +91,9 @@ Analyzing the features based on the *p-values*:
 upper_main_diagonal_feature_names <- 
   rownames(combined_df_long_sorted)[
     with(combined_df_long_sorted,(p_values < 1e-3 & p > 0.5 & q > 0.5))]  
-  
+setwd("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/Log_likelihood_ratio_computation")
+save(upper_main_diagonal_feature_names, file = "upper_diagonal_feature_names.RData")
+load("upper_diagonal_feature_names.RData")  
 upper_main_diagonal_features <- 
   results.list[names(results.list) %in% upper_main_diagonal_feature_names]
 ```
