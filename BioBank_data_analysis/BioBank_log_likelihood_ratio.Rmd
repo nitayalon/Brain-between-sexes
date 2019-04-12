@@ -1,0 +1,83 @@
+---
+title: "non parametric log likelihood computation"
+author: "Nitay Alon"
+date: "April 10, 2019"
+output: html_document
+---
+
+In this report our goal is to compute a non parametric log likelihood ratio for each brain feature in question. First we compute the model based log likelihood ratio using the MLE parameters of the EM. Second we use a log concave approximation of the empiric data to plot the log-likelihood ratio.
+
+```{r import analysis results, include=FALSE, warning=FALSE}
+library(ggplot2)
+library(logcondens)
+library(Jmisc)
+load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results_normalized.RData")
+source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/convert_em_probs_to_pq_space.R")
+source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/merge_data_frames_by_column_names.R")
+source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/Log_likelihood_ratio_computation/compute_em_based_llrt.R")
+sourceAll("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/Visualization_methods/")
+load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/upper_diagonal_feature_names.RData")  
+load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/lower_diagonal_feature_names.RData")  
+set.seed(11547)
+population <- seq(-4,4, length.out = 10000)
+```
+
+## Lower Antidiagonal:
+
+```{r lower antidiagonal model and empiric llrt, warning=FALSE}
+k = sample(lower_antidiagonal_feature_names,1)
+# k = "X25854.2.0"
+em_params <- results.list[[k]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters
+men_resid <- results.list[[k]]$feature_residuals$value[results.list[[k]]$feature_residuals$sex == 1]
+women_resid <- results.list[[k]]$feature_residuals$value[results.list[[k]]$feature_residuals$sex == 0]
+trim_value <- 3
+ind <- non_parametric_llrt$men_density$xs > -trim_value & non_parametric_llrt$men_density$xs < trim_value
+pop_llk <- computeModelBasedLogLikeihoodRatio(em_params, men_resid, women_resid)
+non_parametric_llrt <- nonParametricLLRT(feature_name = k)
+```
+
+```{r plotting lower antidiagonal model based vs empiric llrt}
+plotGenderHistogram(results.list[[k]], k)
+plot(pop_llk$population, pop_llk$men_likelihood, 
+     cex = 0.5, col = "blue", ylim = c(0,0.5))
+points(pop_llk$population, pop_llk$women_likelihood, cex = 0.5, col = "red")
+
+plot(non_parametric_llrt$men_density$xs, non_parametric_llrt$men_density$f.smoothed, col = "blue", cex = 0.5,
+     ylim = c(0,0.6))
+points(non_parametric_llrt$women_density$xs, non_parametric_llrt$women_density$f.smoothed, col = "red", cex = 0.5)
+
+plot(pop_llk$population, pop_llk$llrt, cex = 0.5, col = "red", xlab = "feature values", ylab = "llrt",
+     ylim = c(-2,2))
+points(seq(-4, 6, by = 0.01), log(non_parametric_llrt$men_density$f.smoothed / 
+            non_parametric_llrt$women_density$f.smoothed), cex = 0.5, col = "blue")
+```
+
+## Upper antidiagonal:
+```{r upper antidiagonal model and empiric llrt, warning=FALSE, include=FALSE}
+j <- sample(upper_antidiagonal_feature_names,1)
+
+em_params <- results.list[[j]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters
+men_resid <- results.list[[j]]$feature_residuals$value[results.list[[j]]$feature_residuals$sex == 1]
+women_resid <- results.list[[j]]$feature_residuals$value[results.list[[j]]$feature_residuals$sex == 0]
+trim_value <- 3
+ind <- non_parametric_llrt$men_density$xs > -trim_value & non_parametric_llrt$men_density$xs < trim_value
+pop_llk <- computeModelBasedLogLikeihoodRatio(em_params, men_resid, women_resid)
+non_parametric_llrt <- nonParametricLLRT(feature_name = j)
+```
+
+```{r plotting upper diagonal model based vs empiric llrt}
+plotGenderHistogram(results.list[[j]], j)
+plot(pop_llk$population, pop_llk$men_likelihood, 
+     cex = 0.5, col = "blue", ylim = c(0,0.5))
+points(pop_llk$population, pop_llk$women_likelihood, cex = 0.5, col = "red")
+
+plot(non_parametric_llrt$men_density$xs, non_parametric_llrt$men_density$f.smoothed, col = "blue", cex = 0.5,
+     ylim = c(0,0.6))
+points(non_parametric_llrt$women_density$xs, non_parametric_llrt$women_density$f.smoothed, col = "red", cex = 0.5)
+
+plot(pop_llk$population, pop_llk$llrt, cex = 0.5, col = "red", xlab = "feature values", ylab = "llrt",
+     ylim = c(-2,2))
+points(seq(-4, 6, by = 0.01), log(non_parametric_llrt$men_density$f.smoothed / 
+            non_parametric_llrt$women_density$f.smoothed), cex = 0.5, col = "blue")
+```
+
