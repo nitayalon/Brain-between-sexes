@@ -11,13 +11,15 @@ computeModelBasedLogLikeihoodRatio <- function(em_paramters_per_feature,
   mu_2 <- em_paramters_per_feature$mu_2
   sigma_2_men <- em_paramters_per_feature$sigma_2_men
   sigma_2_women <- em_paramters_per_feature$sigma_2_women
-  trimmed_population <- quantile(sort(c(men_residuals, women_residuals)), c(0.05,0.95))
+  
+  # trimmed_population <- quantile(sort(c(men_residuals, women_residuals)), c(0.025,0.975))
+  trimmed_population <- c(-3,3)
   men_resid_sorted <- sort(men_residuals[men_residuals > trimmed_population[1] & men_residuals < trimmed_population[2]])
   women_resid_sorted <- sort(women_residuals[women_residuals > trimmed_population[1] & women_residuals < trimmed_population[2]])
   
   population <- sort(c(men_resid_sorted, women_resid_sorted))
-  men_resid_sorted <- sort(men_residuals[men_residuals > -trim_level & men_residuals < trim_level])
-  women_resid_sorted <- sort(women_residuals[women_residuals > -trim_level & women_residuals < trim_level])
+  men_resid_sorted <- sort(men_residuals)
+  women_resid_sorted <- sort(women_residuals)
   
   # men_likelihood <- p * dnorm(men_resid_sorted, mu_1, sigma_2_men) + 
   #   (1-p) * dnorm(men_resid_sorted, mu_2, sigma_2_women)

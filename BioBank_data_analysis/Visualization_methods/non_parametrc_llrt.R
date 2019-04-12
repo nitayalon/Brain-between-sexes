@@ -16,15 +16,15 @@ nonParametricLLRT <- function(feature_name,
   men_resid_trimmed <- men_resid[men_resid > (-1 * trim_value) & men_resid < trim_value]
   women_resid_trimmed <- women_resid[women_resid > (-1 * trim_value) & women_resid < trim_value]
   
-  men_density <- logConDens(sort(men_resid_trimmed) ,smoothed = T)
-  women_density <- logConDens(sort(women_resid_trimmed) ,smoothed = T)
+  men_density <- logConDens(sort(men_resid_trimmed) ,smoothed = T, xs = grid)
+  women_density <- logConDens(sort(women_resid_trimmed) ,smoothed = T, xs = grid)
   
   if(include_sex_densities)
   {
     # plot(log((men_density$phi * men_density$w) /
     #            (women_density$phi * women_density$w)), main = feature_name)
-    plot(women_density$xs, log(men_density$f.smoothed / women_density$f.smoothed), 
-         main = feature_name, ylab = "LLRT")
+    # plot(women_density$xs, log(men_density$f.smoothed / women_density$f.smoothed), 
+    #      main = feature_name, ylab = "LLRT")
     return(list(men_density = men_density,
                 women_density = women_density))
   }

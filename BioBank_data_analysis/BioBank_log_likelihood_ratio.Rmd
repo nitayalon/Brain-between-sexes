@@ -45,33 +45,32 @@ non_parametric_llrt <- nonParametricLLRT(feature_name = k)
 ```
 
 Upper antidiagonal:
-```{r upper antidiagonal model and empiric llrt, warning=FALSE}
+```{r upper antidiagonal model and empiric llrt, warning=FALSE, include=FALSE}
 j <- sample(upper_antidiagonal_feature_names,1)
 
 em_params <- results.list[[j]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters
 men_resid <- results.list[[j]]$feature_residuals$value[results.list[[j]]$feature_residuals$sex == 1]
 women_resid <- results.list[[j]]$feature_residuals$value[results.list[[j]]$feature_residuals$sex == 0]
-grid <- seq(-4, 4, by = 0.01)
-men_density <- logConDens(men_resid, xgrid = grid ,smoothed = T)
-women_density <- logConDens(women_resid, xgrid = grid ,smoothed = T)
-
+trim_value <- 3
+ind <- non_parametric_llrt$men_density$xs > -trim_value & non_parametric_llrt$men_density$xs < trim_value
 pop_llk <- computeModelBasedLogLikeihoodRatio(em_params, men_resid, women_resid)
-plotGenderHistogram(results.list[[j]], upper_antidiagonal_feature_names[j])
-plot(pop_llk$population, pop_llk$llrt)
-abline(h = 0)
+non_parametric_llrt <- nonParametricLLRT(feature_name = j)
+```
+
+```{r plotting upper diagonal model based vs empiric llrt}
+plotGenderHistogram(results.list[[j]], j)
 plot(pop_llk$population, pop_llk$men_likelihood, 
      cex = 0.5, col = "blue", ylim = c(0,0.5))
 points(pop_llk$population, pop_llk$women_likelihood, cex = 0.5, col = "red")
 
-non_parametric_llrt <- nonParametricLLRT(feature_name = j)
 plot(non_parametric_llrt$men_density$xs, non_parametric_llrt$men_density$f.smoothed, col = "blue", cex = 0.5,
      ylim = c(0,0.6))
 points(non_parametric_llrt$women_density$xs, non_parametric_llrt$women_density$f.smoothed, col = "red", cex = 0.5)
 
-quantile(c(men_resid,women_resid), c(0.025,0.975))
+plot(pop_llk$population, pop_llk$llrt, cex = 0.5, col = "red", xlab = "feature values", ylab = "llrt",
+     ylim = c(-2,2))
+points(seq(-4, 6, by = 0.01), log(non_parametric_llrt$men_density$f.smoothed / 
+            non_parametric_llrt$women_density$f.smoothed), cex = 0.5, col = "blue")
 
-trim_value <- 3
-ind <- non_parametric_llrt$men_density$xs > -trim_value & non_parametric_llrt$men_density$xs < trim_value
-plot(non_parametric_llrt$men_density$xs[non_parametric_llrt$men_density$xs > -trim_value & non_parametric_llrt$men_density$xs < trim_value], log(non_parametric_llrt$men_density$f.smoothed[ind] / 
-           non_parametric_llrt$women_density$f.smoothed[ind]))
 ```
+
