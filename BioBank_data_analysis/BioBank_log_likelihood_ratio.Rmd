@@ -25,15 +25,15 @@ population <- seq(-4,4, length.out = 10000)
 ## Lower Antidiagonal:
 
 ```{r lower antidiagonal model and empiric llrt, warning=FALSE}
-k = sample(lower_antidiagonal_feature_names,1)
-# k = "X25854.2.0"
+# k = sample(lower_antidiagonal_feature_names,1)
+k = "X25854.2.0"
 em_params <- results.list[[k]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters
 men_resid <- results.list[[k]]$feature_residuals$value[results.list[[k]]$feature_residuals$sex == 1]
 women_resid <- results.list[[k]]$feature_residuals$value[results.list[[k]]$feature_residuals$sex == 0]
 trim_value <- 3
-ind <- non_parametric_llrt$men_density$xs > -trim_value & non_parametric_llrt$men_density$xs < trim_value
 pop_llk <- computeModelBasedLogLikeihoodRatio(em_params, men_resid, women_resid)
 non_parametric_llrt <- nonParametricLLRT(feature_name = k)
+ind <- non_parametric_llrt$men_density$xs > -trim_value & non_parametric_llrt$men_density$xs < trim_value
 ```
 
 ```{r plotting lower antidiagonal model based vs empiric llrt}
