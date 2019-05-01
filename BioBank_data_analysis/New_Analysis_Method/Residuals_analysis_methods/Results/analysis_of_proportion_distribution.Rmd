@@ -13,18 +13,37 @@ The mixture model assumes that the distribution of each brain feature measures i
 In turn each gender "selects" the proportion of high mean distribution and low mean distribution, denoted $p,q$ in this report. The goal of this report is to explore the distribution of these proportions.
 
 # Joint distribution of proportions:
+```{r fit quadrant}
+fitQuadrant <- function(p,q)
+{
+  p_tilde <- as.numeric(p) - 0.5
+  q_tilde <- as.numeric(q) - 0.5
+  if(sign(p_tilde) == sign(q_tilde))
+  {
+    return("Main")
+  }
+  return("Anti")
+}
+```
+
+
+
 ```{r sourcing methods, warning=FALSE,include=FALSE}
 library(ggplot2)
 library(dplyr)
 
-load("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results_normalized.RData")
-source("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/convert_em_probs_to_pq_space.R")
-source("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/merge_data_frames_by_column_names.R")
-
-# load("/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results.RData")
-# source("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/convert_em_probs_to_pq_space.R")
-# source("~/HumanBrainResearch/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/merge_data_frames_by_column_names.R")
-
+sourceAllFiles <- function()
+{
+  possible_computers <- c("nitayServer","Nitay-R-Droplet")
+  main_folder_path <- switch (
+    (Sys.info())[[4]],
+    "nitayServer"="~/Documents/Human_brain_research/DAPHNA_JOEL/",
+    "Nitay-R-Droplet"="~/HumanBrainResearch/"
+  )
+  load(paste0(main_folder_path,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results_normalized.RData"))
+  source(paste0(main_folder_path,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/convert_em_probs_to_pq_space.R"))
+  source(paste0(main_folder_path,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/merge_data_frames_by_column_names.R"))
+}
 # load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results_normalized.RData")
 # source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/convert_em_probs_to_pq_space.R")
 # source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/merge_data_frames_by_column_names.R")
@@ -35,7 +54,7 @@ p_and_q <- sapply(results_list_m_parameters, function(x){c(x$p, x$q)})
 ```
 
 ### P-Value color schema pure vs mixture
-First we add a colouring schema based on the *p-value* of the llrt, when the hypothesis is pure type vs mixture model. 
+First we add a coloring schema based on the *p-value* of the llrt, when the hypothesis is pure type vs mixture model. 
 ```{r pure type vs mixture model colouring schema, include=FALSE,warning=FALSE}
 pvalue_per_feature <- pullPvaluePerHypothesis(results.list)
 pvalue_per_feature_df <- t(pvalue_per_feature) %>% as.data.frame() 
@@ -52,38 +71,68 @@ ggplot(combined_df_long, aes(p,q, colour = bins_of_pv)) +
   ggtitle("Values of p and q", subtitle = "No correction")
 ```
 ### FDR
-```{r fdr}
+
+The following figure plots the FDR corrected $p-values$, point color indicate feature quadrant, horizontal lines indicate significance levels.
+```{r fdr procedure, include = FALSE}
 N <- nrow(combined_df_long)
 combined_df_long_sorted <- combined_df_long[order(combined_df_long$p_values,decreasing = F),]
-combined_df_long_sorted$n <- seq(1:N)
-combined_df_long_sorted$fdr_p_value <- with(combined_df_long_sorted, p_values * N / n)
-combined_df_long_sorted$bins_for_fdr <- cut(combined_df_long_sorted$fdr_p_value, c(0,1e-3,1e-1,10000))
+combined_df_long_sorted$i <- seq(1:N)
+combined_df_long_sorted$bh_pvalue <- with(combined_df_long_sorted, p_values * i / N)
+combined_df_long_sorted$region <- apply(combined_df_long_sorted, 1, function(x){fitQuadrant(x[2],x[3])})
+```
 
+```{r plot fdr}
+ggplot(combined_df_long_sorted, aes(i,bh_pvalue,colour = region)) + 
+  geom_point() +
+  geom_hline(yintercept = 0.01) +
+  geom_hline(yintercept = 0.05) +
+  geom_hline(yintercept = 0.1) +
+  ggtitle("FDR p-values")
+  # geom_vline(xintercept = 0.5) +
+  # geom_abline(slope = 1, intercept = 0)
+```
+
+The tables below are the number of significant features, per significance level:
+
+```{r summarize of significant features}
+table(combined_df_long_sorted$bh_pvalue < 0.01)
+table(combined_df_long_sorted$bh_pvalue < 0.05)
+table(combined_df_long_sorted$bh_pvalue < 0.1)
+```
+
+To compute the FDR $p-value$ the current p-values are transformed using the formula:
+\[
+  pv(i) = max_{j \leq i} pv \frac{n}{j} 
+\]
+
+```{r fdr pvalues, include = FALSE}
+combined_df_long_sorted$fdr_pv <- 
+  sapply(c(1:nrow(combined_df_long_sorted)), function(i){
+    max(combined_df_long_sorted$bh_pvalue[1:i])
+  })
+  
+combined_df_long_sorted$bins_for_fdr <- cut(combined_df_long_sorted$fdr_pv, c(0,1e-2,5e-2,1e-1,1))
+```
+
+```{r plot fdr pvalues}
+ggplot(combined_df_long_sorted, aes(i,fdr_pv, colour = bins_for_fdr)) + 
+  geom_point() +
+  ggtitle("FDR pv", subtitle = "color indicate sig level") 
+```
+```{r fdr p value by quadrant}
 ggplot(combined_df_long_sorted, aes(p,q, colour = bins_for_fdr)) + 
   geom_point() +
   geom_vline(xintercept = 0.5) +
   geom_hline(yintercept = 0.5) +
-  ggtitle("Values of p and q", subtitle = "FDR correction") + 
+  ggtitle("Values of p and q", subtitle = "color indicate FDR pv") + 
   geom_abline(slope = 1, intercept = 0)
-ggplot(combined_df_long_sorted, aes(p,q, colour = bins_for_fdr)) +  
-  geom_point() + 
-  ggtitle("Values of p and q", subtitle = "FDR correction") +
-  geom_vline(xintercept = 0.5) + 
-  geom_hline(yintercept = 0.5)
-  
 ```
 
-A visual inspection of the FDR coloring schema shows that the "region of discovery" are in the low-left and far-right corners. Plotting using the same colouring schema, but this time of the *logit* transformation
-
-```{r plot p vs q log scale}
-ggplot(combined_df_long_sorted, aes(log(p / (1-p)),log(q / (1-q)), colour = bins_for_fdr)) + geom_point() + 
-  ggtitle("Values of logit(p) and logit(q)", subtitle = "FDR correction") + 
-  theme_bw() + 
-  xlab("p") + 
-  ylab("q")
-```
+The above measles like plot shows the distribution of the FDR p-values. It is visible that the II and IV quadrants are heavily dense with significant features. Some features in the I quadrant and the III quadrants are also significant. 
 
 # Post hoc analysis
+
+In this section our goal is to find patterns in the distribution stracture of the FDR significane features.  
 
 ## Main diagonal
 Analyzing the features based on the *p-values*:
@@ -97,7 +146,7 @@ upper_main_diagonal_features <-
   results.list[names(results.list) %in% upper_main_diagonal_feature_names]
 ```
 
-Appling the same plotting schema as in the shiny app:
+Applying the same plotting schema as in the shiny app:
 ```{r plotting upper diagonal feature}
 i <- 3
 plotGenderHistogram(upper_main_diagonal_features[[i]], upper_main_diagonal_feature_names[i])
