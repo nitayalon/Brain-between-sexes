@@ -7,6 +7,7 @@ applyHypothesisOverResiduals <- function(residual_data) {
     simpleDistributionVsCompositeDistribution(
         residual_data$value,
         residual_data$sex,
+        residual_data$eid,
         "L")
   simple_vs_compostie_llrt <- simple_vs_compostie_hypothesis_test
   
@@ -17,6 +18,7 @@ applyHypothesisOverResiduals <- function(residual_data) {
   pure_types_vs_mixed_gender_hypothesis <- 
     pureTypeMixtureVsCompositeMixture(residual_data$value,
                                       residual_data$sex,
+                                      residual_data$eid,
                                       distribution_model = "L",
                                       return_full_data = T, 
                                       data_needs_preparation = F)

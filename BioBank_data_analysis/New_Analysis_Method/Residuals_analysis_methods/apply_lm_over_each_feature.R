@@ -1,12 +1,15 @@
 library(dplyr)
 applyLinearModelOverBrainFeature <- function(feature_name,
-                                             trimming_limit = 3)
+                                             trimming_limit = 3,
+                                             subject_data)
 {
   filtering_criteria <- !is.na(full_relevant_data[,feature_name]) & 
     full_relevant_data[,feature_name] > 0
   
-  feature_data <- tibble(sex = full_relevant_data$Sex[filtering_criteria],
-                       value = full_relevant_data[,feature_name][filtering_criteria])
+  feature_data <- tibble(
+    eid = subject_data$eid[filtering_criteria],
+    sex = full_relevant_data$Sex[filtering_criteria],
+    value = full_relevant_data[,feature_name][filtering_criteria])
   
   total_brain_volume_data <- 
     bio.bank.data[filtering_criteria,] %>% 
@@ -23,8 +26,11 @@ applyLinearModelOverBrainFeature <- function(feature_name,
   lm_for_first_feature <- lm(log_y ~ log_x1 + log_x2, 
                              data = data_for_lm_log_scale)
   
-  residuals_first_feature <- tibble(sex = feature_data$sex,
-                                    value = lm_for_first_feature$residuals)
+  residuals_first_feature <- tibble(
+    eid = feature_data$eid,
+    sex = feature_data$sex,
+    value = lm_for_first_feature$residuals)
+  
   residuals_first_feature <- 
     residuals_first_feature %>% 
     normalizeResiduales()

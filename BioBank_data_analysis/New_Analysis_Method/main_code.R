@@ -9,12 +9,15 @@ sourceAll("~/Documents/Human_brain_research/DAPHNA_JOEL/Mixture_models/Log_norma
 sourceAll("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/")
 
 total.brain.volum.data <- bio.bank.data %>% select("X25010.2.0","X25004.2.0")
+user_data <- select(bio.bank.data, eid, X31.0.0)
 list.of.names <- names(full_relevant_data)[-c(1:5)]
 results.list <- list()
 
 for(feature.name in list.of.names)
 {
-  full.function.test <- fullBrainFeatureAnalysis(feature.name,list.of.names)
+  full.function.test <- fullBrainFeatureAnalysis(feature.name,
+                                                 list.of.names,
+                                                 user_data)
   results.list[[feature.name]] <- full.function.test
 }  
 

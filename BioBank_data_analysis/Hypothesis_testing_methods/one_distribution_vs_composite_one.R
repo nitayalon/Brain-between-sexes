@@ -2,14 +2,15 @@
 # distribution hypothesis test
 simpleDistributionVsCompositeDistribution <- function(feature_data
                                                       ,gender_data
+                                                      ,user_id
                                                       ,distribution_model=c("LogNormal","Normal"),
                                                       is_data_scaled_and_logged = T)
 {
   distribution_model=match.arg(distribution_model)
   
-  full_data <- cbind(feature_data,gender_data)
+  full_data <- cbind(feature_data,gender_data,user_id)
   full_data <- na.omit(full_data) %>% as.data.frame()
-  names(full_data) <- c("value","bio_sex")
+  names(full_data) <- c("value","bio_sex","eid")
   
   if(!is_data_scaled_and_logged)
   {
@@ -31,7 +32,7 @@ simpleDistributionVsCompositeDistribution <- function(feature_data
   {
     processed_data <- full_data$value
     data_for_EM <- full_data
-    names(data_for_EM) <- c("value","bio_sex")
+    names(data_for_EM) <- c("value","bio_sex","eid")
   }
   # null hypothesis llk
   null_hypothesis_llk <- singleDistributionHypothesisLoglikelihood(processed_data)

@@ -2,15 +2,16 @@
 #' mixture of mixtures model
 pureTypeMixtureVsCompositeMixture <- function(feature_data
                                               ,gender_data
+                                              ,user_id
                                               ,distribution_model=c("LogNormal","Normal")
                                               ,return_full_data = F,
                                               data_needs_preparation = T)
 {
   distribution_model=match.arg(distribution_model)
   
-  full_data <- cbind(feature_data, gender_data)
+  full_data <- cbind(feature_data,gender_data,user_id)
   full_data <- na.omit(full_data) %>% as.data.frame()
-  names(full_data) <- c("value","bio_sex")
+  names(full_data) <- c("value","bio_sex","eid")
   
   if(data_needs_preparation)
   {
