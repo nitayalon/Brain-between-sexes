@@ -13,7 +13,7 @@ The mixture model assumes that the distribution of each brain feature measures i
 In turn each gender "selects" the proportion of high mean distribution and low mean distribution, denoted $p,q$ in this report. The goal of this report is to explore the distribution of these proportions.
 
 # Joint distribution of proportions:
-```{r fit quadrant}
+```{r fit quadrant, warning=FALSE,include=FALSE}
 fitQuadrant <- function(p,q)
 {
   p_tilde <- as.numeric(p) - 0.5
@@ -26,16 +26,12 @@ fitQuadrant <- function(p,q)
 }
 ```
 
-
-
 ```{r sourcing methods, warning=FALSE,include=FALSE}
 library(ggplot2)
 library(dplyr)
-
-sourceAllFiles <- function()
-{
-  possible_computers <- c("nitayServer","Nitay-R-Droplet")
-  main_folder_path <- switch (
+library(Jmisc)
+library(config)
+main_folder_path <- switch (
     (Sys.info())[[4]],
     "nitayServer"="~/Documents/Human_brain_research/DAPHNA_JOEL/",
     "Nitay-R-Droplet"="~/HumanBrainResearch/"
@@ -43,17 +39,17 @@ sourceAllFiles <- function()
   load(paste0(main_folder_path,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results_normalized.RData"))
   source(paste0(main_folder_path,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/convert_em_probs_to_pq_space.R"))
   source(paste0(main_folder_path,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/merge_data_frames_by_column_names.R"))
-}
-# load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results_normalized.RData")
-# source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/convert_em_probs_to_pq_space.R")
-# source("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/merge_data_frames_by_column_names.R")
+  source(paste0(main_folder_path,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/convert_em_probs_to_pq_space.R"))
+  sourceAll(paste0(main_folder_path,"BioBank_data_analysis/Visualization_methods"))
+```
 
+```{r prepare data for analysis, include = FALSE}
 results_list_m_parameters <- convertEMProbabiltiesToPQSpace(results.list)
-
 p_and_q <- sapply(results_list_m_parameters, function(x){c(x$p, x$q)})
 ```
 
 ### P-Value color schema pure vs mixture
+
 First we add a coloring schema based on the *p-value* of the llrt, when the hypothesis is pure type vs mixture model. 
 ```{r pure type vs mixture model colouring schema, include=FALSE,warning=FALSE}
 pvalue_per_feature <- pullPvaluePerHypothesis(results.list)
@@ -70,6 +66,7 @@ ggplot(combined_df_long, aes(p,q, colour = bins_of_pv)) +
   geom_point() + 
   ggtitle("Values of p and q", subtitle = "No correction")
 ```
+
 ### FDR
 
 The following figure plots the FDR corrected $p-values$, point color indicate feature quadrant, horizontal lines indicate significance levels.
@@ -114,12 +111,12 @@ combined_df_long_sorted$fdr_pv <-
 combined_df_long_sorted$bins_for_fdr <- cut(combined_df_long_sorted$fdr_pv, c(0,1e-2,5e-2,1e-1,1))
 ```
 
-```{r plot fdr pvalues}
+```{r plot fdr pvalues, warnings = FALSE}
 ggplot(combined_df_long_sorted, aes(i,fdr_pv, colour = bins_for_fdr)) + 
   geom_point() +
   ggtitle("FDR pv", subtitle = "color indicate sig level") 
 ```
-```{r fdr p value by quadrant}
+```{r fdr p value by quadrant, warnings = FALSE}
 ggplot(combined_df_long_sorted, aes(p,q, colour = bins_for_fdr)) + 
   geom_point() +
   geom_vline(xintercept = 0.5) +
@@ -132,43 +129,15 @@ The above measles like plot shows the distribution of the FDR p-values. It is vi
 
 # Post hoc analysis
 
-In this section our goal is to find patterns in the distribution stracture of the FDR significane features.  
-
-## Main diagonal
-Analyzing the features based on the *p-values*:
-```{r upper main diagonal features}
-upper_main_diagonal_feature_names <- 
-  rownames(combined_df_long_sorted)[
-    with(combined_df_long_sorted,(p_values < 1e-3 & p > 0.5 & q > 0.5))]  
-setwd("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/Log_likelihood_ratio_computation")
-save(upper_main_diagonal_feature_names, file = "upper_diagonal_feature_names.RData")
-upper_main_diagonal_features <- 
-  results.list[names(results.list) %in% upper_main_diagonal_feature_names]
-```
-
-Applying the same plotting schema as in the shiny app:
-```{r plotting upper diagonal feature}
-i <- 3
-plotGenderHistogram(upper_main_diagonal_features[[i]], upper_main_diagonal_feature_names[i])
-```
-
-it is clear that in the case of the upper diagonal the mixture model yields higher likelihood ratio only due to right tailed observations.
-
-### Non parametric LLRT
-```{r non parametric llrt of main diagonal}
-library(logcondens)
-men_density <- logConDens()
-```
-
+In this section our goal is to find patterns in the distribution structure of the FDR significance features. Assuming that the underline model is a mixture of Gaussians with different means and variance, these feature should present a distinct pattern. Using visual inspection of the underline distribution it is possible to uncover characteristics of the features. The analysis begins with the anti-diagonal ($sign(p-0.5) \neq sign(q-0.5)$) followed by the same method for the main diagonal.
 
 ## antidiagonal
-Our interest lays in the antidiagonal. 
 
 ### Upper
 ```{r high q low p}
 upper_antidiagonal_feature_names <- 
   rownames(combined_df_long_sorted)[
-    with(combined_df_long_sorted,(p_values < 1e-3 & p < 0.5 & q > 0.5))]  
+    with(combined_df_long_sorted,(fdr_pv < 5e-2 & p < 0.5 & q > 0.5))]  
 save(upper_antidiagonal_feature_names, file = "upper_diagonal_feature_names.RData")    
 upper_antidiagonal_features <- 
   results.list[names(results.list) %in% upper_antidiagonal_feature_names]
@@ -179,26 +148,70 @@ i <- sample(1:length(upper_antidiagonal_feature_names), 1)
 plotGenderHistogram(upper_antidiagonal_features[[i]], upper_antidiagonal_feature_names[i])
 ```
 
+A general pattern in this qudrant is best represented by the following plot:
+```{r representitive plot}
+feature_name = "X25805.2.0"
+plotGenderHistogram(upper_antidiagonal_features[[feature_name]], feature_name)
+```
+
 ### Lower 
 ```{r low q high p}
 lower_antidiagonal_feature_names <- 
   rownames(combined_df_long_sorted)[
-    with(combined_df_long_sorted,(p_values < 1e-3 & p > 0.5 & q < 0.5))]  
+    with(combined_df_long_sorted,(fdr_pv < 1e-3 & p > 0.5 & q < 0.5))]  
 save(lower_antidiagonal_feature_names, file = "lower_diagonal_feature_names.RData")  
 lower_antidiagonal_features <- 
   results.list[names(results.list) %in% lower_antidiagonal_feature_names]
 ```
 
-```{r plotting lower anti diagonal feature}
+```{r plotting at random}
 i <- sample(1:length(lower_antidiagonal_feature_names), 1)
 plotGenderHistogram(lower_antidiagonal_features[[i]], lower_antidiagonal_feature_names[i])
+```
 
-tibble(p = lower_antidiagonal_features[[i]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters$p,
-       q = lower_antidiagonal_features[[i]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters$q)
+```{r high mixture for men wemon neutral}
+feature_name = "X25120.2.0"
+plotGenderHistogram(lower_antidiagonal_features[[feature_name]], feature_name)
 ```
 
 
-```{r find interesting regions}
-findInterestingRegion(lower_antidiagonal_features)
+```{r another example of sex mixture model}
+feature_name = "X25535.2.0"
+plotGenderHistogram(lower_antidiagonal_features[[feature_name]], feature_name)
 ```
+
+
+<!-- ## Main diagonal -->
+<!-- Analyzing the features based on the *p-values*: -->
+<!-- ```{r upper main diagonal features} -->
+<!-- upper_main_diagonal_feature_names <-  -->
+<!--   rownames(combined_df_long_sorted)[ -->
+<!--     with(combined_df_long_sorted,(p_values < 1e-3 & p > 0.5 & q > 0.5))]   -->
+<!-- setwd("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/Log_likelihood_ratio_computation") -->
+<!-- save(upper_main_diagonal_feature_names, file = "upper_diagonal_feature_names.RData") -->
+<!-- upper_main_diagonal_features <-  -->
+<!--   results.list[names(results.list) %in% upper_main_diagonal_feature_names] -->
+<!-- ``` -->
+
+<!-- Applying the same plotting schema as in the shiny app: -->
+<!-- ```{r plotting upper diagonal feature} -->
+<!-- i <- 3 -->
+<!-- plotGenderHistogram(upper_main_diagonal_features[[i]], upper_main_diagonal_feature_names[i]) -->
+<!-- ``` -->
+
+<!-- it is clear that in the case of the upper diagonal the mixture model yields higher likelihood ratio only due to right tailed observations. -->
+
+<!-- ### Non parametric LLRT -->
+<!-- ```{r non parametric llrt of main diagonal} -->
+<!-- library(logcondens) -->
+<!-- men_density <- logConDens() -->
+<!-- ``` -->
+
+
+
+
+
+<!-- ```{r find interesting regions} -->
+<!-- findInterestingRegion(lower_antidiagonal_features) -->
+<!-- ``` -->
 
