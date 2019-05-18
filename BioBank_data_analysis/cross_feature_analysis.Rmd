@@ -1,0 +1,77 @@
+---
+title: "level of masculinity"
+author: "Nitay Alon"
+date: "May 17, 2019"
+output: html_document
+---
+
+In this notebook the goal is to compute the level of masculinity of an individual and a feature, that is, $p(i,j)$ denotes the probability of an individual $i$ demonstrate masculinity for feature $j$.
+
+In the E-step of the EM algorithm we compute the above conditional probabilities. The first step is to extract these probabilities and create a new table of id and probabilities.
+
+```{r load the data, include=FALSE}
+local_server_prefix <- "~/Documents/Human_brain_research/DAPHNA_JOEL/"
+source(paste0(local_server_prefix,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/analyze_full_brain_feature.R"))
+source(paste0(local_server_prefix,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/method_helper.R"))
+source(paste0(local_server_prefix,"BioBank_data_analysis/load_biobank_data.R"))
+
+load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results_normalized.RData")
+```
+
+We need to keep the eid throughout the analysis process and export the table when the iterations are over.
+```{r filter FDR significant features, include=FALSE}
+sig_level <- 0.1
+FDR_significant_features <- rownames(combined_df_long_sorted)[
+    with(combined_df_long_sorted,(fdr_pv < sig_level))]  
+```
+
+extract feature data:
+```{r extract FDR significant features data, include=FALSE}
+significant_features <- results.list[FDR_significant_features[-193]]
+men_data <- lapply(significant_features, function(x){x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$men_responsebilities})
+women_data <- lapply(significant_features, function(x){x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$women_responsebilities})
+```
+
+join the tables:
+```{r create men table, include=FALSE, warning=FALSE}
+men_feature_data <- men_data[[1]]
+for(i in 2:length(men_data))
+{
+  men_feature_data <- base::merge(men_feature_data, men_data[[i]], by.x = "eid", by.y = "eid")
+}
+names(men_feature_data) <- c("eid", FDR_significant_features[-193])
+```
+
+```{r create women table, include=FALSE, warning=FALSE}
+women_feature_data <- women_data[[1]]
+for(i in 2:length(women_data))
+{
+  women_feature_data <- base::merge(women_feature_data, women_data[[i]], by.x = "eid", by.y = "eid")
+}
+names(women_feature_data) <- c("eid", FDR_significant_features[-193])
+```
+
+## Correlation matrix
+
+In order to determine if there's a clear pattern of masculinity among genders we compute the correlation matrix between each pair of features and then decompose the corrlation matrix to its eigenvalues to look for dependant.
+```{r correlation matrix men}
+library(corrplot)
+men_cor <- cor(men_feature_data[,-c(1,94)])
+upper_men_corr_matrix <- men_cor
+upper_men_corr_matrix[lower.tri(men_cor,diag = T)] <- 0
+which(upper_men_corr_matrix == max(upper_men_corr_matrix),arr.ind = T) 
+colnames(upper_men_corr_matrix)[109]
+rownames(upper_men_corr_matrix)[65]
+
+men_correlation_matrix_eigen <- eigen(men_cor)
+hist(men_correlation_matrix_eigen$values)
+```
+
+```{r correlation matrix women}
+women_cor <- cor(women_feature_data[,-c(1,94)])
+women_correlation_matrix_eigen <- eigen(women_cor)
+hist(women_correlation_matrix_eigen$values)
+```
+
+We see the same pattern in the values of the eigen values among men and women.
+

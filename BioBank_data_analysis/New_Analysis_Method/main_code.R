@@ -20,7 +20,6 @@ for(feature.name in list.of.names)
                                                  user_data)
   results.list[[feature.name]] <- full.function.test
 }  
-
 save(results.list, file = "New_analysis_method_results.RData")
 
 analyzeFullBrainFeature(full.function.test,plot = T)
