@@ -16,6 +16,7 @@ source(paste0(local_server_prefix,"BioBank_data_analysis/New_Analysis_Method/Res
 source(paste0(local_server_prefix,"BioBank_data_analysis/load_biobank_data.R"))
 
 load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results_normalized.RData")
+load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/combined_df_long_sorted.RData")
 ```
 
 First select only FDR significant features from the antidiagonal: 
@@ -30,7 +31,9 @@ FDR_significant_features <- na.omit(FDR_significant_features)
 extract feature data:
 ```{r extract FDR significant features data, include=FALSE}
 significant_features <- results.list[FDR_significant_features]
+
 men_data <- lapply(significant_features, function(x){x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$men_responsebilities})
+
 women_data <- lapply(significant_features, function(x){x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$women_responsebilities})
 ```
 
@@ -59,16 +62,17 @@ In order to determine if there's a clear pattern of masculinity among genders we
 ```{r correlation matrix men}
 library(corrplot)
 men_cor <- cor(men_feature_data[,-1])
-hist(men_cor, freq = FALSE)
+hist(men_cor, breaks = 150, freq = F)
+corrplot(men_cor, order = "hclust", addrect = 10,tl.cex = 0.6,tl.srt = 45)
 men_correlation_matrix_eigen <- eigen(men_cor)
-corrplot(men_cor, order = "AOE")
 ```
 
 ```{r correlation matrix women}
-women_cor <- cor(women_feature_data[,-c(1,94)])
+women_cor <- cor(women_feature_data[,-1],use = "pairwise.complete.obs")
+corrplot(women_cor, order = "hclust", addrect = 10,tl.cex = 0.6,tl.srt = 45)
 women_correlation_matrix_eigen <- eigen(women_cor)
-hist(women_correlation_matrix_eigen$values)
 ```
 
-We see the same pattern in the values of the eigen values among men and women.
+
+
 
