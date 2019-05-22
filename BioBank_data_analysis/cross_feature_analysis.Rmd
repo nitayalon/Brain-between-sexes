@@ -10,13 +10,14 @@ In this notebook the goal is to compute the level of masculinity of an individua
 In the E-step of the EM algorithm we compute the above conditional probabilities. The first step is to extract these probabilities and create a new table of id and probabilities.
 
 ```{r load the data, include=FALSE}
-local_server_prefix <- "~/Documents/Human_brain_research/DAPHNA_JOEL/"
+# local_server_prefix <- "~/Documents/Human_brain_research/DAPHNA_JOEL/"
+local_server_prefix <- "~/Human_brain_research/"
 source(paste0(local_server_prefix,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/analyze_full_brain_feature.R"))
 source(paste0(local_server_prefix,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/method_helper.R"))
 source(paste0(local_server_prefix,"BioBank_data_analysis/load_biobank_data.R"))
 
-load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results_normalized.RData")
-load("~/Documents/Human_brain_research/DAPHNA_JOEL/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/combined_df_long_sorted.RData")
+load("~/Human_brain_research/BioBank_data_analysis/BioBank_data_analysis_total.RData")
+load("~/Human_brain_research/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/combined_df_long_sorted.RData")
 ```
 
 First select only FDR significant features from the antidiagonal: 
@@ -30,7 +31,7 @@ FDR_significant_features <- na.omit(FDR_significant_features)
 
 extract feature data:
 ```{r extract FDR significant features data, include=FALSE}
-significant_features <- results.list[FDR_significant_features]
+significant_features <- biobank_full_analysis_list[FDR_significant_features]
 
 men_data <- lapply(significant_features, function(x){x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$men_responsebilities})
 
@@ -64,7 +65,21 @@ library(corrplot)
 men_cor <- cor(men_feature_data[,-1])
 hist(men_cor, breaks = 150, freq = F)
 corrplot(men_cor, order = "hclust", addrect = 10,tl.cex = 0.6,tl.srt = 45)
+```
+
+```{r men feature histograms}
+i <- sample(2:length(men_feature_data), 1)
+hist(men_feature_data[,i],breaks = 150)
+```
+
+
+```{r men eigenvalues sum}
 men_correlation_matrix_eigen <- eigen(men_cor)
+ones <- rep(1,length(men_correlation_matrix_eigen$values))
+men_correlation_matrix_eigen$vectors[,1]
+hist(men_correlation_matrix_eigen$value, breaks = 50)
+sum(log(men_correlation_matrix_eigen$values))
+sum(log(ones))
 ```
 
 ```{r correlation matrix women}

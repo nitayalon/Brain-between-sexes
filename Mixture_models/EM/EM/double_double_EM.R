@@ -1,4 +1,4 @@
-config <- config::get(file = "config.yml")
+config <- config::get(file = "~/Human_brain_research/Mixture_models/EM/config.yml")
 
 doubleDoubleEM <- function(observations
                            ,bio_bank_data = T

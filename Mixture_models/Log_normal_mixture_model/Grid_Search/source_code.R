@@ -2,7 +2,7 @@ rm(list = ls())
 # install.packages("Jmisc")
 library(Jmisc)
 
-target.dir <- "~/mastersdegree/Thesis/DAPHNA_JOEL/Mixture_models/Log_normal_mixture_model/Grid_Search"
+target.dir <- "~/Human_brain_research/Mixture_models/Log_normal_mixture_model/Grid_Search"
 setwd(target.dir)
 source("../../../Mixture_models/compute_log_likelihood_for_normal.R")
 source("../../../Data/Full_Data/read_data_from_excel_file.R")

@@ -34,7 +34,7 @@ library(config)
 main_folder_path <- switch (
     (Sys.info())[[4]],
     "nitayServer"="~/Documents/Human_brain_research/DAPHNA_JOEL/",
-    "Nitay-R-Droplet"="~/HumanBrainResearch/"
+    "Nitay-R-Droplet"="~/Human_brain_research/"
   )
   load(paste0(main_folder_path,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/Results/New_analysis_method_results_normalized.RData"))
   source(paste0(main_folder_path,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/convert_em_probs_to_pq_space.R"))
@@ -178,5 +178,17 @@ plotGenderHistogram(lower_antidiagonal_features[[feature_name]], feature_name)
 ```{r another example of sex mixture model}
 feature_name = "X25535.2.0"
 plotGenderHistogram(lower_antidiagonal_features[[feature_name]], feature_name)
+```
+
+
+## $\chi^2$ Test
+We preform $\chi^2$ for dependency test between a binarization of the features by sex. The statistics are ploted in the below histograms:
+```{r chisq histograms}
+load("/home/nitay_2/Human_brain_research/BioBank_data_analysis/measure_of_masculinity/men_chisq_test.RData")
+load("/home/nitay_2/Human_brain_research/BioBank_data_analysis/measure_of_masculinity/women_chisq_test.RData")
+hist(chisq_men[upper.tri(chisq_men,diag = F)],breaks = 100,
+     main = "Chi statistics Men", xlab = "Chi")
+hist(chisq_women[upper.tri(chisq_women,diag = F)],breaks = 100,
+     main = "Chi statistics Women", xlab = "Chi")
 ```
 

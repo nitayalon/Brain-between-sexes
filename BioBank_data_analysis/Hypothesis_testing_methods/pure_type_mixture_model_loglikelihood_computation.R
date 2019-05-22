@@ -9,7 +9,7 @@ pureTypeMixtureModelHypothesis <- function(feature_data,
   else
   {
     split_to_gender <- feature_data
-    names(split_to_gender) <- c("value","bio_sex")
+    names(split_to_gender) <- c("value","bio_sex", "eid")
   }
   pure_type_model <- logNormalNullLlkComputation(split_to_gender,T)
   return(pure_type_model)

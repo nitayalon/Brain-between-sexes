@@ -1,7 +1,7 @@
 # install.packages("gdata")
 require(gdata)
 require(magrittr)
-data.dir <- "~/mastersdegree/Thesis/DAPHNA_JOEL/Data/Full_Data/Unified_Data/"
+data.dir <- "~/Human_brain_research/Data/Full_Data/Unified_Data/"
 
 # Gender data
 dictionary <- read.csv(paste0(data.dir,"/DataRelease_2014-04-22.csv"),
