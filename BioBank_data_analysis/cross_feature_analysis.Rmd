@@ -11,6 +11,7 @@ In the E-step of the EM algorithm we compute the above conditional probabilities
 
 ```{r load the data, include=FALSE}
 # local_server_prefix <- "~/Documents/Human_brain_research/DAPHNA_JOEL/"
+library(pbapply)
 local_server_prefix <- "~/Human_brain_research/"
 source(paste0(local_server_prefix,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/analyze_full_brain_feature.R"))
 source(paste0(local_server_prefix,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/method_helper.R"))
@@ -88,6 +89,73 @@ corrplot(women_cor, order = "hclust", addrect = 10,tl.cex = 0.6,tl.srt = 45)
 women_correlation_matrix_eigen <- eigen(women_cor)
 ```
 
+## Chi Square test for dependency:
+
+```{r source chi square methods, include=FALSE}
+source("../BioBank_data_analysis/measure_of_masculinity/chisq_between_features.R")
+men_feature_data_disc <- pblapply(men_feature_data[,-1],
+                                  ConvertProbabilityToBool) 
+
+women_feature_data_disc <- pblapply(women_feature_data[,-1],
+                                  ConvertProbabilityToBool) 
+```
 
 
+```{r test for dependency men, include=FALSE, warning=FALSE}
+chisq_men <- matrix(NA,length(men_feature_data_disc),length(men_feature_data_disc))
+not_valid_for_chisq_list_men <- c()
+
+for(i in 1:(length(men_feature_data_disc)-1))
+{
+  for(j in (i+1):length(men_feature_data_disc))
+  {
+    data_for_chisq <- ComputeTwoByTwoTable(men_feature_data_disc[[i]],
+                                       men_feature_data_disc[[j]])
+    if(!is.null(data_for_chisq$valid) && data_for_chisq$valid)
+    {
+      chi_square_statistic <- (chisq.test(data_for_chisq$data))$statistic
+      chi_square_sign <- ComputeChiSquareSign(data_for_chisq$data)
+      chisq_men[i,j] <- sqrt(chi_square_statistic) * sign(chi_square_sign)
+      next
+    }
+    not_valid_for_chisq_list_men <- rbind(not_valid_for_chisq_list_men,
+                                       c(names(men_feature_data_disc)[i],
+                                         names(men_feature_data_disc)[j]))
+  }
+}
+```
+
+
+```{r test for dependency women, include=FALSE, warning=FALSE}
+chisq_women <- matrix(NA,length(men_feature_data_disc),length(men_feature_data_disc))
+not_valid_for_chisq_list_women <- c()
+
+for(i in 1:(length(women_feature_data_disc)-1))
+{
+  for(j in (i+1):length(women_feature_data_disc))
+  {
+    data_for_chisq <- ComputeTwoByTwoTable(women_feature_data_disc[[i]],
+women_feature_data_disc[[j]])
+    
+    if(!is.null(data_for_chisq$valid) && data_for_chisq$valid)
+    {
+      chi_square_statistic <- (chisq.test(data_for_chisq$data))$statistic
+      chi_square_sign <- ComputeChiSquareSign(data_for_chisq$data)
+      chisq_women[i,j] <- sqrt(chi_square_statistic) * sign(chi_square_sign)
+      next
+    }
+    not_valid_for_chisq_list_women <- rbind(not_valid_for_chisq_list_women,
+                                      c(names(women_feature_data_disc)[i],
+                                        names(women_feature_data_disc)[j]))
+  }
+}
+```
+
+Histograms of $\chi^2 * sign$:
+```{r histograms of chi square times sign}
+hist(chisq_men[!is.na(chisq_men)], breaks = 100,
+     main = "Men", xlab = "Chi_square * sign")
+hist(chisq_women[!is.na(chisq_women)], breaks = 100,
+     main = "Women", xlab = "Chi_square * sign")
+```
 
