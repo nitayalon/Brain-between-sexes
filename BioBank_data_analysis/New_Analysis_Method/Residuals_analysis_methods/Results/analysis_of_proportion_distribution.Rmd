@@ -116,6 +116,7 @@ ggplot(combined_df_long_sorted, aes(i,fdr_pv, colour = bins_for_fdr)) +
   geom_point() +
   ggtitle("FDR pv", subtitle = "color indicate sig level") 
 ```
+
 ```{r fdr p value by quadrant, warnings = FALSE}
 ggplot(combined_df_long_sorted, aes(p,q, colour = bins_for_fdr)) + 
   geom_point() +
@@ -131,7 +132,24 @@ The above measles like plot shows the distribution of the FDR p-values. It is vi
 
 In this section our goal is to find patterns in the distribution structure of the FDR significance features. Assuming that the underline model is a mixture of Gaussians with different means and variance, these feature should present a distinct pattern. Using visual inspection of the underline distribution it is possible to uncover characteristics of the features. The analysis begins with the anti-diagonal ($sign(p-0.5) \neq sign(q-0.5)$) followed by the same method for the main diagonal.
 
-## antidiagonal
+## Main diagonal
+
+### Upper
+```{r high q high p}
+upper_diagonal_feature_names <- 
+  rownames(combined_df_long_sorted)[
+    with(combined_df_long_sorted,(fdr_pv < 5e-2 & p > 0.75 &  q> 0.75))]  
+# save(upper_diagonal_feature_names, file = "upper_diagonal_feature_names.RData")    
+upper_diagonal_features <- 
+  results.list[names(results.list) %in% upper_diagonal_feature_names]
+```
+
+```{r plotting upper main diagonal feature}
+i <- sample(1:length(upper_diagonal_feature_names), 1)
+plotGenderHistogram(upper_diagonal_features[[i]], upper_diagonal_feature_names[i])
+```
+
+## Antidiagonal
 
 ### Upper
 ```{r high q low p}

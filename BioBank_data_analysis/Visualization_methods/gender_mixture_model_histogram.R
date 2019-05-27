@@ -5,19 +5,20 @@ plot_mix_comps <- function(x, mu, sigma, lambda) {
 }
 
 
-plotGenderHistogram <- function(feature_data, feature_name = NULL)
+plotGenderHistogram <- function(feature_data, feature_name = NULL,
+                                p = NULL, q = NULL)
 {
   plot_data <- feature_data$feature_residuals
   em_data <- feature_data$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters
   
-  plot_title <- sprintf("Histogram of gender data, feature %s", feature_name)
-  
+  plot_title <- sprintf("Histogram of gender data, feature %s", feature_name, p ,q)
+  subtitle <- sprintf("p=%s, q=%s", p ,q)
   feature_histogram <- ggplot(plot_data, aes(x=value, fill=factor(sex))) +
     geom_histogram(aes(y=..density..),
                    bins = 100, 
                    alpha=.8, 
                    position="identity") + 
-    ggtitle(plot_title) 
+    ggtitle(plot_title, subtitle = subtitle) 
   # +
   #   geom_vline(xintercept = c(em_data$mu_1, em_data$mu_2))
    

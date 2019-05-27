@@ -65,7 +65,7 @@ In order to determine if there's a clear pattern of masculinity among genders we
 library(corrplot)
 men_cor <- cor(men_feature_data[,-1])
 hist(men_cor, breaks = 150, freq = F)
-corrplot(men_cor, order = "hclust", addrect = 10,tl.cex = 0.6,tl.srt = 45)
+corrplot(men_cor, order = "FPC", addrect = 10,tl.cex = 0.6,tl.srt = 45)
 ```
 
 ```{r men feature histograms}
@@ -85,7 +85,7 @@ sum(log(ones))
 
 ```{r correlation matrix women}
 women_cor <- cor(women_feature_data[,-1],use = "pairwise.complete.obs")
-corrplot(women_cor, order = "hclust", addrect = 10,tl.cex = 0.6,tl.srt = 45)
+corrplot(women_cor, order = "FPC", addrect = 10,tl.cex = 0.6,tl.srt = 45)
 women_correlation_matrix_eigen <- eigen(women_cor)
 ```
 
