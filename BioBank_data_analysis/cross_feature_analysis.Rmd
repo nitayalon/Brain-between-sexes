@@ -66,6 +66,7 @@ library(corrplot)
 men_cor <- cor(men_feature_data[,-1])
 hist(men_cor, breaks = 150, freq = F)
 corrplot(men_cor, order = "FPC", addrect = 10,tl.cex = 0.6,tl.srt = 45)
+corrplot(men_cor, order = "alphabet", addrect = 10,tl.cex = 0.6,tl.srt = 45)
 ```
 
 ```{r men feature histograms}
@@ -86,6 +87,7 @@ sum(log(ones))
 ```{r correlation matrix women}
 women_cor <- cor(women_feature_data[,-1],use = "pairwise.complete.obs")
 corrplot(women_cor, order = "FPC", addrect = 10,tl.cex = 0.6,tl.srt = 45)
+corrplot(women_cor, order = "alphabet", addrect = 10,tl.cex = 0.6,tl.srt = 45)
 women_correlation_matrix_eigen <- eigen(women_cor)
 ```
 
@@ -157,5 +159,34 @@ hist(chisq_men[!is.na(chisq_men)], breaks = 100,
      main = "Men", xlab = "Chi_square * sign")
 hist(chisq_women[!is.na(chisq_women)], breaks = 100,
      main = "Women", xlab = "Chi_square * sign")
+```
+
+## Correlation matrix of features
+
+Unlike the above analysis, in this section we compute the correlation matrix between the residuals and not the probabilities:
+```{r extract men residual for corrplot, include=FALSE, warning=FALSE}
+men_residuals <- sapply(significant_features, function(x){x$feature_residuals$value[x$feature_residuals$sex == 1]})
+
+women_residuals <- sapply(significant_features, function(x){x$feature_residuals$value[x$feature_residuals$sex == 0]})
+
+men_residuals_matrix <- do.call(cbind, men_residuals)
+names(men_residuals_matrix) = names(men_residuals)
+
+women_residuals_matrix <- do.call(cbind, women_residuals)
+names(women_residuals_matrix) = names(women_residuals)
+```
+
+```{r computing correlation between residuals men, include=TRUE}
+men_residuals_corr_matrix <- cor(men_residuals_matrix,
+                                 use = "pairwise.complete.obs")
+corrplot(men_residuals_corr_matrix, order = "alphabet", addrect = 10,tl.cex = 0.6,tl.srt = 45)
+corrplot(men_residuals_corr_matrix, order = "FPC", addrect = 10,tl.cex = 0.6,tl.srt = 45)
+```
+
+```{r computing correlation between residuals women, include=TRUE}
+women_residuals_corr_matrix <- cor(women_residuals_matrix,
+                                 use = "pairwise.complete.obs")
+corrplot(women_residuals_corr_matrix, order = "alphabet", addrect = 10,tl.cex = 0.6,tl.srt = 45)
+corrplot(women_residuals_corr_matrix, order = "FPC", addrect = 10,tl.cex = 0.6,tl.srt = 45)
 ```
 
