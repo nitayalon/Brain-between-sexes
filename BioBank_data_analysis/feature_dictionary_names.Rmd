@@ -7,6 +7,13 @@ output: html_document
 
 In this file I'm creating a dictionary of BioBank features data for inference.
 ```{r biobank raw data feature names, include=FALSE, warning=FALSE}
-columns_names <- read.csv("~/Human_brain_research/Data/Biobank/", header = T, stringsAsFactors = F)
+columns_names <- read.csv("~/Human_brain_research/Data/Biobank/convertcsv.csv", header = F, stringsAsFactors = F)
+relevant_region <- c(seq(45,92)
+                     ,seq(141,167)
+                     ,seq(93,140)
+                     ,seq(177,194)
+                     ,seq(195,333))
+
+data_set_columns <- columns_names[relevant_region,c("V1","V5")]
 ```
 
