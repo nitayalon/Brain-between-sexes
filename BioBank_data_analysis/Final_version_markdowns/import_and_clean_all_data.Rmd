@@ -1,0 +1,77 @@
+---
+title: "BioBank data analysis - Import"
+author: "Nitay Alon"
+date: "7/2/2019"
+output: html_document
+---
+
+This markdown file contains a set of functions and scripts required for importing and data cleansing of the BioBank data set.
+```{r load libraries, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(Jmisc)
+library(pbapply)
+source("~/Human_brain_research/Mixture_models/source_script.R")
+sourceAll("~/Human_brain_research/Mixture_models/Log_normal_mixture_model/Grid_Search/llk_computation/")
+sourceAll("~/Human_brain_research/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/")
+sourceAll("~/Human_brain_research/Mixture_models/Log_normal_mixture_model/Grid_Search/llk_computation/")
+sourceAll("~/Human_brain_research/BioBank_data_analysis/Hypothesis_testing_methods/")
+```
+
+```{r load BioBank data, include=FALSE, warning=FALSE}
+bio.bank.data <- read.csv("~/Human_brain_research/Data/Biobank/ukb24562.csv",header = T, stringsAsFactors = F)
+```
+
+```{r filter relevant features}
+relevant_region <- c(seq(45,92)
+                     ,seq(141,167)
+                     ,seq(93,140)
+                     ,seq(177,194)
+                     ,seq(195,333))
+relevant_data <- bio.bank.data[,relevant_region]
+demographic_data <- bio.bank.data[,c(2,3,seq(13,15))]
+names(demographic_data) <- c("Sex","Year_Of_Birth",
+                             "Ethnic_BG_1",
+                             "Ethnic_BG_2",
+                             "Ethnic_BG_3")
+# Join
+full_relevant_data <- cbind(demographic_data, relevant_data)
+```
+
+```{r biobank raw data feature names, include=FALSE, warning=FALSE}
+columns_names <- read.csv("~/Human_brain_research/Data/Biobank/convertcsv.csv", header = F, stringsAsFactors = F)
+relevant_region <- c(seq(45,92)
+                     ,seq(141,167)
+                     ,seq(93,140)
+                     ,seq(177,194)
+                     ,seq(195,333))
+
+data_set_columns <- columns_names[relevant_region,c("V1","V5")]
+```
+
+```{r normalize brain size using regression, include=FALSE}
+total.brain.volum.data <- bio.bank.data %>% select("X25010.2.0","X25004.2.0")
+user_data <- select(bio.bank.data, eid, X31.0.0)
+list.of.names <- names(full_relevant_data)[-c(1:5)]
+biobank_full_analysis_list <- list()
+
+biobank_full_analysis_list <- pblapply(list.of.names,function(x){
+  fullBrainFeatureAnalysis(x,
+                           list.of.names,
+                           user_data)
+})
+names(biobank_full_analysis_list) <- list.of.names
+for(feature.name in list.of.names)
+{
+  full.function.test <- fullBrainFeatureAnalysis(feature.name,
+                                                 list.of.names,
+                                                 user_data)
+  biobank_full_analysis_list[[feature.name]] <- full.function.test
+}  
+save(biobank_full_analysis_list, file = "BioBank_data_analysis_total.RData")
+
+# analyzeFullBrainFeature(full.function.test,plot = T)
+
+# results.list[[feature.name]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$null_hypothesis
+```
+
