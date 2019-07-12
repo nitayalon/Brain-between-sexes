@@ -49,13 +49,35 @@ relevant_region <- c(seq(45,92)
 data_set_columns <- columns_names[relevant_region,c("V1","V5")]
 ```
 
-```{r normalize brain size using regression, include=FALSE}
+```{r residual brain size using regression, include=FALSE}
 total.brain.volum.data <- bio.bank.data %>% select("X25010.2.0","X25004.2.0")
 user_data <- select(bio.bank.data, eid, X31.0.0)
 list.of.names <- names(full_relevant_data)[-c(1:5)]
-biobank_full_analysis_list <- list()
 
-biobank_full_analysis_list <- pblapply(list.of.names,function(x){
+biobank_residuals_data <- list()
+biobank_residuals_data <- pblapply(list.of.names,function(x){
+  feature_residuals <- methodHelperOfResidualComputation(x,
+                                                        user_data)
+})
+names(biobank_residuals_data) <- list.of.names
+save(biobank_residuals_data, file = "~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/BioBank_residual_data.RData")
+```
+
+```{r normalizing brain feature data, include=FALSE}
+biobank_normalized_data <- list()
+biobank_normalized_data <- pblapply(list.of.names,function(x){
+  feature_residuals <- methodHelperFeatureNormalization(x,
+                                                        user_data)
+})
+names(biobank_normalized_data) <- list.of.names
+save(biobank_normalized_data, file = "~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/BioBank_standardized_data.RData")
+```
+
+Next edit the code for EM computation and apply it on both data sets
+```{r apply full analysis cycle}
+biobank_residual_analysis <- list()
+
+biobank_residual_analysis <- pblapply(list.of.names,function(x){
   fullBrainFeatureAnalysis(x,
                            list.of.names,
                            user_data)
@@ -73,5 +95,6 @@ save(biobank_full_analysis_list, file = "BioBank_data_analysis_total.RData")
 # analyzeFullBrainFeature(full.function.test,plot = T)
 
 # results.list[[feature.name]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$null_hypothesis
+
 ```
 

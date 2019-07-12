@@ -1,4 +1,3 @@
-library(dplyr)
 applyLinearModelOverBrainFeature <- function(feature_name,
                                              trimming_limit = 3,
                                              subject_data)
