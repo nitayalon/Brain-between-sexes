@@ -1,24 +1,27 @@
 #' Apply a set of hypothesis test over each brain feature
-#' @param residual_data a tibble of scaled residuals for brain feature 
+#' @param feature_data a tibble of scaled residuals for brain feature 
 #' @return test results 
-applyHypothesisOverResiduals <- function(residual_data) {
+applyHypothesisOverResiduals <- function(feature_data) {
   
   simple_vs_compostie_hypothesis_test <- 
     simpleDistributionVsCompositeDistribution(
-        residual_data$value,
-        residual_data$sex,
-        residual_data$eid,
+        feature_data$value,
+        feature_data$sex,
+        feature_data$eid,
         "L")
   simple_vs_compostie_llrt <- simple_vs_compostie_hypothesis_test
   
   t_test_for_difference_between_genders <- 
-    t.test(residual_data$value[residual_data$sex == 0],
-           residual_data$value[residual_data$sex == 1])
+    t.test(feature_data$value[feature_data$sex == 0],
+           feature_data$value[feature_data$sex == 1])
+  
+  cohen_d_test <- cohen.d(feature_data$value[feature_data$sex == 0],
+                          feature_data$value[feature_data$sex == 1])
   
   pure_types_vs_mixed_gender_hypothesis <- 
-    pureTypeMixtureVsCompositeMixture(residual_data$value,
-                                      residual_data$sex,
-                                      residual_data$eid,
+    pureTypeMixtureVsCompositeMixture(feature_data$value,
+                                      feature_data$sex,
+                                      feature_data$eid,
                                       distribution_model = "L",
                                       return_full_data = T, 
                                       data_needs_preparation = F)
@@ -26,6 +29,7 @@ applyHypothesisOverResiduals <- function(residual_data) {
     simple_vs_compostie_llrt = simple_vs_compostie_llrt,
     t_test_for_difference_between_genders = 
       t_test_for_difference_between_genders,
+    cohen_d_test = cohen_d_test,
     pure_type_vs_mixed_gender_em_results = pure_types_vs_mixed_gender_hypothesis,
     pure_vs_mixed_llrt = -2*pure_types_vs_mixed_gender_hypothesis$llrt
   ))

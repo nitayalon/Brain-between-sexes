@@ -11,6 +11,7 @@ library(dplyr)
 library(ggplot2)
 library(Jmisc)
 library(pbapply)
+library(effsize)
 source("~/Human_brain_research/Mixture_models/source_script.R")
 sourceAll("~/Human_brain_research/Mixture_models/Log_normal_mixture_model/Grid_Search/llk_computation/")
 sourceAll("~/Human_brain_research/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/")
@@ -74,27 +75,28 @@ save(biobank_normalized_data, file = "~/Human_brain_research/BioBank_data_analys
 ```
 
 Next edit the code for EM computation and apply it on both data sets
-```{r apply full analysis cycle}
-biobank_residual_analysis <- list()
 
-biobank_residual_analysis <- pblapply(list.of.names,function(x){
-  fullBrainFeatureAnalysis(x,
-                           list.of.names,
-                           user_data)
-})
-names(biobank_full_analysis_list) <- list.of.names
-for(feature.name in list.of.names)
-{
-  full.function.test <- fullBrainFeatureAnalysis(feature.name,
-                                                 list.of.names,
-                                                 user_data)
-  biobank_full_analysis_list[[feature.name]] <- full.function.test
-}  
-save(biobank_full_analysis_list, file = "BioBank_data_analysis_total.RData")
-
-# analyzeFullBrainFeature(full.function.test,plot = T)
-
-# results.list[[feature.name]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$null_hypothesis
-
+```{r testing the function}
+applyHypothesisOverResiduals(biobank_normalized_data$X25056.2.0)
 ```
 
+```{r apply full analysis cycle over residuals}
+biobank_feature_residual_analysis <- list()
+
+biobank_feature_residual_analysis <- pblapply(biobank_residuals_data,function(x){
+  BrainFeatureAnalysis(x)
+})
+names(biobank_feature_residual_analysis) <- list.of.names
+save(biobank_feature_residual_analysis, file = "~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/biobank_feature_residual_analysis.RData")
+```
+
+```{r apply full analysis cycle over normalized}
+biobank_feature_standard_analysis <- list()
+
+biobank_feature_standard_analysis <- pblapply(biobank_normalized_data,function(x){
+  BrainFeatureAnalysis(x)
+})
+names(biobank_feature_standard_analysis) <- list.of.names
+save(biobank_feature_standard_analysis, file = "~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/biobank_feature_standard_analysis.RData")
+
+```
