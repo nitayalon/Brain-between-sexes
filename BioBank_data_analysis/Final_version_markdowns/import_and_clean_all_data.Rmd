@@ -20,7 +20,12 @@ sourceAll("~/Human_brain_research/BioBank_data_analysis/Hypothesis_testing_metho
 ```
 
 ```{r load BioBank data, include=FALSE, warning=FALSE}
-bio.bank.data <- read.csv("~/Human_brain_research/Data/Biobank/ukb24562.csv",header = T, stringsAsFactors = F)
+bio_bank_data <- read.csv("~/Human_brain_research/Data/Biobank/ukb24562.csv",header = T, stringsAsFactors = F)
+```
+
+```{r biobank raw data feature names, include=FALSE, warning=FALSE}
+columns_names <- read.csv("~/Human_brain_research/Data/Biobank/convertcsv.csv", header = T, stringsAsFactors = F)
+names(bio_bank_data) = columns_names$Description
 ```
 
 ```{r filter relevant features}
@@ -29,8 +34,8 @@ relevant_region <- c(seq(45,92)
                      ,seq(93,140)
                      ,seq(177,194)
                      ,seq(195,333))
-relevant_data <- bio.bank.data[,relevant_region]
-demographic_data <- bio.bank.data[,c(2,3,seq(13,15))]
+relevant_data <- bio_bank_data[,relevant_region]
+demographic_data <- bio_bank_data[,c(2,3,seq(13,15))]
 names(demographic_data) <- c("Sex","Year_Of_Birth",
                              "Ethnic_BG_1",
                              "Ethnic_BG_2",
@@ -39,16 +44,11 @@ full_relevant_data <- cbind(demographic_data, relevant_data)
 ```
 
 ```{r list of features names}
-total.brain.volum.data <- bio.bank.data %>% select("X25010.2.0","X25004.2.0")
-user_data <- select(bio.bank.data, eid, X31.0.0)
+brain_volume <- columns_names$UDI
+total.brain.volum.data <- bio_bank_data %>% select("X25010.2.0","X25004.2.0")
+user_data <- select(bio_bank_data, eid, X31.0.0)
 # list.of.names <- names(full_relevant_data)[-c(1:5)]
 list.of.names <- names(relevant_data)
-```
-
-
-```{r biobank raw data feature names, include=FALSE, warning=FALSE}
-columns_names <- read.csv("~/Human_brain_research/Data/Biobank/convertcsv.csv", header = F, stringsAsFactors = F)
-data_set_columns <- columns_names[relevant_region,c("V2","V5")]
 ```
 
 ```{r editing the columns names dictionary}
