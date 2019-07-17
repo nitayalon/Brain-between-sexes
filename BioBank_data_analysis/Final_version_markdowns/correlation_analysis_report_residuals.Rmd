@@ -1,0 +1,349 @@
+---
+title: "level of masculinity"
+author: "Nitay Alon"
+date: "May 17, 2019"
+output: html_document
+---
+
+In this notebook the goal is to compute the level of masculinity of an individual and a feature, that is, $p(i,j)$ denotes the probability of an individual $i$ demonstrate masculinity for feature $j$.
+
+In the E-step of the EM algorithm we compute the above conditional probabilities. The first step is to extract these probabilities and create a new table of id and probabilities.
+
+```{r load methods, include=FALSE}
+# local_server_prefix <- "~/Documents/Human_brain_research/DAPHNA_JOEL/"
+library(pbapply)
+library(corrplot)
+local_server_prefix <- "~/Human_brain_research/"
+source(paste0(local_server_prefix,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/analyze_full_brain_feature.R"))
+source(paste0(local_server_prefix,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/method_helper.R"))
+source(paste0(local_server_prefix,"BioBank_data_analysis/load_biobank_data.R"))
+```
+
+```{r load data, include=FALSE}
+load("~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/biobank_feature_residual_analysis.RData")
+load("~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/biobank_feature_standard_analysis.RData")
+load("~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/combined_df_long_sorted_residuals.RData")
+load("~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/combined_df_long_sorted_standardize.RData")
+load("~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/colomns_name.RData")
+```
+
+# Residual data
+
+First select only FDR significant features from the antidiagonal: 
+```{r filter FDR significant features, include=FALSE}
+sig_level <- 0.01
+FDR_significant_features <- rownames(combined_df_long_sorted_residuals)[
+    with(combined_df_long_sorted_residuals,(fdr_pv <= sig_level & p < 0.5 & q > 0.5 |
+                                  fdr_pv <= sig_level & p > 0.5 & q < 0.5))]  
+FDR_significant_features <- na.omit(FDR_significant_features)
+```
+
+extract feature data:
+```{r extract FDR significant features data, include=FALSE}
+significant_features <- biobank_feature_residual_analysis[FDR_significant_features]
+
+men_data <- lapply(significant_features, function(x){x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$men_responsebilities})
+
+women_data <- lapply(significant_features, function(x){x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$women_responsebilities})
+```
+
+join the tables:
+```{r create men table, include=FALSE, warning=FALSE}
+men_feature_data <- men_data[[1]]
+for(i in 2:length(men_data))
+{
+  men_feature_data <- base::merge(men_feature_data, men_data[[i]], by.x = "eid", by.y = "eid")
+}
+names(men_feature_data) <- c("eid", FDR_significant_features)
+```
+
+```{r create women table, include=FALSE, warning=FALSE}
+women_feature_data <- women_data[[1]]
+for(i in 2:length(women_data))
+{
+  women_feature_data <- base::merge(women_feature_data, women_data[[i]], by.x = "eid", by.y = "eid")
+}
+names(women_feature_data) <- c("eid", FDR_significant_features)
+```
+
+## Cohen D histogram
+
+```{r cohen D for FDR significant features}
+hist(sapply(significant_features, function(x){x$hypothesis_results$cohen_d_test$estimate}),xlab = "Cohen-D", main = "Histogram of Cohen D", sub = "Residual data")
+```
+
+
+## Correlation matrix
+```{r correlation matrix by gender, include=FALSE}
+men_cor <- cor(men_feature_data[,-c(1)], use = "pairwise.complete.obs")
+women_cor <- cor(women_feature_data[,-c(1)],use = "pairwise.complete.obs")
+```
+
+```{r plot correlation by gender}
+corrplot(men_cor, order = "FPC", addrect = 10,tl.cex = 0.6,tl.srt = 45, title = "Men")
+corrplot(women_cor, order = "FPC", addrect = 10,tl.cex = 0.6,tl.srt = 45, title = "Women")
+```
+
+```{r corrplot by name both genders}
+combined_correaltion <- men_cor
+# replace the values
+combined_correaltion[lower.tri(combined_correaltion)] <- women_cor[lower.tri(women_cor)]
+
+corrplot(combined_correaltion, order="alphabet", title="both genders")
+```
+
+# By quadrant analysis
+In this subsection our goal is to establish a biological relation between the results and brain structure.
+
+```{r Q2 features, include=FALSE}
+FDR_significant_features_q2 <- rownames(combined_df_long_sorted_residuals)[
+    with(combined_df_long_sorted_residuals,(fdr_pv <= sig_level & p < 0.5 & q > 0.5))]
+q2_features <- intersect(data_set_columns$V2, FDR_significant_features_q2)
+
+q2_features_names <- data_set_columns$V5[data_set_columns$V2 %in% FDR_significant_features_q2]
+
+men_cor_q2 <- cor(select(men_feature_data,q2_features) , use = "pairwise.complete.obs")
+women_cor_q2 <- cor(select(women_feature_data,q2_features),use = "pairwise.complete.obs")
+```
+
+```{r Q2 corrplot}
+corrplot(men_cor_q2, order = "FPC", addrect = 10,tl.cex = 0.6,tl.srt = 45, title = "Men")
+corrplot(women_cor_q2, order = "FPC", addrect = 10,tl.cex = 0.6,tl.srt = 45, title = "Women")
+```
+
+
+```{r Q4 features, include=FALSE}
+FDR_significant_features_q4 <- rownames(combined_df_long_sorted_residuals)[
+    with(combined_df_long_sorted_residuals,(fdr_pv <= sig_level & p > 0.5 & q < 0.5))]
+q4_features <- intersect(data_set_columns$V2, FDR_significant_features_q4)
+q4_features_names <- data_set_columns$V5[data_set_columns$V2 %in% FDR_significant_features_q4]
+
+men_cor_q4 <- cor(select(men_feature_data,q4_features) , use = "pairwise.complete.obs")
+women_cor_q4 <- cor(select(women_feature_data,q4_features),use = "pairwise.complete.obs")
+```
+
+```{r Q4 corrplot}
+corrplot(men_cor_q4, order = "FPC", addrect = 10,tl.cex = 0.6,tl.srt = 45, title = "Men")
+corrplot(women_cor_q4, order = "FPC", addrect = 10,tl.cex = 0.6,tl.srt = 45, title = "Women")
+```
+
+
+# Standardize data
+
+```{r filter FDR significant features standardized data, include=FALSE}
+sig_level <- 0.01
+FDR_significant_features <- rownames(combined_df_long_sorted_standardize)[
+    with(combined_df_long_sorted_standardize,(fdr_pv <= sig_level & p < 0.5 & q > 0.5 |
+                                  fdr_pv <= sig_level & p > 0.5 & q < 0.5))]  
+FDR_significant_features <- na.omit(FDR_significant_features)
+```
+
+extract feature data:
+```{r extract FDR significant features data, include=FALSE}
+significant_features <- biobank_feature_standard_analysis[FDR_significant_features]
+
+men_data <- lapply(significant_features, function(x){x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$men_responsebilities})
+
+women_data <- lapply(significant_features, function(x){x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$women_responsebilities})
+```
+
+join the tables:
+```{r create men table, include=FALSE, warning=FALSE}
+men_feature_data <- men_data[[1]]
+for(i in 2:length(men_data))
+{
+  men_feature_data <- base::merge(men_feature_data, men_data[[i]], by.x = "eid", by.y = "eid")
+}
+names(men_feature_data) <- c("eid", FDR_significant_features)
+```
+
+```{r create women table, include=FALSE, warning=FALSE}
+women_feature_data <- women_data[[1]]
+for(i in 2:length(women_data))
+{
+  women_feature_data <- base::merge(women_feature_data, women_data[[i]], by.x = "eid", by.y = "eid")
+}
+names(women_feature_data) <- c("eid", FDR_significant_features)
+```
+
+## Cohen D histogram
+
+```{r cohen D for FDR significant features}
+hist(sapply(significant_features, function(x){x$hypothesis_results$cohen_d_test$estimate}),xlab = "Cohen-D", main = "Histogram of Cohen D", sub = "Residual data")
+```
+
+
+## Correlation matrix
+
+In order to determine if there's a clear pattern of masculinity among genders we compute the correlation matrix between each pair of features and then decompose the correlation matrix to its eigenvalues to look for dependent.
+```{r correlation matrix by gender, include=FALSE}
+men_cor <- cor(men_feature_data[,-c(1)], use = "pairwise.complete.obs")
+women_cor <- cor(women_feature_data[,-c(1)],use = "pairwise.complete.obs")
+```
+
+```{r plot correlation by gender}
+corrplot(men_cor, order = "FPC", addrect = 10,tl.cex = 0.6,tl.srt = 45, title = "Men")
+corrplot(women_cor, order = "FPC", addrect = 10,tl.cex = 0.6,tl.srt = 45, title = "Women")
+```
+
+```{r corrplot by name both genders}
+combined_correaltion <- men_cor
+# replace the values
+combined_correaltion[lower.tri(combined_correaltion)] <- women_cor[lower.tri(women_cor)]
+
+corrplot(combined_correaltion, order="alphabet", title="both genders")
+```
+
+# By quadrant analysis
+In this subsection our goal is to establish a biological relation between the results and brain structure.
+
+```{r Q2 features, include=FALSE}
+FDR_significant_features_q2 <- rownames(combined_df_long_sorted_standardize)[
+    with(combined_df_long_sorted_standardize,(fdr_pv <= sig_level & p < 0.5 & q > 0.5))]
+q2_features <- intersect(data_set_columns$V2, FDR_significant_features_q2)
+q2_features_names <- data_set_columns$V5[data_set_columns$V2 %in% FDR_significant_features_q2]
+
+men_cor_q2 <- cor(select(men_feature_data,q2_features) , use = "pairwise.complete.obs")
+women_cor_q2 <- cor(select(women_feature_data,q2_features),use = "pairwise.complete.obs")
+```
+
+```{r Q2 corrplot}
+corrplot(men_cor_q2, order = "FPC", addrect = 10,tl.cex = 0.6,tl.srt = 45, title = "Men")
+corrplot(women_cor_q2, order = "FPC", addrect = 10,tl.cex = 0.6,tl.srt = 45, title = "Women")
+```
+
+
+```{r Q4 features, include=FALSE}
+FDR_significant_features_q4 <- rownames(combined_df_long_sorted_standardize)[
+    with(combined_df_long_sorted_standardize,(fdr_pv <= sig_level & p > 0.5 & q < 0.5))]
+q4_features <- intersect(data_set_columns$V2, FDR_significant_features_q4)
+q4_features_names <- data_set_columns$V5[data_set_columns$V2 %in% FDR_significant_features_q4]
+
+men_cor_q4 <- cor(select(men_feature_data,q4_features) , use = "pairwise.complete.obs")
+women_cor_q4 <- cor(select(women_feature_data,q4_features),use = "pairwise.complete.obs")
+```
+
+```{r Q4 corrplot}
+corrplot(men_cor_q4, order = "FPC", addrect = 10,tl.cex = 0.6,tl.srt = 45, title = "Men")
+corrplot(women_cor_q4, order = "FPC", addrect = 10,tl.cex = 0.6,tl.srt = 45, title = "Women")
+```
+
+
+<!-- ```{r men feature histograms} -->
+<!-- i <- sample(2:length(men_feature_data), 1) -->
+<!-- hist(men_feature_data[,i],breaks = 150) -->
+<!-- ``` -->
+
+
+<!-- ```{r men eigenvalues sum} -->
+<!-- men_correlation_matrix_eigen <- eigen(men_cor) -->
+<!-- ones <- rep(1,length(men_correlation_matrix_eigen$values)) -->
+<!-- men_correlation_matrix_eigen$vectors[,1] -->
+<!-- hist(men_correlation_matrix_eigen$value, breaks = 50) -->
+<!-- sum(log(men_correlation_matrix_eigen$values)) -->
+<!-- sum(log(ones)) -->
+<!-- ``` -->
+
+<!-- ```{r correlation matrix women} -->
+<!-- corrplot(women_cor, order = "alphabet", addrect = 10,tl.cex = 0.6,tl.srt = 45) -->
+<!-- ``` -->
+
+<!-- ## Chi Square test for dependency: -->
+
+<!-- ```{r source chi square methods, include=FALSE} -->
+<!-- source("../BioBank_data_analysis/measure_of_masculinity/chisq_between_features.R") -->
+<!-- men_feature_data_disc <- pblapply(men_feature_data[,-1], -->
+<!--                                   ConvertProbabilityToBool)  -->
+
+<!-- women_feature_data_disc <- pblapply(women_feature_data[,-1], -->
+<!--                                   ConvertProbabilityToBool)  -->
+<!-- ``` -->
+
+
+<!-- ```{r test for dependency men, include=FALSE, warning=FALSE} -->
+<!-- chisq_men <- matrix(NA,length(men_feature_data_disc),length(men_feature_data_disc)) -->
+<!-- not_valid_for_chisq_list_men <- c() -->
+
+<!-- for(i in 1:(length(men_feature_data_disc)-1)) -->
+<!-- { -->
+<!--   for(j in (i+1):length(men_feature_data_disc)) -->
+<!--   { -->
+<!--     data_for_chisq <- ComputeTwoByTwoTable(men_feature_data_disc[[i]], -->
+<!--                                        men_feature_data_disc[[j]]) -->
+<!--     if(!is.null(data_for_chisq$valid) && data_for_chisq$valid) -->
+<!--     { -->
+<!--       chi_square_statistic <- (chisq.test(data_for_chisq$data))$statistic -->
+<!--       chi_square_sign <- ComputeChiSquareSign(data_for_chisq$data) -->
+<!--       chisq_men[i,j] <- sqrt(chi_square_statistic) * sign(chi_square_sign) -->
+<!--       next -->
+<!--     } -->
+<!--     not_valid_for_chisq_list_men <- rbind(not_valid_for_chisq_list_men, -->
+<!--                                        c(names(men_feature_data_disc)[i], -->
+<!--                                          names(men_feature_data_disc)[j])) -->
+<!--   } -->
+<!-- } -->
+<!-- ``` -->
+
+
+<!-- ```{r test for dependency women, include=FALSE, warning=FALSE} -->
+<!-- chisq_women <- matrix(NA,length(men_feature_data_disc),length(men_feature_data_disc)) -->
+<!-- not_valid_for_chisq_list_women <- c() -->
+
+<!-- for(i in 1:(length(women_feature_data_disc)-1)) -->
+<!-- { -->
+<!--   for(j in (i+1):length(women_feature_data_disc)) -->
+<!--   { -->
+<!--     data_for_chisq <- ComputeTwoByTwoTable(women_feature_data_disc[[i]], -->
+<!-- women_feature_data_disc[[j]]) -->
+
+<!--     if(!is.null(data_for_chisq$valid) && data_for_chisq$valid) -->
+<!--     { -->
+<!--       chi_square_statistic <- (chisq.test(data_for_chisq$data))$statistic -->
+<!--       chi_square_sign <- ComputeChiSquareSign(data_for_chisq$data) -->
+<!--       chisq_women[i,j] <- sqrt(chi_square_statistic) * sign(chi_square_sign) -->
+<!--       next -->
+<!--     } -->
+<!--     not_valid_for_chisq_list_women <- rbind(not_valid_for_chisq_list_women, -->
+<!--                                       c(names(women_feature_data_disc)[i], -->
+<!--                                         names(women_feature_data_disc)[j])) -->
+<!--   } -->
+<!-- } -->
+<!-- ``` -->
+
+<!-- Histograms of $\chi^2 * sign$: -->
+<!-- ```{r histograms of chi square times sign} -->
+<!-- hist(chisq_men[!is.na(chisq_men)], breaks = 100, -->
+<!--      main = "Men", xlab = "Chi_square * sign") -->
+<!-- hist(chisq_women[!is.na(chisq_women)], breaks = 100, -->
+<!--      main = "Women", xlab = "Chi_square * sign") -->
+<!-- ``` -->
+
+<!-- ## Correlation matrix of features -->
+
+<!-- Unlike the above analysis, in this section we compute the correlation matrix between the residuals and not the probabilities: -->
+<!-- ```{r extract men residual for corrplot, include=FALSE, warning=FALSE} -->
+<!-- men_residuals <- sapply(significant_features, function(x){x$feature_residuals$value[x$feature_residuals$sex == 1]}) -->
+
+<!-- women_residuals <- sapply(significant_features, function(x){x$feature_residuals$value[x$feature_residuals$sex == 0]}) -->
+
+<!-- men_residuals_matrix <- do.call(cbind, men_residuals) -->
+<!-- names(men_residuals_matrix) = names(men_residuals) -->
+
+<!-- women_residuals_matrix <- do.call(cbind, women_residuals) -->
+<!-- names(women_residuals_matrix) = names(women_residuals) -->
+<!-- ``` -->
+
+<!-- ```{r computing correlation between residuals men, include=TRUE} -->
+<!-- men_residuals_corr_matrix <- cor(men_residuals_matrix, -->
+<!--                                  use = "pairwise.complete.obs") -->
+<!-- corrplot(men_residuals_corr_matrix, order = "alphabet", addrect = 10,tl.cex = 0.6,tl.srt = 45) -->
+<!-- corrplot(men_residuals_corr_matrix, order = "FPC", addrect = 10,tl.cex = 0.6,tl.srt = 45) -->
+<!-- ``` -->
+
+<!-- ```{r computing correlation between residuals women, include=TRUE} -->
+<!-- women_residuals_corr_matrix <- cor(women_residuals_matrix, -->
+<!--                                  use = "pairwise.complete.obs") -->
+<!-- corrplot(women_residuals_corr_matrix, order = "alphabet", addrect = 10,tl.cex = 0.6,tl.srt = 45) -->
+<!-- corrplot(women_residuals_corr_matrix, order = "FPC", addrect = 10,tl.cex = 0.6,tl.srt = 45) -->
+<!-- ``` -->
+

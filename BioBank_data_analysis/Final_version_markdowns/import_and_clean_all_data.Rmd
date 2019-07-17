@@ -39,22 +39,24 @@ names(demographic_data) <- c("Sex","Year_Of_Birth",
 full_relevant_data <- cbind(demographic_data, relevant_data)
 ```
 
-```{r biobank raw data feature names, include=FALSE, warning=FALSE}
-columns_names <- read.csv("~/Human_brain_research/Data/Biobank/convertcsv.csv", header = F, stringsAsFactors = F)
-relevant_region <- c(seq(45,92)
-                     ,seq(141,167)
-                     ,seq(93,140)
-                     ,seq(177,194)
-                     ,seq(195,333))
-
-data_set_columns <- columns_names[relevant_region,c("V1","V5")]
-```
-
-```{r residual brain size using regression, include=FALSE}
+```{r list of features names}
 total.brain.volum.data <- bio.bank.data %>% select("X25010.2.0","X25004.2.0")
 user_data <- select(bio.bank.data, eid, X31.0.0)
 list.of.names <- names(full_relevant_data)[-c(1:5)]
+```
 
+
+```{r biobank raw data feature names, include=FALSE, warning=FALSE}
+columns_names <- read.csv("~/Human_brain_research/Data/Biobank/convertcsv.csv", header = F, stringsAsFactors = F)
+data_set_columns <- columns_names[relevant_region,c("V2","V5")]
+```
+
+```{r editing the columns names dictionary}
+data_set_columns$V2 <- gsub("-", ".", paste0("X",data_set_columns$V2))
+```
+
+
+```{r residual brain size using regression, include=FALSE}
 biobank_residuals_data <- list()
 biobank_residuals_data <- pblapply(list.of.names,function(x){
   feature_residuals <- methodHelperOfResidualComputation(x,
