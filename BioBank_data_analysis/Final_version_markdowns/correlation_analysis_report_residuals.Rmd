@@ -48,6 +48,15 @@ men_data <- lapply(significant_features, function(x){x$hypothesis_results$pure_t
 women_data <- lapply(significant_features, function(x){x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$women_responsebilities})
 ```
 
+```{r partiton to features, include=FALSE}
+FA_features <- c(grep("Mean FA", names(significant_features)),
+                 grep("mean FA", names(significant_features)))
+MD_features <- c(grep("Mean MD", names(significant_features)),
+                 grep("mean MD", names(significant_features)))
+Volume_features <- c(grep("Volume", names(significant_features)))
+feature_order_for_corrplot <- c(FA_features, MD_features, Volume_features)
+```
+
 join the tables:
 ```{r create men table, include=FALSE, warning=FALSE}
 men_feature_data <- men_data[[1]]
@@ -56,6 +65,7 @@ for(i in 2:length(men_data))
   men_feature_data <- base::merge(men_feature_data, men_data[[i]], by.x = "eid", by.y = "eid")
 }
 names(men_feature_data) <- c("eid", FDR_significant_features)
+men_features_no_id <- men_feature_data[,-1]
 ```
 
 ```{r create women table, include=FALSE, warning=FALSE}
@@ -65,6 +75,7 @@ for(i in 2:length(women_data))
   women_feature_data <- base::merge(women_feature_data, women_data[[i]], by.x = "eid", by.y = "eid")
 }
 names(women_feature_data) <- c("eid", FDR_significant_features)
+women_features_no_id <- women_feature_data[,-1]
 ```
 
 ## Cohen D histogram
@@ -76,19 +87,12 @@ hist(sapply(significant_features, function(x){x$hypothesis_results$cohen_d_test$
 
 ## Correlation matrix
 ```{r correlation matrix by gender, include=FALSE}
-men_cor <- cor(men_feature_data[,-c(1)], use = "pairwise.complete.obs")
-women_cor <- cor(women_feature_data[,-c(1)],use = "pairwise.complete.obs")
+men_cor <- cor(men_features_no_id[,feature_order_for_corrplot], use = "pairwise.complete.obs")
+women_cor <- cor(women_features_no_id[,feature_order_for_corrplot],use = "pairwise.complete.obs")
 combined_correaltion <- men_cor
 combined_correaltion[lower.tri(combined_correaltion)] <- women_cor[lower.tri(women_cor)]
 ```
 
-```{r partiton to features, include=FALSE}
-FA_features <- c(grep("Mean FA", names(significant_features)),
-                 grep("mean FA", names(significant_features)))
-MD_features <- c(grep("Mean MD", names(significant_features)),
-                 grep("mean md", names(significant_features)))
-Volume_features <- c(grep("Volume", names(significant_features)))
-```
 
 ```{r corrplot by name both genders}
 corrplot(combined_correaltion, order="alphabet", title="both genders",
@@ -108,7 +112,7 @@ corrplot(combined_correaltion[Volume_features,Volume_features], method="color", 
 
 ## Anti diagonal
 First select only FDR significant features from the antidiagonal: 
-```{r filter FDR significant features, include=FALSE}
+```{r filter FDR significant features 2, include=FALSE}
 sig_level <- 0.01
 FDR_significant_features <- rownames(combined_df_long_sorted_standardize)[
     with(combined_df_long_sorted_standardize,(fdr_pv <= sig_level))]  
@@ -116,7 +120,7 @@ FDR_significant_features <- na.omit(FDR_significant_features)
 ```
 
 extract feature data:
-```{r extract FDR significant features data, include=FALSE}
+```{r extract FDR significant features data 2, include=FALSE}
 significant_features <- biobank_feature_standard_analysis[FDR_significant_features]
 
 men_data <- lapply(significant_features, function(x){x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$men_responsebilities})
@@ -125,7 +129,7 @@ women_data <- lapply(significant_features, function(x){x$hypothesis_results$pure
 ```
 
 join the tables:
-```{r create men table, include=FALSE, warning=FALSE}
+```{r create men table 2, include=FALSE, warning=FALSE}
 men_feature_data <- men_data[[1]]
 for(i in 2:length(men_data))
 {
@@ -134,7 +138,7 @@ for(i in 2:length(men_data))
 names(men_feature_data) <- c("eid", FDR_significant_features)
 ```
 
-```{r create women table, include=FALSE, warning=FALSE}
+```{r create women table 2, include=FALSE, warning=FALSE}
 women_feature_data <- women_data[[1]]
 for(i in 2:length(women_data))
 {
@@ -145,25 +149,25 @@ names(women_feature_data) <- c("eid", FDR_significant_features)
 
 ## Cohen D histogram
 
-```{r cohen D for FDR significant features}
+```{r cohen D for FDR significant features 2}
 hist(sapply(significant_features, function(x){x$hypothesis_results$cohen_d_test$estimate}),xlab = "Cohen-D", main = "Histogram of Cohen D", sub = "Residual data")
 ```
 
 
 ## Correlation matrix
-```{r correlation matrix by gender, include=FALSE}
-men_cor <- cor(men_feature_data[,-c(1)], use = "pairwise.complete.obs")
-women_cor <- cor(women_feature_data[,-c(1)],use = "pairwise.complete.obs")
+```{r correlation matrix by gender 2, include=FALSE}
+men_cor <- cor(men_features_no_id[,feature_order_for_corrplot], use = "pairwise.complete.obs")
+women_cor <- cor(women_features_no_id[,feature_order_for_corrplot],use = "pairwise.complete.obs")
 combined_correaltion <- men_cor
 combined_correaltion[lower.tri(combined_correaltion)] <- women_cor[lower.tri(women_cor)]
 ```
 
-```{r corrplot by name both genders}
+```{r corrplot by name both genders 2}
 corrplot(combined_correaltion, order="alphabet", title="both genders",
          tl.cex = 0.1,tl.srt = 45)
 ```
 
-```{r corrplot by familiy both genders}
+```{r corrplot by familiy both genders 2}
 corrplot(combined_correaltion[FA_features,FA_features], method="color", title="FA",
          tl.cex = 0.1,tl.srt = 45)  
 corrplot(combined_correaltion[MD_features,MD_features], method="color", title="MD",
