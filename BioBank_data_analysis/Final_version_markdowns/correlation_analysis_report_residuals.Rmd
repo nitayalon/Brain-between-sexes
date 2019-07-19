@@ -16,7 +16,7 @@ library(corrplot)
 local_server_prefix <- "~/Human_brain_research/"
 source(paste0(local_server_prefix,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/analyze_full_brain_feature.R"))
 source(paste0(local_server_prefix,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/method_helper.R"))
-source(paste0(local_server_prefix,"BioBank_data_analysis/load_biobank_data.R"))
+# source(paste0(local_server_prefix,"BioBank_data_analysis/load_biobank_data.R"))
 ```
 
 ```{r load data, include=FALSE}
@@ -29,12 +29,13 @@ load("~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/colom
 
 # Residual data
 
+## Anti diagonal
 First select only FDR significant features from the antidiagonal: 
 ```{r filter FDR significant features, include=FALSE}
 sig_level <- 0.01
 FDR_significant_features <- rownames(combined_df_long_sorted_residuals)[
-    with(combined_df_long_sorted_residuals,(fdr_pv <= sig_level & p < 0.5 & q > 0.5 |
-                                  fdr_pv <= sig_level & p > 0.5 & q < 0.5))]  
+    with(combined_df_long_sorted_residuals,(fdr_pv <= sig_level & 
+region == "Anti"))]  
 FDR_significant_features <- na.omit(FDR_significant_features)
 ```
 
@@ -80,23 +81,47 @@ women_cor <- cor(women_feature_data[,-c(1)],use = "pairwise.complete.obs")
 ```
 
 ```{r plot correlation by gender}
-corrplot(men_cor, order = "FPC", addrect = 10,tl.cex = 0.6,tl.srt = 45, title = "Men")
-corrplot(women_cor, order = "FPC", addrect = 10,tl.cex = 0.6,tl.srt = 45, title = "Women")
+#corrplot(men_cor, order = "FPC", addrect = 10,tl.cex = 0.6,tl.srt = 45, title = "Men")
+#corrplot(women_cor, order = "FPC", addrect = 10,tl.cex = 0.6,tl.srt = 45, title = "Women")
 ```
 
 ```{r corrplot by name both genders}
 combined_correaltion <- men_cor
 # replace the values
 combined_correaltion[lower.tri(combined_correaltion)] <- women_cor[lower.tri(women_cor)]
+corrplot(combined_correaltion, order="alphabet", title="both genders",
+         tl.cex = 0.1,tl.srt = 45)
+```
 
-corrplot(combined_correaltion, order="alphabet", title="both genders")
+```{r partiton to features, include=FALSE}
+FA_features <- c(grep("Mean FA", names(significant_features)),
+                 grep("mean FA", names(significant_features)))
+names(significant_features)[FA_features]
+
+MD_features <- c(grep("Mean MD", names(significant_features)),
+                 grep("mean md", names(significant_features)))
+names(significant_features)[MD_features]
+
+Volume_features <- c(grep("Volume", names(significant_features)))
+names(significant_features)[Volume_features]
+```
+
+
+```{r corrplot by familiy both genders}
+corrplot(combined_correaltion[FA_features,FA_features], method="color", title="FA",
+         tl.cex = 0.1,tl.srt = 45)  
+corrplot(combined_correaltion[MD_features,MD_features], method="color", title="MD",
+         tl.cex = 0.1,tl.srt = 45)  
+corrplot(combined_correaltion[Volume_features,Volume_features], method="color", title="Volume",
+         tl.cex = 0.1,tl.srt = 45)  
 ```
 
 # By quadrant analysis
+
 In this subsection our goal is to establish a biological relation between the results and brain structure.
 
 ```{r Q2 features, include=FALSE}
-FDR_significant_features_q2 <- rownames(combined_df_long_sorted_residuals)[
+FDR_significant_features <- rownames(combined_df_long_sorted_residuals)[
     with(combined_df_long_sorted_residuals,(fdr_pv <= sig_level & p < 0.5 & q > 0.5))]
 q2_features <- intersect(data_set_columns$V2, FDR_significant_features_q2)
 

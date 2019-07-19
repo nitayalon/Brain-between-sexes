@@ -30,11 +30,10 @@ names(bio_bank_data) = columns_names$Description
 
 ```{r filter relevant features}
 relevant_region <- c(seq(45,92)
-                     ,seq(141,167)
                      ,seq(93,140)
+                     ,seq(141,167)
                      ,seq(177,194)
                      ,seq(195,333))
-relevant_data <- bio_bank_data[,relevant_region]
 demographic_data <- bio_bank_data[,c(2,3,seq(13,15))]
 names(demographic_data) <- c("Sex","Year_Of_Birth",
                              "Ethnic_BG_1",
@@ -44,19 +43,13 @@ full_relevant_data <- cbind(demographic_data, relevant_data)
 ```
 
 ```{r list of features names}
-brain_volume <- columns_names$UDI
-total.brain.volum.data <- bio_bank_data %>% select("X25010.2.0","X25004.2.0")
-user_data <- select(bio_bank_data, eid, X31.0.0)
-# list.of.names <- names(full_relevant_data)[-c(1:5)]
+filtered_bio_bank_data <- bio_bank_data[,names(bio_bank_data) != ""]
+total.brain.volum.data <- filtered_bio_bank_data %>% 
+  select("Volume of brain, grey+white matter","Volume of ventricular cerebrospinal fluid")
+names(filtered_bio_bank_data)[1] <- "eid"
+user_data <- select(filtered_bio_bank_data, eid, Sex)
+relevant_data <- bio_bank_data[,relevant_region]
 list.of.names <- names(relevant_data)
-```
-
-```{r editing the columns names dictionary}
-data_set_columns$V2 <- gsub("-", ".", paste0("X",data_set_columns$V2))
-```
-
-```{r quick QA}
-length(intersect(data_set_columns$V2, list.of.names))
 ```
 
 
@@ -83,7 +76,7 @@ save(biobank_normalized_data, file = "~/Human_brain_research/BioBank_data_analys
 Next edit the code for EM computation and apply it on both data sets
 
 ```{r testing the function}
-applyHypothesisOverResiduals(biobank_normalized_data$X25056.2.0)
+applyHypothesisOverResiduals(biobank_normalized_data$`Mean FA in middle cerebellar peduncle on FA skeleton`)
 ```
 
 ```{r apply full analysis cycle over residuals}

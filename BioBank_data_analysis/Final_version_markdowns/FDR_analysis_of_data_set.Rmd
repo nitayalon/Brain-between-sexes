@@ -135,7 +135,7 @@ combined_df_long_sorted$fdr_pv <-
     max(combined_df_long_sorted$bh_pvalue[1:i])
   })
   
-combined_df_long_sorted$bins_for_fdr <- cut(combined_df_long_sorted$fdr_pv, c(0,1e-2,5e-2,1e-1,1))
+combined_df_long_sorted$bins_for_fdr <- cut(combined_df_long_sorted$fdr_pv, c(0,1e-2,5e-2,1))
 ```
 
 
@@ -148,6 +148,7 @@ ggplot(combined_df_long_sorted, aes(i,fdr_pv, colour = bins_for_fdr)) +
 ```{r fdr p value by quadrant, warnings = FALSE}
 ggplot(combined_df_long_sorted, aes(p,q, colour = Cohen_D)) + 
   geom_point(aes(shape = bins_for_fdr)) +
+  scale_shape_manual(values=c(3, 6, 17))+
   geom_vline(xintercept = 0.5) +
   geom_hline(yintercept = 0.5) +
   ggtitle("Values of p and q", subtitle = "Shape indicate FDR pv") + 
@@ -237,7 +238,7 @@ combined_df_long_sorted$fdr_pv <-
     max(combined_df_long_sorted$bh_pvalue[1:i])
   })
   
-combined_df_long_sorted$bins_for_fdr <- cut(combined_df_long_sorted$fdr_pv, c(0,1e-2,5e-2,1e-1,1))
+combined_df_long_sorted$bins_for_fdr <- cut(combined_df_long_sorted$fdr_pv, c(0,1e-2,5e-2,1))
 ```
 
 ```{r plot fdr pvalues, warnings = FALSE}
@@ -249,6 +250,7 @@ ggplot(combined_df_long_sorted, aes(i,fdr_pv, colour = bins_for_fdr)) +
 ```{r fdr p value by quadrant, warnings = FALSE}
 ggplot(combined_df_long_sorted, aes(p,q, colour = Cohen_D)) + 
   geom_point(aes(shape = bins_for_fdr)) +
+  scale_shape_manual(values=c(3, 6, 17))+
   geom_vline(xintercept = 0.5) +
   geom_hline(yintercept = 0.5) +
   ggtitle("Values of p and q", subtitle = "Shape indicate FDR pv") + 
