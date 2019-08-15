@@ -1,0 +1,24 @@
+---
+title: "Correlation analysis of sizes"
+author: "Nitay Alon"
+date: "8/15/2019"
+output: html_document
+---
+
+In this report we repeat the correlation analysis conducted over the responsibilities, however this time the analysis is conducted on the sizes themselves instead.
+```{r load methods, include=FALSE}
+library(pbapply)
+library(corrplot)
+local_server_prefix <- "~/Human_brain_research/"
+source(paste0(local_server_prefix,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/analyze_full_brain_feature.R"))
+source(paste0(local_server_prefix,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/method_helper.R"))
+```
+
+```{r load data, include=FALSE}
+load("~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/biobank_feature_residual_analysis.RData")
+load("~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/biobank_feature_standard_analysis.RData")
+load("~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/combined_df_long_sorted_residuals.RData")
+load("~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/combined_df_long_sorted_standardize.RData")
+load("~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/colomns_name.RData")
+```
+

@@ -146,7 +146,7 @@ ggplot(combined_df_long_sorted, aes(i,fdr_pv, colour = bins_for_fdr)) +
 ```
 
 ```{r fdr p value by quadrant, warnings = FALSE}
-ggplot(combined_df_long_sorted, aes(p,q, colour = Cohen_D)) + 
+ggplot(combined_df_long_sorted[combined_df_long_sorted$bins_of_pv %in% levels(combined_df_long_sorted$bins_of_pv)[c(1,2,3)],], aes(p,q, colour = Cohen_D)) + 
   geom_point(aes(shape = bins_for_fdr)) +
   scale_shape_manual(values=c(3, 6, 17))+
   geom_vline(xintercept = 0.5) +
@@ -248,7 +248,7 @@ ggplot(combined_df_long_sorted, aes(i,fdr_pv, colour = bins_for_fdr)) +
 ```
 
 ```{r fdr p value by quadrant, warnings = FALSE}
-ggplot(combined_df_long_sorted, aes(p,q, colour = Cohen_D)) + 
+ggplot(combined_df_long_sorted[combined_df_long_sorted$bins_of_pv %in% levels(combined_df_long_sorted$bins_of_pv)[c(1,2)],], aes(p,q, colour = Cohen_D)) + 
   geom_point(aes(shape = bins_for_fdr)) +
   scale_shape_manual(values=c(3, 6, 17))+
   geom_vline(xintercept = 0.5) +

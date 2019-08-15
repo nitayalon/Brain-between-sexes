@@ -1,0 +1,35 @@
+---
+title: "Hessian computations for significant features"
+author: "Nitay Alon"
+date: "8/15/2019"
+output: html_document
+---
+
+In this report we compute the hessian matrix for MLE computed by the EM algorithm in order to compute CI for each parameter.
+```{r loadin libraries, include=FALSE}
+# install.packages("optimx")
+library(optimx)
+load("~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/biobank_feature_residual_analysis.RData")
+load("~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/biobank_feature_standard_analysis.RData")
+load("~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/BioBank_residual_data.RData")
+load("~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/BioBank_standardized_data.RData")
+```
+
+
+```{r computing the hessian for a given feature, include=FALSE}
+llk_function <- function(x,theta_mas, theta_fem, p, q, sigma_2_men, sigma_2_women)
+{
+  
+  men_llk <- sum(log(p * dnorm(x, theta_mas, sqrt(sigma_2_men), log = F) + 
+                       (1 - p) * dnorm(x, theta_fem, sqrt(sigma_2_women), log = F)))
+  women_llk <- sum(log(q * dnorm(x, theta_mas, sqrt(sigma_2_men), log = F) +
+                         (1-q) * dnorm(x, theta_fem, sqrt(sigma_2_women), log = F)))
+  
+  return(men_llk + women_llk)
+}
+
+parx <- biobank_feature_residual_analysis$`Mean FA in middle cerebellar peduncle on FA skeleton`$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters
+
+gennog<-gHgenb(parx,llk_function)
+```
+
