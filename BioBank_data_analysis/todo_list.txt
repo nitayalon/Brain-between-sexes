@@ -1,0 +1,11 @@
+1) all the results - fdr bins
+2) fdr sig only - colour indicate Cohen-d
+3) fdr non sig only - colour indicate Cohen-d
+
+4) Compute the fisher matrix and CI for each sig feature - On hold
+5) Repeat the correlations but with size (x) 
+not responsibility (\pi) - but make sure
+the men re always the positive mean
+
+6) Compute eigenvalues for correlation matrix
+7) Fix the partition to regions - FA/MD/Volume - DONE
