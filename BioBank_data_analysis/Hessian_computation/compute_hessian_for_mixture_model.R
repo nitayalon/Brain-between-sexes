@@ -53,10 +53,8 @@ computeHessianForMixtureModel <- function(observations, MLE,...)
                                     plus_parameters["q"],
                                     plus_parameters["sigma_2_men"],
                                     plus_parameters["sigma_2_women"])
-          # second_derivative = (plus_llk + minus_llk - 2 * center_llk) / 
-          #   (epsilon^2)
-          second_derivative = (plus_llk - minus_llk) / 
-            (2 * epsilon)
+          second_derivative = (plus_llk + minus_llk - 2 * center_llk) /
+            (epsilon^2)
           hessian[param_1,param_2] <- second_derivative
         }
       else{

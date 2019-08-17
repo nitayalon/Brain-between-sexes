@@ -25,13 +25,17 @@ applyLinearModelOverBrainFeature <- function(feature_name,
   lm_for_first_feature <- lm(log_y ~ log_x1 + log_x2, 
                              data = data_for_lm_log_scale)
   
-  residuals_first_feature <- tibble(
+  residuals <- tibble(
     eid = feature_data$eid,
     sex = feature_data$sex,
     value = lm_for_first_feature$residuals)
   
-  residuals_first_feature <- 
-    residuals_first_feature %>% 
+  normalized_residuals <- 
+    residuals %>% 
     normalizeResiduales()
-  return(residuals_first_feature)
+  
+  trimmed_residuals <- normalized_residuals %>% 
+    filter(abs(value) < 5)
+  
+  return(trimmed_residuals)
 }

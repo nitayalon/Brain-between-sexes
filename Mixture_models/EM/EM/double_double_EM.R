@@ -32,30 +32,39 @@ doubleDoubleEM <- function(observations
                          sigma_2_men = distributions_parameters$sigma_2,
                          sigma_2_women = distributions_parameters$sigma_2)
   }
-  
+  sample_list <- c(1000 + 1:5,2000 + 1:5 ,3000 + 1:5)
   llk <- NULL
   stopping_condition <- F
-  
+  m_samples <- c()
   for(i in 1:max_iter)
   {
-    if(stopping_condition)
-    {
-      break
-    }
+    # if(stopping_condition)
+    # {
+    #   break
+    # }
+    
     # Estep
     e_parameters <- EStep(m_parameters,observations)
     # Mstep
     m_parameters <- 
       tryCatch(
         {
-          MStep(e_parameters,observations,do_not_ignore_NA = F)
+          #This was
+          # MStep(e_parameters,observations,do_not_ignore_NA = F)
+          MStep(e_parameters,observations,do_not_ignore_NA = T)
         },
         error=function(cond)
         {
-          MStep(e_parameters,observations,do_not_ignore_NA = F)
-          stopping_condition <- T
+          #This was
+          # MStep(e_parameters,observations,do_not_ignore_NA = F)
+          # stopping_condition <- T
+          browser()
         }
         )
+    if(i %in% sample_list)
+    {
+      m_samples <- rbind(m_samples,unlist(m_parameters))
+    }
     # llk
     llk[i] <- computeLogLikelihoodFull(observations,m_parameters)
   }
@@ -65,6 +74,7 @@ doubleDoubleEM <- function(observations
                                   responsebility = e_parameters$J)
   em_results <- list(e_parameters = e_parameters,
                      m_parameters = m_parameters,
+                     m_samples = m_samples,
                      llk = llk,
                      men_responsebilities = men_responsebilities,
                      women_responsebilities = women_responsebilities)

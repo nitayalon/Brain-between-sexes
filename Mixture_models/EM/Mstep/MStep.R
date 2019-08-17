@@ -13,7 +13,8 @@ MStep <- function(parameters
   if(do_not_ignore_NA)
   {
     stopifnot(validateMStepParameters(parameters))  
-    I <- parameters$I; J <- parameters$J
+    I <- parameters$I; 
+    J <- parameters$J
     men <- observations$men
     women <- observations$women
   }

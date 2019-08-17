@@ -26,7 +26,6 @@ FDR_significant_features <- na.omit(FDR_significant_features)
 fisher_and_more <- pblapply(FDR_significant_features, 
                     function(x){computeFisherMatrixForFeature(biobank_feature_residual_analysis, 
                                           biobank_residuals_data,x)})
-undebug(computeFisherMatrixForFeature)
 computeFisherMatrixForFeature(biobank_feature_residual_analysis, 
 biobank_residuals_data,FDR_significant_features[9])
 ```

@@ -16,8 +16,8 @@ EStep <- function(parameters, observations, warn = NULL, ...)
   men <- observations$men
   women <- observations$women
   
-  I <- computeConditionalExpectation(men,p,mu_1,mu_2,sigma_men)
-  J <- computeConditionalExpectation(women,q,mu_1,mu_2,sigma_women)
+  I <- computeConditionalExpectation(men,p,mu_1,mu_2,sigma_men,sigma_women)
+  J <- computeConditionalExpectation(women,q,mu_1,mu_2,sigma_men,sigma_women)
   
   e_step <- list(I = I, J = J)
   return(e_step)
