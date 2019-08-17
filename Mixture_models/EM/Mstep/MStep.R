@@ -42,7 +42,7 @@ MStep <- function(parameters
                             (m + n - (sum(I) + sum(J)))
     )  
   # m_step <- list(p = p, q = q, mu_1 = mu_1, mu_2 = mu_2, sigma_2 = sigma_2)
-  m_step <- list(p = p, q = q, mu_1 = mu_1, mu_2 = mu_2, 
+  m_step <- list(p = p, q = q, mu_1 = mu_1, mu_2 = mu_2,
                  sigma_2_men = sigma_2_men, sigma_2_women = sigma_2_women)
   return(m_step)
 }

@@ -3,6 +3,7 @@
 library(dplyr)
 library(ggplot2)
 library(Jmisc)
+library(pbapply)
 
 source("~/Human_brain_research/Mixture_models/source_script.R")
 sourceAll("~/Human_brain_research/Mixture_models/Log_normal_mixture_model/Grid_Search/llk_computation/")
@@ -15,7 +16,6 @@ user_data <- select(bio.bank.data, eid, X31.0.0)
 list.of.names <- names(full_relevant_data)[-c(1:5)]
 biobank_full_analysis_list <- list()
 
-library(pbapply)
 biobank_full_analysis_list <- pblapply(list.of.names,function(x){
   fullBrainFeatureAnalysis(x,
                            list.of.names,

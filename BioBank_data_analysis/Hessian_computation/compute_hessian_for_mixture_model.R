@@ -13,7 +13,6 @@ computeHessianForMixtureModel <- function(observations, MLE,...)
                          (1 - p) * dnorm(men, theta_fem, sqrt(sigma_2_women), log = F)))
     women_llk <- sum(log(q * dnorm(women, theta_mas, sqrt(sigma_2_men), log = F) +
                            (1-q) * dnorm(women, theta_fem, sqrt(sigma_2_women), log = F)))
-    
     return(men_llk + women_llk)
   }
   n_params <- length(MLE)
@@ -38,7 +37,8 @@ computeHessianForMixtureModel <- function(observations, MLE,...)
         {
           jitter_minus <- -epsilon * as.numeric(names(MLE) == param_1)
           minus_parameters <- MLE_vector + jitter_minus
-          minus_llk <- llk_function(men$value, women$value, minus_parameters["mu_1"],
+          minus_llk <- llk_function(men$value, women$value, 
+                                    minus_parameters["mu_1"],
                                     minus_parameters["mu_2"],
                                     minus_parameters["p"],
                                     minus_parameters["q"],
@@ -53,7 +53,10 @@ computeHessianForMixtureModel <- function(observations, MLE,...)
                                     plus_parameters["q"],
                                     plus_parameters["sigma_2_men"],
                                     plus_parameters["sigma_2_women"])
-          second_derivative = (plus_llk + minus_llk - 2 * center_llk) / (epsilon^2)
+          # second_derivative = (plus_llk + minus_llk - 2 * center_llk) / 
+          #   (epsilon^2)
+          second_derivative = (plus_llk - minus_llk) / 
+            (2 * epsilon)
           hessian[param_1,param_2] <- second_derivative
         }
       else{

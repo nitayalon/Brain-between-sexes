@@ -13,14 +13,25 @@ load("~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/BioBa
 load("~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/BioBank_standardized_data.RData")
 ```
 
+```{r filter FDR significant features antidiagonal, include=FALSE}
+sig_level <- 0.01
+FDR_significant_features <- rownames(combined_df_long_sorted_residuals)[
+    with(combined_df_long_sorted_residuals,(fdr_pv <= sig_level & 
+region == "Anti"))]  
+FDR_significant_features <- na.omit(FDR_significant_features)
+```
+
 
 ```{r computing the hessian for a given feature, include=FALSE}
-mle_parameters_list <- biobank_feature_residual_analysis$`Mean FA in middle cerebellar peduncle on FA skeleton`$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters
+fisher_and_more <- pblapply(FDR_significant_features, 
+                    function(x){computeFisherMatrixForFeature(biobank_feature_residual_analysis, 
+                                          biobank_residuals_data,x)})
+undebug(computeFisherMatrixForFeature)
+computeFisherMatrixForFeature(biobank_feature_residual_analysis, 
+biobank_residuals_data,FDR_significant_features[9])
+```
 
-observations <- biobank_residuals_data$`Mean FA in middle cerebellar peduncle on FA skeleton`
-
-h <- computeHessianForMixtureModel(observations, mle_parameters_list)
-fisher <- solve(-h)
-sqrt(diag(fisher))
+```{r examine Fisher matrix}
+lapply(fisher_and_more, function(x){(eigen(x$fisher))$values})
 ```
 
