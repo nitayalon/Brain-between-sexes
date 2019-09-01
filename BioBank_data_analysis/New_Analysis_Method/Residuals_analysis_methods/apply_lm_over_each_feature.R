@@ -1,6 +1,7 @@
 applyLinearModelOverBrainFeature <- function(feature_name,
-                                             trimming_limit = 3,
-                                             subject_data)
+                                             subject_data,
+                                             total_brain_volume_data,
+                                             trimming_limit = 4)
 {
   filtering_criteria <- !is.na(relevant_data[,feature_name]) & 
     relevant_data[,feature_name] > 0
@@ -10,32 +11,33 @@ applyLinearModelOverBrainFeature <- function(feature_name,
     sex = subject_data$Sex[filtering_criteria],
     value = relevant_data[,feature_name][filtering_criteria])
   
-  total_brain_volume_data <- 
-    bio.bank.data[filtering_criteria,] %>% 
-    select("X25010.2.0","X25004.2.0")  
-  
   data_for_lm <- tibble(y = feature_data$value,
-                        x1 = total_brain_volume_data[,1],
-                        x2 = total_brain_volume_data[,2])
-  data_for_lm_log_scale <- 
-    data_for_lm %>% 
+                        x1 = total_brain_volume_data[filtering_criteria,1],
+                        x2 = total_brain_volume_data[filtering_criteria,2])
+  # Log
+  data_for_lm_log_scale <- data_for_lm %>% 
     filter(y > 0) %>% 
     mutate(log_y = log(y), log_x1 = log(x1), log_x2 = log(x2))
   
-  lm_for_first_feature <- lm(log_y ~ log_x1 + log_x2, 
+  # Removing outliers
+  upper_and_lower <- quantile(data_for_lm_log_scale$log_y, c(0.025,0.975))
+  estimated_std <- (upper_and_lower[2] - upper_and_lower[1]) / 4
+  data_for_lm_log_scale$trimmed_log_y <- Winsorize(data_for_lm_log_scale$log_y, 
+                             minval = mean(data_for_lm_log_scale$log_y) - trimming_limit * estimated_std,
+                             maxval = mean(data_for_lm_log_scale$log_y) + trimming_limit * estimated_std, 
+                             probs = c(0.025,0.975))
+
+  residual_model <- lm(trimmed_log_y ~ log_x1 + log_x2, 
                              data = data_for_lm_log_scale)
   
   residuals <- tibble(
     eid = feature_data$eid,
     sex = feature_data$sex,
-    value = lm_for_first_feature$residuals)
+    value = residual_model$residuals)
   
-  normalized_residuals <- 
+  standardized_residuals <- 
     residuals %>% 
     normalizeResiduales()
   
-  trimmed_residuals <- normalized_residuals %>% 
-    filter(abs(value) < 5)
-  
-  return(trimmed_residuals)
+  return(standardized_residuals)
 }

@@ -22,16 +22,4 @@ biobank_full_analysis_list <- pblapply(list.of.names,function(x){
                            user_data)
 })
 names(biobank_full_analysis_list) <- list.of.names
-for(feature.name in list.of.names)
-{
-  full.function.test <- fullBrainFeatureAnalysis(feature.name,
-                                                 list.of.names,
-                                                 user_data)
-  biobank_full_analysis_list[[feature.name]] <- full.function.test
-}  
 save(biobank_full_analysis_list, file = "BioBank_data_analysis_total.RData")
-
-analyzeFullBrainFeature(full.function.test,plot = T)
-
-
-results.list[[feature.name]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$null_hypothesis

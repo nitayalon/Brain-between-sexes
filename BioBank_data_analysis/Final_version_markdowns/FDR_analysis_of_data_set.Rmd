@@ -99,14 +99,14 @@ ggplot(combined_df_long, aes(p,q, colour = Cohen_D)) +
 The following figure plots the FDR corrected $p-values$, point color indicate feature quadrant, horizontal lines indicate significance levels.
 ```{r fdr procedure, include = FALSE}
 N <- nrow(combined_df_long)
-combined_df_long_sorted <- combined_df_long[order(combined_df_long$p_values,decreasing = F),]
-combined_df_long_sorted$i <- seq(1:N)
-combined_df_long_sorted$bh_pvalue <- with(combined_df_long_sorted, p_values * i / N)
-combined_df_long_sorted$region <- apply(combined_df_long_sorted, 1, function(x){fitQuadrant(x[2],x[3])})
+combined_df_long_sorted_residuals <- combined_df_long[order(combined_df_long$p_values,decreasing = F),]
+combined_df_long_sorted_residuals$i <- seq(1:N)
+combined_df_long_sorted_residuals$bh_pvalue <- with(combined_df_long_sorted_residuals, p_values * i / N)
+combined_df_long_sorted_residuals$region <- apply(combined_df_long_sorted_residuals, 1, function(x){fitQuadrant(x[2],x[3])})
 ```
 
 ```{r plot fdr}
-ggplot(combined_df_long_sorted, aes(i,bh_pvalue,colour = region)) + 
+ggplot(combined_df_long_sorted_residuals, aes(i,bh_pvalue,colour = region)) + 
   geom_point() +
   geom_hline(yintercept = 0.01) +
   geom_hline(yintercept = 0.05) +
@@ -119,9 +119,9 @@ ggplot(combined_df_long_sorted, aes(i,bh_pvalue,colour = region)) +
 The tables below are the number of significant features, per significance level:
 
 ```{r summarize of significant features}
-table(combined_df_long_sorted$bh_pvalue < 0.01)
-table(combined_df_long_sorted$bh_pvalue < 0.05)
-table(combined_df_long_sorted$bh_pvalue < 0.1)
+table(combined_df_long_sorted_residuals$bh_pvalue < 0.01)
+table(combined_df_long_sorted_residuals$bh_pvalue < 0.05)
+table(combined_df_long_sorted_residuals$bh_pvalue < 0.1)
 ```
 
 To compute the FDR $p-value$ the current p-values are transformed using the formula:
@@ -130,23 +130,23 @@ To compute the FDR $p-value$ the current p-values are transformed using the form
 \]
 
 ```{r fdr pvalues, include = FALSE}
-combined_df_long_sorted$fdr_pv <- 
-  sapply(c(1:nrow(combined_df_long_sorted)), function(i){
-    max(combined_df_long_sorted$bh_pvalue[1:i])
+combined_df_long_sorted_residuals$fdr_pv <- 
+  sapply(c(1:nrow(combined_df_long_sorted_residuals)), function(i){
+    max(combined_df_long_sorted_residuals$bh_pvalue[1:i])
   })
   
-combined_df_long_sorted$bins_for_fdr <- cut(combined_df_long_sorted$fdr_pv, c(0,1e-2,5e-2,1))
+combined_df_long_sorted_residuals$bins_for_fdr <- cut(combined_df_long_sorted_residuals$fdr_pv, c(0,1e-2,5e-2,1))
 ```
 
 
 ```{r plot fdr pvalues, warnings = FALSE}
-ggplot(combined_df_long_sorted, aes(i,fdr_pv, colour = bins_for_fdr)) + 
+ggplot(combined_df_long_sorted_residuals, aes(i,fdr_pv, colour = bins_for_fdr)) + 
    geom_point() +
    ggtitle("FDR pv", subtitle = "color indicate sig level") 
 ```
 
 ```{r fdr p value by quadrant, warnings = FALSE}
-ggplot(combined_df_long_sorted[combined_df_long_sorted$bins_of_pv %in% levels(combined_df_long_sorted$bins_of_pv)[c(1,2,3)],], aes(p,q, colour = Cohen_D)) + 
+ggplot(combined_df_long_sorted_residuals[combined_df_long_sorted_residuals$bins_of_pv %in% levels(combined_df_long_sorted_residuals$bins_of_pv)[c(1,2,3)],], aes(p,q, colour = Cohen_D)) + 
   geom_point(aes(shape = bins_for_fdr)) +
   scale_shape_manual(values=c(3, 6, 17))+
   geom_vline(xintercept = 0.5) +
@@ -154,6 +154,21 @@ ggplot(combined_df_long_sorted[combined_df_long_sorted$bins_of_pv %in% levels(co
   ggtitle("Values of p and q", subtitle = "Shape indicate FDR pv") + 
   geom_abline(slope = 1, intercept = 0)
 ```
+
+```{r}
+
+random_feature_main <- sample(rownames(combined_df_long_sorted_residuals)[
+    with(combined_df_long_sorted_residuals,(fdr_pv <= sig_level & region == "Main"))],1)  
+
+
+random_feature <- sample(FDR_significant_features,1)
+significant_features[[random_feature]]$hypothesis_results$t_test_for_difference_between_genders
+significant_features[[random_feature]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters
+
+significant_features[[random_feature_main]]$hypothesis_results$t_test_for_difference_between_genders
+significant_features[[random_feature_main]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters
+```
+
 
 # Z-score Data
 

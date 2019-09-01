@@ -26,11 +26,17 @@ FDR_significant_features <- na.omit(FDR_significant_features)
 fisher_and_more <- pblapply(FDR_significant_features, 
                     function(x){computeFisherMatrixForFeature(biobank_feature_residual_analysis, 
                                           biobank_residuals_data,x)})
-computeFisherMatrixForFeature(biobank_feature_residual_analysis, 
-biobank_residuals_data,FDR_significant_features[9])
 ```
 
 ```{r examine Fisher matrix}
 lapply(fisher_and_more, function(x){(eigen(x$fisher))$values})
+```
+
+```{r asymptotic std}
+lapply(fisher_and_more, function(x){sqrt(diag(solve(x$fisher)))})
+```
+
+```{r suspect feature}
+FDR_significant_features[[50]]
 ```
 
