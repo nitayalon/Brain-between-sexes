@@ -51,26 +51,39 @@ relevant_data <- bio_bank_data[,relevant_region]
 list.of.names <- names(relevant_data)
 ```
 
+# Preparing the data sets
 
+First data set - log, winsorized, residuals, standardize.
 ```{r residual brain size using regression, include=FALSE}
 biobank_residuals_data <- list()
 biobank_residuals_data <- pblapply(list.of.names,function(x){
-  feature_residuals <- methodHelperOfResidualComputation(x,
-                                                        user_data,
-                                                        total.brain.volume.data)
+methodHelperOfResidualComputation(x,user_data,total.brain.volume.data)
 })
 names(biobank_residuals_data) <- list.of.names
 save(biobank_residuals_data, file = "~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/BioBank_residual_data.RData")
 ```
 
+Second data set - log, winsorized, standardize.
 ```{r normalizing brain feature data, include=FALSE}
-biobank_normalized_data <- list()
-biobank_normalized_data <- pblapply(list.of.names,function(x){
-  feature_residuals <- methodHelperFeatureNormalization(x,
-                                                        user_data)
+biobank_standardized_data <- list()
+biobank_standardized_data <- pblapply(list.of.names,function(x){
+methodHelperFeatureNormalization(x,user_data)
 })
-names(biobank_normalized_data) <- list.of.names
-save(biobank_normalized_data, file = "~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/BioBank_standardized_data.RData")
+names(biobank_standardized_data) <- list.of.names
+save(biobank_standardized_data, file = "~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/BioBank_standardized_data.RData")
+```
+
+Third data set - log, winsorized, residuals, normalized
+
+```{r normalizing brain feature data, include=FALSE}
+biobank_normalized_residuals_data <- list()
+biobank_normalized_residuals_data <- pblapply(list.of.names,function(x){
+methodHelperOfResidualComputation(x,user_data,total.brain.volume.data,
+                                  winsorized = T,
+                                  normalized = T)
+})
+names(biobank_normalized_residuals_data) <- list.of.names
+save(biobank_normalized_residuals_data, file = "~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/Biobank_normalized_residuals_data.RData")
 ```
 
 Next edit the code for EM computation and apply it on both data sets
@@ -78,6 +91,8 @@ Next edit the code for EM computation and apply it on both data sets
 ```{r testing the function}
 applyHypothesisOverResiduals(biobank_normalized_data$`Mean FA in middle cerebellar peduncle on FA skeleton`)
 ```
+
+# EM analysis
 
 ```{r apply full analysis cycle over residuals}
 biobank_feature_residual_analysis <- list()
@@ -89,12 +104,24 @@ names(biobank_feature_residual_analysis) <- list.of.names
 save(biobank_feature_residual_analysis, file = "~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/biobank_feature_residual_analysis.RData")
 ```
 
+
 ```{r apply full analysis cycle over normalized}
 biobank_feature_standard_analysis <- list()
 
-biobank_feature_standard_analysis <- pblapply(biobank_normalized_data,function(x){
+biobank_feature_standard_analysis <- pblapply(biobank_standardized_data,function(x){
   BrainFeatureAnalysis(x)
 })
 names(biobank_feature_standard_analysis) <- list.of.names
 save(biobank_feature_standard_analysis, file = "~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/biobank_feature_standard_analysis.RData")
+```
+
+
+```{r apply full analysis cycle over normalized}
+biobank_feature_normalized_analysis <- list()
+
+biobank_feature_normalized_analysis <- pblapply(biobank_normalized_residuals_data,function(x){
+  BrainFeatureAnalysis(x)
+})
+names(biobank_feature_normalized_analysis) <- list.of.names
+save(biobank_feature_normalized_analysis, file = "~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/biobank_feature_normalized_analysis.RData")
 ```

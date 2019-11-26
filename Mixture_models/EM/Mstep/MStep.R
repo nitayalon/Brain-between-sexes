@@ -42,6 +42,10 @@ MStep <- function(parameters
     ((1-I) %*% (men - mu_2)^2 +  (1-J) %*% (women - mu_2)^2) / 
                             (m + n - (sum(I) + sum(J)))
     )  
+  if(sigma_2_men < sigma_2_women / 3)
+  {
+    sigma_2_men <- sigma_2_women / 3
+  }
   # m_step <- list(p = p, q = q, mu_1 = mu_1, mu_2 = mu_2, sigma_2 = sigma_2)
   m_step <- list(p = p, q = q, mu_1 = mu_1, mu_2 = mu_2,
                  sigma_2_men = sigma_2_men, sigma_2_women = sigma_2_women)

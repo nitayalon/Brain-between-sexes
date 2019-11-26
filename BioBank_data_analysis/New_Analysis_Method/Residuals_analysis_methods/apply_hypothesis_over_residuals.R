@@ -9,23 +9,23 @@ applyHypothesisOverResiduals <- function(feature_data) {
   
   simple_vs_compostie_hypothesis_test <- 
     simpleDistributionVsCompositeDistribution(
-      feature_data_trimmed$value,
-      feature_data_trimmed$sex,
-      feature_data_trimmed$eid,
+      feature_data$value,
+      feature_data$sex,
+      feature_data$eid,
         "L")
   simple_vs_compostie_llrt <- simple_vs_compostie_hypothesis_test
   
   t_test_for_difference_between_genders <- 
-    t.test(feature_data_trimmed$value[feature_data_trimmed$sex == 0],
-           feature_data_trimmed$value[feature_data_trimmed$sex == 1])
+    t.test(feature_data_trimmed$value[feature_data$sex == 0],
+           feature_data$value[feature_data$sex == 1])
   
-  cohen_d_test <- cohen.d(feature_data_trimmed$value[feature_data_trimmed$sex == 0],
-                          feature_data_trimmed$value[feature_data_trimmed$sex == 1])
+  cohen_d_test <- cohen.d(feature_data$value[feature_data$sex == 0],
+                          feature_data$value[feature_data$sex == 1])
   
   pure_types_vs_mixed_gender_hypothesis <- 
-    pureTypeMixtureVsCompositeMixture(feature_data_trimmed$value,
-                                      feature_data_trimmed$sex,
-                                      feature_data_trimmed$eid,
+    pureTypeMixtureVsCompositeMixture(feature_data$value,
+                                      feature_data$sex,
+                                      feature_data$eid,
                                       distribution_model = "L",
                                       return_full_data = T, 
                                       data_needs_preparation = F)

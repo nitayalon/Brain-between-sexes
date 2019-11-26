@@ -31,15 +31,15 @@ library(ggplot2)
 library(dplyr)
 library(Jmisc)
 library(config)
-main_folder_path <- switch (
-    (Sys.info())[[4]],
-    "nitayServer"="~/Documents/Human_brain_research/DAPHNA_JOEL/",
-    "Nitay-R-Droplet"="~/Human_brain_research/"
-  )
-  source(paste0(main_folder_path,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/convert_em_probs_to_pq_space.R"))
-  source(paste0(main_folder_path,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/merge_data_frames_by_column_names.R"))
-  source(paste0(main_folder_path,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/convert_em_probs_to_pq_space.R"))
-  sourceAll(paste0(main_folder_path,"BioBank_data_analysis/Visualization_methods"))
+# main_folder_path <- switch (
+#     (Sys.info())[[4]],
+#     "nitayServer"="~/Documents/Human_brain_research/DAPHNA_JOEL/",
+#     "Nitay-R-Droplet"="~/Human_brain_research/"
+#   )
+#   source(paste0(main_folder_path,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/convert_em_probs_to_pq_space.R"))
+#   source(paste0(main_folder_path,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/merge_data_frames_by_column_names.R"))
+#   source(paste0(main_folder_path,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/convert_em_probs_to_pq_space.R"))
+#   sourceAll(paste0(main_folder_path,"BioBank_data_analysis/Visualization_methods"))
 ```
 
 ```{r source data for fdr analysis,warning=FALSE,include=FALSE}
@@ -55,7 +55,8 @@ The first analysis is of the residual data.
 
 ```{r prepare data for analysis, include = FALSE}
 feature_residual_m_parameters <- convertEMProbabiltiesToPQSpace(biobank_feature_residual_analysis)
-p_and_q <- sapply(feature_residual_m_parameters, function(x){c(x$p, x$q)})
+
+residual_p_and_q <- sapply(feature_residual_m_parameters, function(x){c(x$p, x$q)})
 ```
 
 ```{r histogram of t-test and cohen-d}
@@ -72,34 +73,42 @@ hist(sapply(biobank_feature_residual_analysis, function(x){x$hypothesis_results$
 
 First we add a coloring schema based on the *p-value* of the llrt, when the hypothesis is pure type vs mixture model. 
 ```{r pure type vs mixture model colouring schema, include=FALSE,warning=FALSE}
-pvalue_per_feature <- pullPvaluePerHypothesis(biobank_feature_residual_analysis)
-pvalue_per_feature_df <- t(pvalue_per_feature) %>% as.data.frame() 
-p_and_q_df <- p_and_q %>% as.data.frame()
+pvalue_per_feature_residuals <- pullPvaluePerHypothesis(biobank_feature_residual_analysis)
 
-cohens_d_per_feature <- sapply(biobank_feature_residual_analysis, function(x){x$hypothesis_results$cohen_d_test$estimate})
+pvalue_per_feature_df_residuals <- t(pvalue_per_feature_residuals) %>% as.data.frame() 
+residuals_p_and_q_df <- residual_p_and_q %>% as.data.frame()
 
-combined_df <- mergeDataFramesByColumnNames(pvalue_per_feature_df, p_and_q_df)
-combined_df <- rbind(combined_df, cohens_d_per_feature)
-rownames(combined_df) <- c("p_values","p","q","Cohen_D")
+cohens_d_per_feature_residuals <- sapply(biobank_feature_residual_analysis, function(x){x$hypothesis_results$cohen_d_test$estimate})
+
+combined_df_resid <- mergeDataFramesByColumnNames(pvalue_per_feature_df_residuals, 
+                                                  residuals_p_and_q_df)
+
+combined_df_resid <- rbind(combined_df_resid, cohens_d_per_feature_residuals)
+rownames(combined_df_resid) <- c("p_values","p","q","Cohen_D")
 ```
 
 ```{r pure type vs mixture model plotting with colors}
-combined_df_long <- combined_df %>% t() %>% as.data.frame()
-combined_df_long$bins_of_pv <- cut(combined_df_long$p_values, c(1e-9,1e-8,1e-3,1e-2,1))
+combined_df_long_resid <- combined_df_resid %>% t() %>% as.data.frame()
+combined_df_long_resid$bins_of_pv <- cut(combined_df_long_resid$p_values, c(1e-9,1e-8,1e-3,1e-2,1))
 ```
 
 ```{r plot scatter of pv without correction}
-ggplot(combined_df_long, aes(p,q, colour = Cohen_D)) + 
+ggplot(combined_df_long_resid, aes(p,q, colour = Cohen_D)) + 
   geom_point(aes(shape=bins_of_pv)) + 
-  ggtitle("Values of p and q", subtitle = "No correction")
+  ggtitle("Values of p and q", subtitle = "No correction") + 
+  scale_color_gradient2(midpoint=0, 
+                        low="darkblue", 
+                        mid="yellow",
+                        high="red", space ="Lab" )
 ```
 
 ### FDR
 
 The following figure plots the FDR corrected $p-values$, point color indicate feature quadrant, horizontal lines indicate significance levels.
 ```{r fdr procedure, include = FALSE}
-N <- nrow(combined_df_long)
-combined_df_long_sorted_residuals <- combined_df_long[order(combined_df_long$p_values,decreasing = F),]
+N <- nrow(combined_df_long_resid)
+combined_df_long_sorted_residuals <- combined_df_long_resid[order(combined_df_long_resid$p_values,decreasing = F),]
+rownames(combined_df_long_sorted_residuals) = rownames(combined_df_long_resid)[order(combined_df_long_resid$p_values,decreasing = F)]
 combined_df_long_sorted_residuals$i <- seq(1:N)
 combined_df_long_sorted_residuals$bh_pvalue <- with(combined_df_long_sorted_residuals, p_values * i / N)
 combined_df_long_sorted_residuals$region <- apply(combined_df_long_sorted_residuals, 1, function(x){fitQuadrant(x[2],x[3])})
@@ -135,7 +144,7 @@ combined_df_long_sorted_residuals$fdr_pv <-
     max(combined_df_long_sorted_residuals$bh_pvalue[1:i])
   })
   
-combined_df_long_sorted_residuals$bins_for_fdr <- cut(combined_df_long_sorted_residuals$fdr_pv, c(0,1e-2,5e-2,1))
+combined_df_long_sorted_residuals$bins_for_fdr <- cut(combined_df_long_sorted_residuals$fdr_pv, c(0,1e-2,5e-2,0.1,1))
 ```
 
 
@@ -146,27 +155,39 @@ ggplot(combined_df_long_sorted_residuals, aes(i,fdr_pv, colour = bins_for_fdr)) 
 ```
 
 ```{r fdr p value by quadrant, warnings = FALSE}
-ggplot(combined_df_long_sorted_residuals[combined_df_long_sorted_residuals$bins_of_pv %in% levels(combined_df_long_sorted_residuals$bins_of_pv)[c(1,2,3)],], aes(p,q, colour = Cohen_D)) + 
+ggplot(combined_df_long_sorted_residuals[combined_df_long_sorted_residuals$bins_for_fdr %in% levels(combined_df_long_sorted_residuals$bins_for_fdr)[c(1,2)],], aes(p,q, colour = Cohen_D)) +
   geom_point(aes(shape = bins_for_fdr)) +
-  scale_shape_manual(values=c(3, 6, 17))+
+  scale_shape_manual(values=c(15, 17))+
   geom_vline(xintercept = 0.5) +
   geom_hline(yintercept = 0.5) +
   ggtitle("Values of p and q", subtitle = "Shape indicate FDR pv") + 
-  geom_abline(slope = 1, intercept = 0)
+  geom_abline(slope = 1, intercept = 0) + 
+  scale_color_gradient2(midpoint=0, 
+                        low="red", 
+                        mid="white",
+                        high="darkblue", space ="Lab" )
 ```
 
-```{r}
+```{r fdr p value by quadrant, warnings = FALSE}
+ggplot(combined_df_long_sorted_residuals[combined_df_long_sorted_residuals$bins_for_fdr %in% levels(combined_df_long_sorted_residuals$bins_for_fdr)[c(1,2)],], aes(p,q, colour = Cohen_D)) +
+  geom_point() +
+  geom_vline(xintercept = 0.5) +
+  geom_hline(yintercept = 0.5) +
+  ggtitle("Values of p and q", subtitle = "FDR <= 0.05") + 
+  geom_abline(slope = 1, intercept = 0) + 
+  scale_color_gradient2(midpoint=0, 
+                        low="darkblue", 
+                        mid="yellow",
+                        high="red", space ="Lab" )
+```
+$H_0: p = q$, what is the theoretical distribution of $p,q$ and compare it to the results above. Moreover, there's no reason to compare the correlations
+between these features.
 
-random_feature_main <- sample(rownames(combined_df_long_sorted_residuals)[
-    with(combined_df_long_sorted_residuals,(fdr_pv <= sig_level & region == "Main"))],1)  
-
-
-random_feature <- sample(FDR_significant_features,1)
-significant_features[[random_feature]]$hypothesis_results$t_test_for_difference_between_genders
-significant_features[[random_feature]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters
-
-significant_features[[random_feature_main]]$hypothesis_results$t_test_for_difference_between_genders
-significant_features[[random_feature_main]]$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters
+```{r sampling at random}
+combined_df_long_resid[rownames(combined_df_long_resid) == 
+'Volume of grey matter in Lateral Occipital Cortex, superior division (left)',]
+combined_df_long_sorted_residuals[rownames(combined_df_long_sorted_residuals) == 
+'Volume of grey matter in Lateral Occipital Cortex, superior division (left)',]
 ```
 
 
@@ -176,7 +197,8 @@ In this section the analysis is conducted on standardized data instead of residu
 
 ```{r prepare data for analysis, include = FALSE}
 standardized_data_m_parameters <- convertEMProbabiltiesToPQSpace(biobank_feature_standard_analysis)
-p_and_q <- sapply(standardized_data_m_parameters, function(x){c(x$p, x$q)})
+
+standard_p_and_q <- sapply(standardized_data_m_parameters, function(x){c(x$p, x$q)})
 ```
 
 ```{r histogram of t-test and cohen-d}
@@ -193,21 +215,25 @@ hist(sapply(biobank_feature_standard_analysis, function(x){x$hypothesis_results$
 
 First we add a coloring schema based on the *p-value* of the llrt, when the hypothesis is pure type vs mixture model. 
 ```{r pure type vs mixture model colouring schema, include=FALSE,warning=FALSE}
-pvalue_per_feature <- pullPvaluePerHypothesis(biobank_feature_standard_analysis)
-pvalue_per_feature_df <- t(pvalue_per_feature) %>% as.data.frame() 
-p_and_q_df <- p_and_q %>% as.data.frame()
+pvalue_per_feature_standarize <- pullPvaluePerHypothesis(biobank_feature_standard_analysis)
 
-cohens_d_per_feature <- sapply(biobank_feature_standard_analysis, function(x){x$hypothesis_results$cohen_d_test$estimate})
+pvalue_per_feature_df_standard <- t(pvalue_per_feature) %>% as.data.frame() 
+p_and_q_df_standard <- standard_p_and_q %>% as.data.frame()
 
-combined_df <- mergeDataFramesByColumnNames(pvalue_per_feature_df, p_and_q_df)
-combined_df <- rbind(combined_df, cohens_d_per_feature)
-rownames(combined_df) <- c("p_values","p","q","Cohen_D")
+cohens_d_per_feature_standard <- sapply(biobank_feature_standard_analysis, function(x){x$hypothesis_results$cohen_d_test$estimate})
+
+combined_df_standard <- mergeDataFramesByColumnNames(pvalue_per_feature_df_standard, p_and_q_df_standard)
+
+combined_df_standard <- rbind(combined_df_standard, cohens_d_per_feature_standard)
+
+rownames(combined_df_standard) <- c("p_values","p","q","Cohen_D")
 ```
 
 ```{r pure type vs mixture model plotting with colors}
-combined_df_long <- combined_df %>% t() %>% as.data.frame()
-combined_df_long$bins_of_pv <- cut(combined_df_long$p_values, c(1e-9,1e-8,1e-3,1e-2,1))
-ggplot(combined_df_long, aes(p,q, colour = Cohen_D)) + 
+combined_df_long_standard <- combined_df_standard %>% t() %>% as.data.frame()
+combined_df_long_standard$bins_of_pv <- cut(combined_df_long_standard$p_values, c(0,1e-2,5e-2,1e-1,1))
+
+ggplot(combined_df_long_standard, aes(p,q, colour = Cohen_D)) + 
   geom_point(aes(shape=bins_of_pv)) + 
   ggtitle("Values of p and q", subtitle = "No correction")
 ```
@@ -216,15 +242,16 @@ ggplot(combined_df_long, aes(p,q, colour = Cohen_D)) +
 
 The following figure plots the FDR corrected $p-values$, point color indicate feature quadrant, horizontal lines indicate significance levels.
 ```{r fdr procedure, include = FALSE}
-N <- nrow(combined_df_long)
-combined_df_long_sorted <- combined_df_long[order(combined_df_long$p_values,decreasing = F),]
-combined_df_long_sorted$i <- seq(1:N)
-combined_df_long_sorted$bh_pvalue <- with(combined_df_long_sorted, p_values * i / N)
-combined_df_long_sorted$region <- apply(combined_df_long_sorted, 1, function(x){fitQuadrant(x[2],x[3])})
+N <- nrow(combined_df_long_standard)
+
+combined_df_long_sorted_standard <- combined_df_long_standard[order(combined_df_long_standard$p_values,decreasing = F),]
+combined_df_long_sorted_standard$i <- seq(1:N)
+combined_df_long_sorted_standard$bh_pvalue <- with(combined_df_long_sorted_standard, p_values * i / N)
+combined_df_long_sorted_standard$region <- apply(combined_df_long_sorted_standard, 1, function(x){fitQuadrant(x[2],x[3])})
 ```
 
 ```{r plot fdr}
-ggplot(combined_df_long_sorted, aes(i,bh_pvalue,colour = region)) + 
+ggplot(combined_df_long_sorted_standard, aes(i,bh_pvalue,colour = region)) + 
   geom_point() +
   geom_hline(yintercept = 0.01) +
   geom_hline(yintercept = 0.05) +
@@ -237,9 +264,9 @@ ggplot(combined_df_long_sorted, aes(i,bh_pvalue,colour = region)) +
 The tables below are the number of significant features, per significance level:
 
 ```{r summarize of significant features}
-table(combined_df_long_sorted$bh_pvalue < 0.01)
-table(combined_df_long_sorted$bh_pvalue < 0.05)
-table(combined_df_long_sorted$bh_pvalue < 0.1)
+table(combined_df_long_sorted_standard$bh_pvalue < 0.01)
+table(combined_df_long_sorted_standard$bh_pvalue < 0.05)
+table(combined_df_long_sorted_standard$bh_pvalue < 0.1)
 ```
 
 To compute the FDR $p-value$ the current p-values are transformed using the formula:
@@ -248,111 +275,84 @@ To compute the FDR $p-value$ the current p-values are transformed using the form
 \]
 
 ```{r fdr pvalues, include = FALSE}
-combined_df_long_sorted$fdr_pv <- 
-  sapply(c(1:nrow(combined_df_long_sorted)), function(i){
-    max(combined_df_long_sorted$bh_pvalue[1:i])
+combined_df_long_sorted_standard$fdr_pv <- 
+  sapply(c(1:nrow(combined_df_long_sorted_standard)), function(i){
+    max(combined_df_long_sorted_standard$bh_pvalue[1:i])
   })
   
-combined_df_long_sorted$bins_for_fdr <- cut(combined_df_long_sorted$fdr_pv, c(0,1e-2,5e-2,1))
+combined_df_long_sorted_standard$bins_for_fdr <- cut(combined_df_long_sorted_standard$fdr_pv, c(0,1e-2,5e-2,0.1,1))
 ```
 
 ```{r plot fdr pvalues, warnings = FALSE}
-ggplot(combined_df_long_sorted, aes(i,fdr_pv, colour = bins_for_fdr)) + 
+ggplot(combined_df_long_sorted_standard, aes(i,fdr_pv, colour = bins_for_fdr)) + 
    geom_point() +
    ggtitle("FDR pv", subtitle = "color indicate sig level") 
 ```
 
 ```{r fdr p value by quadrant, warnings = FALSE}
-ggplot(combined_df_long_sorted[combined_df_long_sorted$bins_of_pv %in% levels(combined_df_long_sorted$bins_of_pv)[c(1,2)],], aes(p,q, colour = Cohen_D)) + 
+ggplot(combined_df_long_sorted_standard[combined_df_long_sorted_standard$bins_for_fdr %in% levels(combined_df_long_sorted_standard$bins_for_fdr)[c(1,2)],], aes(p,q, colour = Cohen_D)) + 
   geom_point(aes(shape = bins_for_fdr)) +
-  scale_shape_manual(values=c(3, 6, 17))+
+  scale_shape_manual(values=c(3, 6, 17, 25))+
   geom_vline(xintercept = 0.5) +
   geom_hline(yintercept = 0.5) +
   ggtitle("Values of p and q", subtitle = "Shape indicate FDR pv") + 
-  geom_abline(slope = 1, intercept = 0)
+  geom_abline(slope = 1, intercept = 0) + 
+  scale_color_gradient2(midpoint=0, 
+                        low="darkblue", 
+                        mid="yellow",
+                        high="red", space ="Lab" )
 ```
 
-# Summary
-From the above findings it is clear that the regression neutralize the gender difference in a way that separetes the tails of the feature size in such way that a 2 gaussian mixture model explaines the data better than the null hypothesis model.
-<!-- # Post hoc analysis -->
+```{r same plot but without fdr bins p value by quadrant, warnings = FALSE}
+ggplot(combined_df_long_sorted_standard[combined_df_long_sorted_standard$bins_for_fdr %in% levels(combined_df_long_sorted_standard$bins_for_fdr)[c(1,2)],], aes(p,q, colour = Cohen_D)) + 
+  geom_point() +
+  geom_vline(xintercept = 0.5) +
+  geom_hline(yintercept = 0.5) +
+  ggtitle("Values of p and q", subtitle = "FDR <= 0.05") + 
+  geom_abline(slope = 1, intercept = 0) + 
+  geom_abline(slope = .5, intercept = 0) + 
+  scale_color_gradient2(midpoint=0, 
+                        low="darkblue", 
+                        mid="yellow",
+                        high="red", space ="Lab")
+```
 
-<!-- In this section our goal is to find patterns in the distribution structure of the FDR significance features. Assuming that the underline model is a mixture of Gaussians with different means and variance, these feature should present a distinct pattern. Using visual inspection of the underline distribution it is possible to uncover characteristics of the features. The analysis begins with the anti-diagonal ($sign(p-0.5) \neq sign(q-0.5)$) followed by the same method for the main diagonal. -->
+# Analysis of non signifanct features
 
-<!-- ## Main diagonal -->
-
-<!-- ### Upper -->
-<!-- ```{r high q high p} -->
-<!-- upper_diagonal_feature_names <-  -->
-<!--   rownames(combined_df_long_sorted)[ -->
-<!--     with(combined_df_long_sorted,(fdr_pv < 5e-2 & p > 0.75 &  q > 0.75))]   -->
-
-<!-- upper_diagonal_features <-  -->
-<!--   biobank_feature_residual_analysis[names(biobank_feature_residual_analysis) %in% upper_diagonal_feature_names] -->
-<!-- ``` -->
-
-<!-- ```{r plotting upper main diagonal feature} -->
-<!-- i <- sample(1:length(upper_diagonal_feature_names), 1) -->
-<!-- plotGenderHistogram(upper_diagonal_features[[i]], upper_diagonal_feature_names[i]) -->
-<!-- ``` -->
-
-<!-- ## Antidiagonal -->
-
-<!-- ### Upper -->
-<!-- ```{r high q low p} -->
-<!-- upper_antidiagonal_feature_names <-  -->
-<!--   rownames(combined_df_long_sorted)[ -->
-<!--     with(combined_df_long_sorted,(fdr_pv < 5e-2 & p < 0.5 & q > 0.5))]   -->
-<!-- save(upper_antidiagonal_feature_names, file = "upper_diagonal_feature_names.RData")     -->
-<!-- upper_antidiagonal_features <-  -->
-<!--   biobank_feature_residual_analysis[names(biobank_feature_residual_analysis) %in% upper_antidiagonal_feature_names] -->
-<!-- ``` -->
-
-<!-- ```{r plotting upper anti diagonal feature} -->
-<!-- i <- sample(1:length(upper_antidiagonal_feature_names), 1) -->
-<!-- plotGenderHistogram(upper_antidiagonal_features[[i]], upper_antidiagonal_feature_names[i]) -->
-<!-- ``` -->
-
-<!-- A general pattern in this qudrant is best represented by the following plot: -->
-<!-- ```{r representitive plot} -->
-<!-- feature_name = "X25805.2.0" -->
-<!-- plotGenderHistogram(upper_antidiagonal_features[[feature_name]], feature_name) -->
-<!-- ``` -->
-
-<!-- ### Lower  -->
-<!-- ```{r low q high p} -->
-<!-- lower_antidiagonal_feature_names <-  -->
-<!--   rownames(combined_df_long_sorted)[ -->
-<!--     with(combined_df_long_sorted,(fdr_pv < 1e-3 & p > 0.5 & q < 0.5))]   -->
-<!-- save(lower_antidiagonal_feature_names, file = "lower_diagonal_feature_names.RData")   -->
-<!-- lower_antidiagonal_features <-  -->
-<!--   biobank_feature_residual_analysis[names(biobank_feature_residual_analysis) %in% lower_antidiagonal_feature_names] -->
-<!-- ``` -->
-
-<!-- ```{r plotting at random} -->
-<!-- i <- sample(1:length(lower_antidiagonal_feature_names), 1) -->
-<!-- plotGenderHistogram(lower_antidiagonal_features[[i]], lower_antidiagonal_feature_names[i]) -->
-<!-- ``` -->
-
-<!-- ```{r high mixture for men wemon neutral} -->
-<!-- feature_name = "X25120.2.0" -->
-<!-- plotGenderHistogram(lower_antidiagonal_features[[feature_name]], feature_name) -->
-<!-- ``` -->
+Following the discussion from 10/11/2019 we test the non-significant features, at each data set, to see if they are indeed pure types or not.
+```{r install relevant library}
+# install.packages("TOSTER")
+library("TOSTER")
+```
 
 
-<!-- ```{r another example of sex mixture model} -->
-<!-- feature_name = "X25535.2.0" -->
-<!-- plotGenderHistogram(lower_antidiagonal_features[[feature_name]], feature_name) -->
-<!-- ``` -->
+```{r extracting pure types feature from each data set}
+residual_pure_types_features_names <- combined_df_long_sorted_residuals[which(combined_df_long_sorted_residuals$bh_pvalue > 0.05),] %>% 
+  row.names() 
+residual_pure_types_features <- biobank_residuals_data[residual_pure_types_features_names]
 
+residual_pure_types_features[[residual_pure_types_features_names[5]]] %>% 
+  group_by(sex) %>% 
+  summarise(avg = mean(value),
+            std = sd(value),
+            count = n())
 
-<!-- ## $\chi^2$ Test -->
-<!-- We preform $\chi^2$ for dependency test between a binarization of the features by sex. The statistics are ploted in the below histograms: -->
-<!-- ```{r chisq histograms} -->
-<!-- load("/home/nitay_2/Human_brain_research/BioBank_data_analysis/measure_of_masculinity/men_chisq_test.RData") -->
-<!-- load("/home/nitay_2/Human_brain_research/BioBank_data_analysis/measure_of_masculinity/women_chisq_test.RData") -->
-<!-- hist(chisq_men[upper.tri(chisq_men,diag = F)],breaks = 100, -->
-<!--      main = "Chi statistics Men", xlab = "Chi") -->
-<!-- hist(chisq_women[upper.tri(chisq_women,diag = F)],breaks = 100, -->
-<!--      main = "Chi statistics Women", xlab = "Chi") -->
-<!-- ``` -->
+TOSTtwo(m1=0.02148792,
+        m2=-0.02424953,
+        sd1=1.0031235,
+        sd2=0.9959662,
+        n1=9501,
+        n2=8419,
+        low_eqbound_d=-0.1, 
+        high_eqbound_d=0.1, 
+        alpha = 0.025, 
+        var.equal=FALSE)
+
+residual_pure_types_features[[residual_pure_types_features_names[5]]] %>% 
+  select(sex,value) %>% 
+  ggplot(aes(x = value, fill = factor(sex))) +
+  geom_density(alpha = 0.5) +
+  geom_vline(xintercept = c(0.04633958,-0.05172520), linetype="dotted", 
+                color = "blue", size=1.5)
+```
 
