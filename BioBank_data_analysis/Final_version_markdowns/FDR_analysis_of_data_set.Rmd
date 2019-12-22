@@ -31,15 +31,6 @@ library(ggplot2)
 library(dplyr)
 library(Jmisc)
 library(config)
-# main_folder_path <- switch (
-#     (Sys.info())[[4]],
-#     "nitayServer"="~/Documents/Human_brain_research/DAPHNA_JOEL/",
-#     "Nitay-R-Droplet"="~/Human_brain_research/"
-#   )
-#   source(paste0(main_folder_path,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/convert_em_probs_to_pq_space.R"))
-#   source(paste0(main_folder_path,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/merge_data_frames_by_column_names.R"))
-#   source(paste0(main_folder_path,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/convert_em_probs_to_pq_space.R"))
-#   sourceAll(paste0(main_folder_path,"BioBank_data_analysis/Visualization_methods"))
 ```
 
 ```{r source data for fdr analysis,warning=FALSE,include=FALSE}
@@ -153,6 +144,21 @@ ggplot(combined_df_long_sorted_residuals, aes(i,fdr_pv, colour = bins_for_fdr)) 
    geom_point() +
    ggtitle("FDR pv", subtitle = "color indicate sig level") 
 ```
+
+## Post hoc analysis of pure-types
+
+Next, we separate the pure types from the mixture model features:
+```{r seperate residual pure types}
+pure_types_residual_model_table <- 
+combined_df_long_sorted_residuals[combined_df_long_sorted_residuals$bins_for_fdr %in% levels(combined_df_long_sorted_residuals$bins_for_fdr)[c(3,4)],]
+
+write.csv(pure_types_residual_model_table, file = "pure_types_features_residual_data.csv", row.names = T)
+
+pure_types_residual_model_em_results <- biobank_feature_residual_analysis[rownames(pure_types_residual_model_table)]
+pure_types_residual_model_table[order(pure_types_residual_model_table$Cohen_D),]
+```
+
+
 
 ```{r fdr p value by quadrant, warnings = FALSE}
 ggplot(combined_df_long_sorted_residuals[combined_df_long_sorted_residuals$bins_for_fdr %in% levels(combined_df_long_sorted_residuals$bins_for_fdr)[c(1,2)],], aes(p,q, colour = Cohen_D)) +
@@ -288,6 +294,14 @@ ggplot(combined_df_long_sorted_standard, aes(i,fdr_pv, colour = bins_for_fdr)) +
    geom_point() +
    ggtitle("FDR pv", subtitle = "color indicate sig level") 
 ```
+
+```{r seperate log volume pure types}
+pure_types_log_volume_model_table <- 
+combined_df_long_sorted_standard[combined_df_long_sorted_standard$bins_for_fdr %in% levels(combined_df_long_sorted_standard$bins_for_fdr)[c(3,4)],]
+
+write.csv(pure_types_log_volume_model_table, file = "pure_types_features_log_volume_data.csv", row.names = T)
+```
+
 
 ```{r fdr p value by quadrant, warnings = FALSE}
 ggplot(combined_df_long_sorted_standard[combined_df_long_sorted_standard$bins_for_fdr %in% levels(combined_df_long_sorted_standard$bins_for_fdr)[c(1,2)],], aes(p,q, colour = Cohen_D)) + 

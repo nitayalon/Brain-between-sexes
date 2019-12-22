@@ -1,0 +1,43 @@
+---
+title: "export tables for daphy"
+author: "Nitay Alon"
+date: "12/22/2019"
+output: html_document
+---
+
+# First table
+First we summarize for each non significant feature the following: Name, Cohen-D for log transformation, Cohen-D for residual analysis and double sided T-Test
+```{r non significant residual features table, warning=FALSE}
+pure_types_residual_model_residual_table <- 
+combined_df_long_sorted_residuals[combined_df_long_sorted_residuals$bins_for_fdr %in% levels(combined_df_long_sorted_residuals$bins_for_fdr)[c(3,4)],] %>% 
+  select(p_values, p, q, Cohen_D) 
+
+pure_types_residual_model_log_table <- 
+combined_df_long_sorted_standard[rownames(pure_types_residual_model_table),] %>% 
+  select(p_values, p, q, Cohen_D) 
+
+pure_types_resudial_data <- base::merge(pure_types_residual_model_residual_table,
+                                  pure_types_residual_model_log_table, by = 0,
+                                  all = TRUE,
+                                  suffixes = c(".residual",".log"))
+
+write.csv(pure_types_resudial_data, file = "pure_types_features_residual_data.csv", row.names = T)
+```
+
+```{r non significant log features table, warning=FALSE}
+pure_types_log_model_log_table <- 
+combined_df_long_sorted_standard[combined_df_long_sorted_standard$bins_for_fdr %in% levels(combined_df_long_sorted_standard$bins_for_fdr)[c(3,4)],] %>% 
+  select(p_values, p, q, Cohen_D) 
+
+pure_types_log_model_residual_table <- 
+combined_df_long_sorted_residuals[rownames(pure_types_log_model_log_table),] %>% 
+  select(p_values, p, q, Cohen_D) 
+
+pure_types_log_data <- base::merge(pure_types_log_model_log_table,
+                                  pure_types_log_model_residual_table, by = 0,
+                                  all = TRUE,
+                                  suffixes = c(".log",".residual"))
+
+write.csv(pure_types_log_data, file = "pure_types_features_log_data.csv", row.names = T)
+```
+
