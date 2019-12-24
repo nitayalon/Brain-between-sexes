@@ -323,8 +323,8 @@ ggplot(combined_df_long_sorted_standard[combined_df_long_sorted_standard$bins_fo
   geom_vline(xintercept = 0.5) +
   geom_hline(yintercept = 0.5) +
   ggtitle("Values of p and q", subtitle = "FDR <= 0.05") + 
-  geom_abline(slope = 1, intercept = 0) + 
-  geom_abline(slope = .5, intercept = 0) + 
+  # geom_abline(slope = 1, intercept = 0) + 
+  # geom_abline(slope = .5, intercept = 0) + 
   scale_color_gradient2(midpoint=0, 
                         low="darkblue", 
                         mid="yellow",
@@ -370,3 +370,29 @@ residual_pure_types_features[[residual_pure_types_features_names[5]]] %>%
                 color = "blue", size=1.5)
 ```
 
+# 23/12/2019
+```{r fdr logit value by quadrant, warnings = FALSE}
+ggplot(combined_df_long_sorted_residuals[combined_df_long_sorted_residuals$bins_for_fdr %in% levels(combined_df_long_sorted_residuals$bins_for_fdr)[c(1,2)],], aes(log(p / (1-p)),log(q/(1-q)), colour = Cohen_D)) +
+  geom_point() +
+  geom_vline(xintercept = 0.5) +
+  geom_hline(yintercept = 0.5) +
+  ggtitle("Values of p and q", subtitle = "FDR <= 0.05") + 
+  geom_abline(slope = 1, intercept = 0) + 
+  scale_color_gradient2(midpoint=0, 
+                        low="darkblue", 
+                        mid="yellow",
+                        high="red", space ="Lab" )
+```
+
+```{r fdr logit value by quadrant, warnings = FALSE}
+ggplot(combined_df_long_sorted_residuals[combined_df_long_sorted_residuals$bins_for_fdr %in% levels(combined_df_long_sorted_residuals$bins_for_fdr)[c(1,2)] & abs(combined_df_long_sorted_residuals$Cohen_D) > 0.1,], aes(log(p/(1-p)),log(q/(1-q)), colour = Cohen_D)) +
+  geom_point() +
+  geom_vline(xintercept = 0.5) +
+  geom_hline(yintercept = 0.5) +
+  ggtitle("Values of p and q", subtitle = "FDR <= 0.05") + 
+  geom_abline(slope = 1, intercept = 0) + 
+  scale_color_gradient2(midpoint=0, 
+                        low="darkblue", 
+                        mid="yellow",
+                        high="red", space ="Lab" )
+```

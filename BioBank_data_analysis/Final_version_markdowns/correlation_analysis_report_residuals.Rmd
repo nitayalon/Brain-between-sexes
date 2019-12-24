@@ -27,9 +27,53 @@ load("~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/colom
 
 # Residual data
 
+## Pure types
+In this section we compute corelation matrix for pure types features only
+```{r pure types features, include=FALSE}
+pure_type_features_residuals <- biobank_feature_residual_analysis[pure_types_residual_data_with_t_test$Row.names]
+
+pure_type_men_data_residuals <- lapply(pure_type_features_residuals, function(x){x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$men_responsebilities})
+
+pure_type_women_data_residuals <- lapply(pure_type_features_residuals, function(x){x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$women_responsebilities})
+```
+
+join the tables
+```{r create new responsebilities table all data, include=FALSE, warning=FALSE}
+pure_type_men_feature_data_residuals <- pure_type_men_data_residuals[[1]]
+for(i in 2:length(pure_type_men_data_residuals))
+{
+  pure_type_men_feature_data_residuals <- base::merge(pure_type_men_feature_data_residuals, pure_type_men_data_residuals[[i]], by.x = "eid", by.y = "eid")
+}
+names(pure_type_men_feature_data_residuals) <- c("eid", pure_types_residual_data_with_t_test$Row.names)
+pure_type_men_feature_data_residuals_no_id_residuals <- pure_type_men_feature_data_residuals[,-1]
+```
+
+```{r create women table all data, include=FALSE, warning=FALSE}
+pure_type_women_feature_data_residuals <- pure_type_women_data_residuals[[1]]
+for(i in 2:length(pure_type_women_data_residuals))
+{
+  pure_type_women_feature_data_residuals <- base::merge(pure_type_women_feature_data_residuals, pure_type_women_data_residuals[[i]], by.x = "eid", by.y = "eid")
+}
+names(pure_type_women_feature_data_residuals) <- c("eid", pure_types_residual_data_with_t_test$Row.names)
+pure_type_women_features_no_id_residuals <- pure_type_women_feature_data_residuals[,-1]
+```
+
+```{r correlation matrix by gender pure types, include=FALSE}
+pure_type_men_cor_residuals <- cor(pure_type_men_feature_data_residuals_no_id_residuals , use = "pairwise.complete.obs")
+pure_type_women_cor_residuals <- cor(pure_type_women_features_no_id_residuals ,use = "pairwise.complete.obs")
+pure_type_combined_correaltion_residuals <- pure_type_men_cor_residuals
+pure_type_combined_correaltion_residuals[lower.tri(pure_type_combined_correaltion_residuals)] <- pure_type_women_cor_residuals[lower.tri(pure_type_women_cor_residuals)]
+```
+
+```{r corrplot by name both genders all data}
+corrplot(pure_type_combined_correaltion_residuals, title="both genders - full data", order = "alphabet",
+         tl.cex = 0.5,tl.srt = 45)
+```
+
 ## Full data
 
 First select only FDR significant features from the antidiagonal: 
+
 ```{r filter FDR significant features all data, include=FALSE}
 sig_level <- 0.1
 FDR_significant_features_residuals <- rownames(combined_df_long_sorted_residuals)[
@@ -38,6 +82,7 @@ FDR_significant_features_residuals <- na.omit(FDR_significant_features_residuals
 ```
 
 extract feature data:
+
 ```{r extract FDR significant features all data, include=FALSE}
 significant_features_residuals <- biobank_feature_residual_analysis[FDR_significant_features_residuals]
 
@@ -84,12 +129,15 @@ hist(sapply(significant_features, function(x){x$hypothesis_results$cohen_d_test$
 
 
 ## Correlation matrix
+
 ```{r correlation matrix by gender all data, include=FALSE}
 men_cor_residuals <- cor(men_features_no_id_residuals[,feature_order_for_corrplot_residuals], use = "pairwise.complete.obs")
 women_cor_residuals <- cor(women_features_no_id_residuals[,feature_order_for_corrplot_residuals],use = "pairwise.complete.obs")
 combined_correaltion_residuals <- men_cor_residuals
 combined_correaltion_residuals[lower.tri(combined_correaltion_residuals)] <- women_cor_residuals[lower.tri(women_cor_residuals)]
 ```
+
+
 
 
 ```{r corrplot by name both genders all data}
@@ -209,7 +257,55 @@ corrplot(combined_correaltion[Volume_index,Volume_index], method="color", title=
          tl.cex = 0.3,tl.srt = 45, order = "FPC")  
 ```
 
+
+
 # Standardize data
+
+## Pure types
+
+In this section we compute corelation matrix for pure types features only
+```{r pure types features log data, include=FALSE}
+pure_type_features_log <- biobank_feature_standard_analysis[pure_types_log_data_with_t_test$Row.names]
+
+pure_type_men_data_log <- lapply(pure_type_features_log, function(x){x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$men_responsebilities})
+
+pure_type_women_data_log <- lapply(pure_type_features_log, function(x){x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$women_responsebilities})
+```
+
+join the tables
+```{r create new responsebilities table all data, include=FALSE, warning=FALSE}
+pure_type_men_feature_data_log <- pure_type_men_data_log[[1]]
+for(i in 2:length(pure_type_men_data_log))
+{
+  pure_type_men_feature_data_log <- base::merge(pure_type_men_feature_data_log, pure_type_men_data_log[[i]], by.x = "eid", by.y = "eid")
+}
+names(pure_type_men_feature_data_log) <- c("eid", pure_types_log_data_with_t_test$Row.names)
+pure_type_men_feature_data_log_no_id_log <- pure_type_men_feature_data_log[,-1]
+```
+
+```{r create women table all data, include=FALSE, warning=FALSE}
+pure_type_women_feature_data_log <- pure_type_women_data_log[[1]]
+for(i in 2:length(pure_type_women_data_log))
+{
+  pure_type_women_feature_data_log <- base::merge(pure_type_women_feature_data_log, pure_type_women_data_log[[i]], by.x = "eid", by.y = "eid")
+}
+names(pure_type_women_feature_data_log) <- c("eid", pure_types_log_data_with_t_test$Row.names)
+pure_type_women_features_no_id_log <- pure_type_women_feature_data_log[,-1]
+```
+
+```{r correlation matrix by gender pure types, include=FALSE}
+pure_type_men_cor_log <- cor(pure_type_men_feature_data_log_no_id_log , use = "pairwise.complete.obs")
+pure_type_women_cor_log <- cor(pure_type_women_features_no_id_log ,use = "pairwise.complete.obs")
+pure_type_combined_correaltion_log <- pure_type_men_cor_log
+pure_type_combined_correaltion_log[lower.tri(pure_type_combined_correaltion_log)] <- pure_type_women_cor_log[lower.tri(pure_type_women_cor_log)]
+```
+
+```{r corrplot by name both genders all data}
+corrplot(pure_type_combined_correaltion_log, title="both genders - full data", order = "alphabet",
+         tl.cex = 0.5,tl.srt = 45)
+```
+
+## Full data
 
 First select only FDR significant features from the antidiagonal: 
 ```{r filter FDR significant features all data, include=FALSE}

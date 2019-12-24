@@ -15,13 +15,21 @@ combined_df_long_sorted_residuals[combined_df_long_sorted_residuals$bins_for_fdr
 pure_types_residual_model_log_table <- 
 combined_df_long_sorted_standard[rownames(pure_types_residual_model_table),] %>% 
   select(p_values, p, q, Cohen_D) 
-
-pure_types_resudial_data <- base::merge(pure_types_residual_model_residual_table,
+pure_types_residual_data <- base::merge(pure_types_residual_model_residual_table,
                                   pure_types_residual_model_log_table, by = 0,
                                   all = TRUE,
                                   suffixes = c(".residual",".log"))
 
-write.csv(pure_types_resudial_data, file = "pure_types_features_residual_data.csv", row.names = T)
+
+t_test_data <- sapply(biobank_feature_residual_analysis[rownames(pure_types_residual_model_table)], function(x){x$`hypothesis_results`$`t_test_for_difference_between_genders`$`p.value`}) %>% data.frame()
+t_test_data$`Row.names` <- rownames(t_test_data)
+pure_types_residual_data_with_t_test <- base::merge(pure_types_residual_data,
+                                  t_test_data, by.x = 'Row.names', by.y = 'Row.names',
+                                  all = TRUE)
+names(pure_types_residual_data_with_t_test)[ncol(pure_types_residual_data_with_t_test)] <- 't_test_p_value'
+pure_types_residual_data_with_t_test$adjusted_pv <- p.adjust(pure_types_residual_data_with_t_test$t_test_p_value, method = 'BH')
+
+write.csv(pure_types_residual_data_with_t_test, file = "pure_types_features_residual_data.csv", row.names = T)
 ```
 
 ```{r non significant log features table, warning=FALSE}
@@ -38,6 +46,20 @@ pure_types_log_data <- base::merge(pure_types_log_model_log_table,
                                   all = TRUE,
                                   suffixes = c(".log",".residual"))
 
-write.csv(pure_types_log_data, file = "pure_types_features_log_data.csv", row.names = T)
+t_test_data_log_data <- sapply(biobank_feature_standard_analysis[rownames(pure_types_log_model_log_table)], function(x){x$`hypothesis_results`$`t_test_for_difference_between_genders`$`p.value`}) %>% data.frame()
+
+t_test_data_log_data$`Row.names` <- rownames(t_test_data_log_data)
+pure_types_log_data_with_t_test <- base::merge(pure_types_log_data,
+                                  t_test_data_log_data, 
+                                  by.x = 'Row.names', by.y='Row.names',
+                                  all = TRUE)
+names(pure_types_log_data_with_t_test)[ncol(pure_types_log_data_with_t_test)] <- 't_test_p_value'
+pure_types_log_data_with_t_test$adjusted_pv <- p.adjust(pure_types_log_data_with_t_test$t_test_p_value, method = 'BH')
+
+write.csv(pure_types_log_data_with_t_test, file = "pure_types_features_log_data.csv", row.names = T)
+```
+
+```{r particular analysis}
+biobank_feature_residual_analysis$`Volume of grey matter in Postcentral Gyrus (left)`
 ```
 
