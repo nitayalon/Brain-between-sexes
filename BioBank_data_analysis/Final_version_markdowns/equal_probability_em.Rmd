@@ -1,0 +1,30 @@
+---
+title: "equal proportion em computation"
+author: "Nitay Alon"
+date: "12/24/2019"
+output: html_document
+---
+
+In this report we apply EM algorithm with $p=q$ to test the hypothesis of equal mixture proportions.
+```{r import external libraries, include=FALSE}
+install.packages("mixtools")
+library(mixtools)
+```
+```{r test run for signle feature}
+feature <- biobank_residuals_data$`Mean FA in middle cerebellar peduncle on FA skeleton`
+means <- feature %>% 
+  group_by(sex) %>% 
+  select(sex, value) %>% 
+  summarise(avg = mean(value), std = sd(value))
+single_feature_results <- normalmixEM(biobank_residuals_data$`Mean FA in middle cerebellar peduncle on FA skeleton`$value, lambda = c(0.5,0.5), mu = means$avg, sigma = means$std, maxit = 5000)
+single_feature_results$loglik
+```
+
+```{r apply equal proportions em over residuals}
+equal_proportions_biobank_feature_residual_analysis <- list()
+
+equal_proportions_biobank_feature_residual_analysis <- pblapply(biobank_residuals_data,function(x){
+  computeEqualProprtionsEM(x)
+})
+names(biobank_feature_residual_analysis) <- list.of.names
+save(biobank_feature_residual_analysis, file = "~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/biobank_feature_residual_analysis.RData")

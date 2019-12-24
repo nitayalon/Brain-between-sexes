@@ -13,6 +13,7 @@ applyHypothesisOverResiduals <- function(feature_data) {
       feature_data$sex,
       feature_data$eid,
         "L")
+  
   simple_vs_compostie_llrt <- simple_vs_compostie_hypothesis_test
   
   t_test_for_difference_between_genders <- 
