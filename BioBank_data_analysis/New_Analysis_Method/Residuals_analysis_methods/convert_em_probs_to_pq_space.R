@@ -5,7 +5,7 @@
 convertEMProbabiltiesToPQSpace <- function(em_results)
 {
   stopifnot(length(em_results) > 0)
-  m_parameters <- lapply(em_results, function(x){x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters})
+  m_parameters <- lapply(em_results, function(x){x$hypothesis_results$mixture_model$m_parameters})
   unified_m_parameters <- lapply(m_parameters, function(x){adaptProbabilitiesToSize(x)})
   return(unified_m_parameters)
 }
@@ -28,7 +28,14 @@ adaptProbabilitiesToSize <- function(m_parameters)
 pullPvaluePerHypothesis <- function(em_results)
 {
   sapply(em_results, function(x){
-    max(1e-6, 1 - pchisq(x$hypothesis_results$pure_type_vs_mixed_gender_em_results$wilks_statistic,2))})
+    max(1e-6, 1 - pchisq(2 * x$hypothesis_results$pure_types_vs_mixture_model_llr,1))})
+}
+
+equalProbabilityMixturePV <- function(em_results)
+{
+  sapply(em_results, function(x){
+    max(1e-6, 1 - pchisq(2 * x$hypothesis_results$equal_proportions_vs_mixture_model_llr,2))})
 }
 
 
+# str(biobank_feature_residual_analysis$`Mean FA in middle cerebellar peduncle on FA skeleton`$hypothesis_results)

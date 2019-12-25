@@ -60,6 +60,19 @@ write.csv(pure_types_log_data_with_t_test, file = "pure_types_features_log_data.
 ```
 
 ```{r particular analysis}
-biobank_feature_residual_analysis$`Volume of grey matter in Postcentral Gyrus (left)`
+str(biobank_feature_residual_analysis$`Volume of grey matter in Postcentral Gyrus (left)`)
+```
+
+# Plots 
+```{r plotting features for the paper}
+plotGenderHistogram(biobank_residuals_data$`Volume of grey matter in Postcentral Gyrus (left)`,
+  biobank_feature_residual_analysis$`Volume of grey matter in Postcentral Gyrus (left)`, "Volume of grey matter in Postcentral Gyrus (left)")
+```
+```{r plotting features for the paper}
+plotGenderHistogram(biobank_standardized_data$`Volume of grey matter in Planum Temporale (left)`,
+  biobank_feature_residual_analysis$`Volume of grey matter in Planum Temporale (left)`, "Volume of grey matter in Planum Temporale (left)")
+
+plotGenderHistogram(biobank_standardized_data$`Volume of grey matter in Planum Temporale (left)`,
+  biobank_feature_standard_analysis$`Volume of grey matter in Planum Temporale (left)`, "Volume of grey matter in Planum Temporale (left)")
 ```
 

@@ -5,11 +5,12 @@ plot_mix_comps <- function(x, mu, sigma, lambda) {
 }
 
 
-plotGenderHistogram <- function(feature_data, feature_name = NULL,
+plotGenderHistogram <- function(plot_data,
+                                em_results,
+                                feature_name = NULL,
                                 p = NULL, q = NULL)
 {
-  plot_data <- feature_data$feature_residuals
-  em_data <- feature_data$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$m_parameters
+  em_data <- em_results$hypothesis_results$mixture_model$m_parameters
   
   plot_title <- sprintf("Histogram of gender data, feature %s", feature_name, p ,q)
   subtitle <- sprintf("p=%s, q=%s", p ,q)

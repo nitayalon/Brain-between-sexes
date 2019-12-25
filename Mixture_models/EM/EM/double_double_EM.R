@@ -1,16 +1,16 @@
 config <- config::get(file = "~/Human_brain_research/Mixture_models/EM/config.yml")
 
-doubleDoubleEM <- function(observations
+doubleDoubleEM <- function(feature_data
                            ,bio_bank_data = T
                            ,max_iter = config$em_iteration
                            ,init_parameters = NULL, ...)
 {
-  full_data <- observations
-  if(!setequal(names(observations),c("men","women")))  
+  full_data <- feature_data
+  if(!setequal(names(feature_data),c("men","women")))  
   {
     if(bio_bank_data)
     {
-      observations <- prepareDataBioBank(observations)
+      observations <- prepareDataBioBank(feature_data)
     }
     else
     {
@@ -38,11 +38,6 @@ doubleDoubleEM <- function(observations
   m_samples <- c()
   for(i in 1:max_iter)
   {
-    # if(stopping_condition)
-    # {
-    #   break
-    # }
-    
     # Estep
     e_parameters <- EStep(m_parameters,observations)
     # Mstep
@@ -68,14 +63,15 @@ doubleDoubleEM <- function(observations
     # llk
     llk[i] <- computeLogLikelihoodFull(observations,m_parameters)
   }
-  men_responsebilities <- tibble(eid = full_data[full_data$bio_sex == 1,]$eid,
+  men_responsebilities <- tibble(eid = full_data[full_data$sex == 1,]$eid,
                                   responsebility = e_parameters$I)
-  women_responsebilities <- tibble(eid = full_data[full_data$bio_sex == 0,]$eid,
+  women_responsebilities <- tibble(eid = full_data[full_data$sex == 0,]$eid,
                                   responsebility = e_parameters$J)
   em_results <- list(e_parameters = e_parameters,
                      m_parameters = m_parameters,
                      m_samples = m_samples,
-                     llk = llk,
+                     all.llk = llk,
+                     llk = tail(llk,1),
                      men_responsebilities = men_responsebilities,
                      women_responsebilities = women_responsebilities)
   return(em_results)

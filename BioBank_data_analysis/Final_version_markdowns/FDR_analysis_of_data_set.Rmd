@@ -46,7 +46,6 @@ The first analysis is of the residual data.
 
 ```{r prepare data for analysis, include = FALSE}
 feature_residual_m_parameters <- convertEMProbabiltiesToPQSpace(biobank_feature_residual_analysis)
-
 residual_p_and_q <- sapply(feature_residual_m_parameters, function(x){c(x$p, x$q)})
 ```
 
@@ -186,127 +185,70 @@ ggplot(combined_df_long_sorted_residuals[combined_df_long_sorted_residuals$bins_
                         mid="yellow",
                         high="red", space ="Lab" )
 ```
-$H_0: p = q$, what is the theoretical distribution of $p,q$ and compare it to the results above. Moreover, there's no reason to compare the correlations
-between these features.
 
-```{r sampling at random}
-combined_df_long_resid[rownames(combined_df_long_resid) == 
-'Volume of grey matter in Lateral Occipital Cortex, superior division (left)',]
-combined_df_long_sorted_residuals[rownames(combined_df_long_sorted_residuals) == 
-'Volume of grey matter in Lateral Occipital Cortex, superior division (left)',]
+### Equal mixture vs mixture model
+
+Repeating the same analysis but this time the null hypothesis is $p=q$.
+
+```{r remove the pure types from the list}
+biobank_feature_residual_analysis_without_pure_type <- biobank_feature_residual_analysis[!(names(biobank_feature_residual_analysis) %in% row.names(pure_types_residual_model_table))]
 ```
 
 
-# Z-score Data
+```{r equal mixture probability vs mixture model, include=FALSE,warning=FALSE}
+equal_mixture_probabilities_p_value <- equalProbabilityMixturePV(biobank_feature_residual_analysis_without_pure_type)
 
-In this section the analysis is conducted on standardized data instead of residual data 
+pvalue_mixture_vs_equal_prob_pv <- equal_mixture_probabilities_p_value %>% data.frame() 
+names(pvalue_mixture_vs_equal_prob_pv) <- "p_value"
+residuals_p_and_q_df_equal_probs <- residuals_p_and_q_df[!(names(residuals_p_and_q_df) %in% row.names(pure_types_residual_model_table))] %>% t()
 
-```{r prepare data for analysis, include = FALSE}
-standardized_data_m_parameters <- convertEMProbabiltiesToPQSpace(biobank_feature_standard_analysis)
+names(residuals_p_and_q_df_equal_probs) <- c("p","q")
 
-standard_p_and_q <- sapply(standardized_data_m_parameters, function(x){c(x$p, x$q)})
-```
+combined_df_resid_equal_probs <- base::merge(pvalue_mixture_vs_equal_prob_pv, residuals_p_and_q_df_equal_probs,by = 0, all = T)
+combined_df_resid_equal_probs <- combined_df_resid_equal_probs[,c(2,3,4)]
+names(combined_df_resid_equal_probs) <- c("p_value", "p", "q")
+rownames(combined_df_resid_equal_probs) <- rownames(pvalue_mixture_vs_equal_prob_pv)
 
-```{r histogram of t-test and cohen-d}
-hist(sapply(biobank_feature_standard_analysis, function(x){x$hypothesis_results$cohen_d_test$estimate}),
-     xlab = "Cohen-D", main = "Histogram of Cohen D", sub = "Residual data")
+cohens_d_per_feature_residuals_equal_probs <- cohens_d_per_feature_residuals[!(names(cohens_d_per_feature_residuals) %in% row.names(pure_types_residual_model_table))] %>% data.frame()
 
-hist(sapply(biobank_feature_standard_analysis, function(x){x$hypothesis_results$t_test_for_difference_between_genders$statistic}),
-     xlab = "T-statistic", main = "Histogram of T statistic", sub = "Residual data")
+names(cohens_d_per_feature_residuals_equal_probs) <- "Cohen_D"
+combined_df_resid_equal_probs <- base::merge(combined_df_resid_equal_probs, cohens_d_per_feature_residuals_equal_probs,by = 0, all = T)
 
-```
-
-
-## P-Value color schema pure vs mixture
-
-First we add a coloring schema based on the *p-value* of the llrt, when the hypothesis is pure type vs mixture model. 
-```{r pure type vs mixture model colouring schema, include=FALSE,warning=FALSE}
-pvalue_per_feature_standarize <- pullPvaluePerHypothesis(biobank_feature_standard_analysis)
-
-pvalue_per_feature_df_standard <- t(pvalue_per_feature) %>% as.data.frame() 
-p_and_q_df_standard <- standard_p_and_q %>% as.data.frame()
-
-cohens_d_per_feature_standard <- sapply(biobank_feature_standard_analysis, function(x){x$hypothesis_results$cohen_d_test$estimate})
-
-combined_df_standard <- mergeDataFramesByColumnNames(pvalue_per_feature_df_standard, p_and_q_df_standard)
-
-combined_df_standard <- rbind(combined_df_standard, cohens_d_per_feature_standard)
-
-rownames(combined_df_standard) <- c("p_values","p","q","Cohen_D")
+names(combined_df_resid_equal_probs) <- c("feature_name", "p_values","p","q","Cohen_D")
 ```
 
 ```{r pure type vs mixture model plotting with colors}
-combined_df_long_standard <- combined_df_standard %>% t() %>% as.data.frame()
-combined_df_long_standard$bins_of_pv <- cut(combined_df_long_standard$p_values, c(0,1e-2,5e-2,1e-1,1))
-
-ggplot(combined_df_long_standard, aes(p,q, colour = Cohen_D)) + 
-  geom_point(aes(shape=bins_of_pv)) + 
-  ggtitle("Values of p and q", subtitle = "No correction")
+combined_df_resid_equal_probs$bins_of_pv <- cut(combined_df_resid_equal_probs$p_values, c(1e-9,1e-8,1e-3,1e-2,1))
 ```
 
-### FDR
-
-The following figure plots the FDR corrected $p-values$, point color indicate feature quadrant, horizontal lines indicate significance levels.
 ```{r fdr procedure, include = FALSE}
-N <- nrow(combined_df_long_standard)
-
-combined_df_long_sorted_standard <- combined_df_long_standard[order(combined_df_long_standard$p_values,decreasing = F),]
-combined_df_long_sorted_standard$i <- seq(1:N)
-combined_df_long_sorted_standard$bh_pvalue <- with(combined_df_long_sorted_standard, p_values * i / N)
-combined_df_long_sorted_standard$region <- apply(combined_df_long_sorted_standard, 1, function(x){fitQuadrant(x[2],x[3])})
+N <- nrow(combined_df_resid_equal_probs)
+combined_df_resid_equal_probs_sorted <- combined_df_resid_equal_probs[order(combined_df_resid_equal_probs$p_values,decreasing = F),]
+rownames(combined_df_resid_equal_probs_sorted) = rownames(combined_df_resid_equal_probs_sorted)[order(combined_df_resid_equal_probs$p_values,decreasing = F)]
+combined_df_resid_equal_probs_sorted$i <- seq(1:N)
+combined_df_resid_equal_probs_sorted$bh_pvalue <- with(combined_df_resid_equal_probs_sorted, p_values * i / N)
+combined_df_resid_equal_probs_sorted$region <- apply(combined_df_resid_equal_probs_sorted, 1, function(x){fitQuadrant(x[3],x[4])})
 ```
-
-```{r plot fdr}
-ggplot(combined_df_long_sorted_standard, aes(i,bh_pvalue,colour = region)) + 
-  geom_point() +
-  geom_hline(yintercept = 0.01) +
-  geom_hline(yintercept = 0.05) +
-  geom_hline(yintercept = 0.1) +
-  ggtitle("FDR p-values")
-  # geom_vline(xintercept = 0.5) +
-  # geom_abline(slope = 1, intercept = 0)
-```
-
-The tables below are the number of significant features, per significance level:
 
 ```{r summarize of significant features}
-table(combined_df_long_sorted_standard$bh_pvalue < 0.01)
-table(combined_df_long_sorted_standard$bh_pvalue < 0.05)
-table(combined_df_long_sorted_standard$bh_pvalue < 0.1)
+table(combined_df_resid_equal_probs_sorted$bh_pvalue < 0.01)
+table(combined_df_resid_equal_probs_sorted$bh_pvalue < 0.05)
+table(combined_df_resid_equal_probs_sorted$bh_pvalue < 0.1)
 ```
 
-To compute the FDR $p-value$ the current p-values are transformed using the formula:
-\[
-  pv(i) = max_{j \leq i} pv \frac{n}{j} 
-\]
-
-```{r fdr pvalues, include = FALSE}
-combined_df_long_sorted_standard$fdr_pv <- 
-  sapply(c(1:nrow(combined_df_long_sorted_standard)), function(i){
-    max(combined_df_long_sorted_standard$bh_pvalue[1:i])
+```{r bh correction for FWER}
+combined_df_resid_equal_probs_sorted$fdr_pv <- 
+  sapply(c(1:nrow(combined_df_resid_equal_probs_sorted)), function(i){
+    max(combined_df_resid_equal_probs_sorted$bh_pvalue[1:i])
   })
   
-combined_df_long_sorted_standard$bins_for_fdr <- cut(combined_df_long_sorted_standard$fdr_pv, c(0,1e-2,5e-2,0.1,1))
+combined_df_resid_equal_probs_sorted$bins_for_fdr <- cut(combined_df_resid_equal_probs_sorted$fdr_pv, c(0,1e-2,5e-2,0.1,1))
 ```
 
-```{r plot fdr pvalues, warnings = FALSE}
-ggplot(combined_df_long_sorted_standard, aes(i,fdr_pv, colour = bins_for_fdr)) + 
-   geom_point() +
-   ggtitle("FDR pv", subtitle = "color indicate sig level") 
-```
-
-```{r seperate log volume pure types}
-pure_types_log_volume_model_table <- 
-combined_df_long_sorted_standard[combined_df_long_sorted_standard$bins_for_fdr %in% levels(combined_df_long_sorted_standard$bins_for_fdr)[c(3,4)],]
-
-write.csv(pure_types_log_volume_model_table, file = "pure_types_features_log_volume_data.csv", row.names = T)
-```
-
-
-```{r fdr p value by quadrant, warnings = FALSE}
-ggplot(combined_df_long_sorted_standard[combined_df_long_sorted_standard$bins_for_fdr %in% levels(combined_df_long_sorted_standard$bins_for_fdr)[c(1,2)],], aes(p,q, colour = Cohen_D)) + 
+```{r plot FDR bins for pure mixture vs mosaic mixture }
+ggplot(combined_df_resid_equal_probs_sorted[combined_df_resid_equal_probs_sorted$bins_for_fdr %in% levels(combined_df_resid_equal_probs_sorted$bins_for_fdr)[c(1,2)],], aes(p,q, colour = Cohen_D)) +
   geom_point(aes(shape = bins_for_fdr)) +
-  scale_shape_manual(values=c(3, 6, 17, 25))+
+  scale_shape_manual(values=c(15, 17))+
   geom_vline(xintercept = 0.5) +
   geom_hline(yintercept = 0.5) +
   ggtitle("Values of p and q", subtitle = "Shape indicate FDR pv") + 
@@ -317,19 +259,11 @@ ggplot(combined_df_long_sorted_standard[combined_df_long_sorted_standard$bins_fo
                         high="red", space ="Lab" )
 ```
 
-```{r same plot but without fdr bins p value by quadrant, warnings = FALSE}
-ggplot(combined_df_long_sorted_standard[combined_df_long_sorted_standard$bins_for_fdr %in% levels(combined_df_long_sorted_standard$bins_for_fdr)[c(1,2)],], aes(p,q, colour = Cohen_D)) + 
-  geom_point() +
-  geom_vline(xintercept = 0.5) +
-  geom_hline(yintercept = 0.5) +
-  ggtitle("Values of p and q", subtitle = "FDR <= 0.05") + 
-  # geom_abline(slope = 1, intercept = 0) + 
-  # geom_abline(slope = .5, intercept = 0) + 
-  scale_color_gradient2(midpoint=0, 
-                        low="darkblue", 
-                        mid="yellow",
-                        high="red", space ="Lab")
+#### Selecting extreme gender oriented features
+```{r selecting extreme gender oriented features, include=FALSE}
+top_20_gender_features <- combined_df_resid_equal_probs_sorted$feature_name[order(combined_df_resid_equal_probs_sorted$fdr_pv, decreasing = T)][1:20]
 ```
+
 
 # Analysis of non signifanct features
 

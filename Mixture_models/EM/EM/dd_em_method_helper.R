@@ -45,8 +45,8 @@ prepareData <- function(observations)
 
 prepareDataBioBank <- function(observations)
 {
-  men <- observations$value[observations$bio_sex == 1]
-  women <- observations$value[observations$bio_sex == 0]
+  men <- observations$value[observations$sex == 1]
+  women <- observations$value[observations$sex == 0]
   obs <- list(men = men, women = women)
   return(obs)
 }

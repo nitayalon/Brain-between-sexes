@@ -89,7 +89,7 @@ save(biobank_normalized_residuals_data, file = "~/Human_brain_research/BioBank_d
 Next edit the code for EM computation and apply it on both data sets
 
 ```{r testing the function}
-applyHypothesisOverResiduals(biobank_normalized_data$`Mean FA in middle cerebellar peduncle on FA skeleton`)
+BrainFeatureAnalysis(biobank_residuals_data$`Mean FA in middle cerebellar peduncle on FA skeleton`)
 ```
 
 # EM analysis
@@ -109,7 +109,7 @@ save(biobank_feature_residual_analysis, file = "~/Human_brain_research/BioBank_d
 biobank_feature_standard_analysis <- list()
 
 biobank_feature_standard_analysis <- pblapply(biobank_standardized_data,function(x){
-  BrainFeatureAnalysis(x)
+  BrainFeatureAnalysis(x, including_equal_mixture_model = F)
 })
 names(biobank_feature_standard_analysis) <- list.of.names
 save(biobank_feature_standard_analysis, file = "~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/biobank_feature_standard_analysis.RData")

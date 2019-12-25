@@ -1,0 +1,139 @@
+---
+title: "FDR analysis for log data"
+output: html_notebook
+---
+
+# Z-score Data
+
+In this section the analysis is conducted on standardized data instead of residual data 
+
+```{r prepare data for analysis, include = FALSE}
+standardized_data_m_parameters <- convertEMProbabiltiesToPQSpace(biobank_feature_standard_analysis)
+
+standard_p_and_q <- sapply(standardized_data_m_parameters, function(x){c(x$p, x$q)})
+```
+
+```{r histogram of t-test and cohen-d}
+hist(sapply(biobank_feature_standard_analysis, function(x){x$hypothesis_results$cohen_d_test$estimate}),
+     xlab = "Cohen-D", main = "Histogram of Cohen D", sub = "Residual data")
+
+hist(sapply(biobank_feature_standard_analysis, function(x){x$hypothesis_results$t_test_for_difference_between_genders$statistic}),
+     xlab = "T-statistic", main = "Histogram of T statistic", sub = "Residual data")
+
+```
+
+
+## P-Value color schema pure vs mixture
+
+First we add a coloring schema based on the *p-value* of the llrt, when the hypothesis is pure type vs mixture model. 
+```{r pure type vs mixture model colouring schema, include=FALSE,warning=FALSE}
+pvalue_per_feature_standarize <- pullPvaluePerHypothesis(biobank_feature_standard_analysis)
+
+pvalue_per_feature_df_standard <- t(pvalue_per_feature) %>% as.data.frame() 
+p_and_q_df_standard <- standard_p_and_q %>% as.data.frame()
+
+cohens_d_per_feature_standard <- sapply(biobank_feature_standard_analysis, function(x){x$hypothesis_results$cohen_d_test$estimate})
+
+combined_df_standard <- mergeDataFramesByColumnNames(pvalue_per_feature_df_standard, p_and_q_df_standard)
+
+combined_df_standard <- rbind(combined_df_standard, cohens_d_per_feature_standard)
+
+rownames(combined_df_standard) <- c("p_values","p","q","Cohen_D")
+```
+
+```{r pure type vs mixture model plotting with colors}
+combined_df_long_standard <- combined_df_standard %>% t() %>% as.data.frame()
+combined_df_long_standard$bins_of_pv <- cut(combined_df_long_standard$p_values, c(0,1e-2,5e-2,1e-1,1))
+
+ggplot(combined_df_long_standard, aes(p,q, colour = Cohen_D)) + 
+  geom_point(aes(shape=bins_of_pv)) + 
+  ggtitle("Values of p and q", subtitle = "No correction")
+```
+
+### FDR
+
+The following figure plots the FDR corrected $p-values$, point color indicate feature quadrant, horizontal lines indicate significance levels.
+```{r fdr procedure, include = FALSE}
+N <- nrow(combined_df_long_standard)
+
+combined_df_long_sorted_standard <- combined_df_long_standard[order(combined_df_long_standard$p_values,decreasing = F),]
+combined_df_long_sorted_standard$i <- seq(1:N)
+combined_df_long_sorted_standard$bh_pvalue <- with(combined_df_long_sorted_standard, p_values * i / N)
+combined_df_long_sorted_standard$region <- apply(combined_df_long_sorted_standard, 1, function(x){fitQuadrant(x[2],x[3])})
+```
+
+```{r plot fdr}
+ggplot(combined_df_long_sorted_standard, aes(i,bh_pvalue,colour = region)) + 
+  geom_point() +
+  geom_hline(yintercept = 0.01) +
+  geom_hline(yintercept = 0.05) +
+  geom_hline(yintercept = 0.1) +
+  ggtitle("FDR p-values")
+  # geom_vline(xintercept = 0.5) +
+  # geom_abline(slope = 1, intercept = 0)
+```
+
+The tables below are the number of significant features, per significance level:
+
+```{r summarize of significant features}
+table(combined_df_long_sorted_standard$bh_pvalue < 0.01)
+table(combined_df_long_sorted_standard$bh_pvalue < 0.05)
+table(combined_df_long_sorted_standard$bh_pvalue < 0.1)
+```
+
+To compute the FDR $p-value$ the current p-values are transformed using the formula:
+\[
+  pv(i) = max_{j \leq i} pv \frac{n}{j} 
+\]
+
+```{r fdr pvalues, include = FALSE}
+combined_df_long_sorted_standard$fdr_pv <- 
+  sapply(c(1:nrow(combined_df_long_sorted_standard)), function(i){
+    max(combined_df_long_sorted_standard$bh_pvalue[1:i])
+  })
+  
+combined_df_long_sorted_standard$bins_for_fdr <- cut(combined_df_long_sorted_standard$fdr_pv, c(0,1e-2,5e-2,0.1,1))
+```
+
+```{r plot fdr pvalues, warnings = FALSE}
+ggplot(combined_df_long_sorted_standard, aes(i,fdr_pv, colour = bins_for_fdr)) + 
+   geom_point() +
+   ggtitle("FDR pv", subtitle = "color indicate sig level") 
+```
+
+```{r seperate log volume pure types}
+pure_types_log_volume_model_table <- 
+combined_df_long_sorted_standard[combined_df_long_sorted_standard$bins_for_fdr %in% levels(combined_df_long_sorted_standard$bins_for_fdr)[c(3,4)],]
+
+write.csv(pure_types_log_volume_model_table, file = "pure_types_features_log_volume_data.csv", row.names = T)
+```
+
+
+```{r fdr p value by quadrant, warnings = FALSE}
+ggplot(combined_df_long_sorted_standard[combined_df_long_sorted_standard$bins_for_fdr %in% levels(combined_df_long_sorted_standard$bins_for_fdr)[c(1,2)],], aes(p,q, colour = Cohen_D)) + 
+  geom_point(aes(shape = bins_for_fdr)) +
+  scale_shape_manual(values=c(3, 6, 17, 25))+
+  geom_vline(xintercept = 0.5) +
+  geom_hline(yintercept = 0.5) +
+  ggtitle("Values of p and q", subtitle = "Shape indicate FDR pv") + 
+  geom_abline(slope = 1, intercept = 0) + 
+  scale_color_gradient2(midpoint=0, 
+                        low="darkblue", 
+                        mid="yellow",
+                        high="red", space ="Lab" )
+```
+
+```{r same plot but without fdr bins p value by quadrant, warnings = FALSE}
+ggplot(combined_df_long_sorted_standard[combined_df_long_sorted_standard$bins_for_fdr %in% levels(combined_df_long_sorted_standard$bins_for_fdr)[c(1,2)],], aes(p,q, colour = Cohen_D)) + 
+  geom_point() +
+  geom_vline(xintercept = 0.5) +
+  geom_hline(yintercept = 0.5) +
+  ggtitle("Values of p and q", subtitle = "FDR <= 0.05") + 
+  # geom_abline(slope = 1, intercept = 0) + 
+  # geom_abline(slope = .5, intercept = 0) + 
+  scale_color_gradient2(midpoint=0, 
+                        low="darkblue", 
+                        mid="yellow",
+                        high="red", space ="Lab")
+```
+

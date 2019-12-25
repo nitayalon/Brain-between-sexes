@@ -1,6 +1,6 @@
 # Computing the -llk under the null hypothesis
 logNormalNullLlkComputation <- function(feature_data,
-                                        is_bio_bank_data = F)
+                                        is_bio_bank_data = T)
 {
   if(is_bio_bank_data)
   {
