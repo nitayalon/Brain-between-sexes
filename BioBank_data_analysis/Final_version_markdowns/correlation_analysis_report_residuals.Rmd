@@ -30,11 +30,15 @@ load("~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/colom
 ## Pure types
 In this section we compute corelation matrix for pure types features only
 ```{r pure types features, include=FALSE}
-pure_type_features_residuals <- biobank_feature_residual_analysis[pure_types_residual_data_with_t_test$Row.names]
+# pure_type_features_residuals <- biobank_feature_residual_analysis[pure_types_residual_data_with_t_test$Row.names]
+pure_type_features_residuals_names <- rownames(pure_types_residual_model_residual_table)[rownames(pure_types_residual_model_residual_table) %>% 
+  grep(pattern = "Volume", .)]
 
-pure_type_men_data_residuals <- lapply(pure_type_features_residuals, function(x){x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$men_responsebilities})
+pure_type_features_residuals <- biobank_feature_residual_analysis[pure_type_features_residuals_names]
 
-pure_type_women_data_residuals <- lapply(pure_type_features_residuals, function(x){x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$women_responsebilities})
+pure_type_men_data_residuals <- lapply(pure_type_features_residuals, function(x){x$hypothesis_results$mixture_model$men_responsebilities})
+
+pure_type_women_data_residuals <- lapply(pure_type_features_residuals, function(x){x$hypothesis_results$mixture_model$women_responsebilities})
 ```
 
 join the tables
@@ -44,7 +48,7 @@ for(i in 2:length(pure_type_men_data_residuals))
 {
   pure_type_men_feature_data_residuals <- base::merge(pure_type_men_feature_data_residuals, pure_type_men_data_residuals[[i]], by.x = "eid", by.y = "eid")
 }
-names(pure_type_men_feature_data_residuals) <- c("eid", pure_types_residual_data_with_t_test$Row.names)
+names(pure_type_men_feature_data_residuals) <- c("eid", pure_type_features_residuals_names)
 pure_type_men_feature_data_residuals_no_id_residuals <- pure_type_men_feature_data_residuals[,-1]
 ```
 
@@ -54,7 +58,7 @@ for(i in 2:length(pure_type_women_data_residuals))
 {
   pure_type_women_feature_data_residuals <- base::merge(pure_type_women_feature_data_residuals, pure_type_women_data_residuals[[i]], by.x = "eid", by.y = "eid")
 }
-names(pure_type_women_feature_data_residuals) <- c("eid", pure_types_residual_data_with_t_test$Row.names)
+names(pure_type_women_feature_data_residuals) <- c("eid", pure_type_features_residuals_names)
 pure_type_women_features_no_id_residuals <- pure_type_women_feature_data_residuals[,-1]
 ```
 
@@ -66,7 +70,7 @@ pure_type_combined_correaltion_residuals[lower.tri(pure_type_combined_correaltio
 ```
 
 ```{r corrplot by name both genders all data}
-corrplot(pure_type_combined_correaltion_residuals, title="both genders - full data", order = "alphabet",
+corrplot(pure_type_combined_correaltion_residuals, title="Residual posterior probability", order = "alphabet",
          tl.cex = 0.5,tl.srt = 45)
 ```
 
@@ -171,13 +175,92 @@ for(i in 2:length(high_gender_men_data_residuals))
 names(high_gender_effect_men_feature_data_residuals) <- c("eid", top_20_gender_features)
 high_gender_effect_men_feature_data_residuals_no_id <- high_gender_effect_men_feature_data_residuals[,-1]
 
-women_feature_data_residuals <- women_data_residuals[[1]]
-for(i in 2:length(women_data_residuals))
+high_gender_effect_women_feature_data_residuals <- high_gender_women_data_residuals[[1]]
+for(i in 2:length(high_gender_women_data_residuals))
 {
-  women_feature_data_residuals <- base::merge(women_feature_data_residuals, women_data_residuals[[i]], by.x = "eid", by.y = "eid")
+  high_gender_effect_women_feature_data_residuals <- base::merge(high_gender_effect_women_feature_data_residuals, high_gender_women_data_residuals[[i]], by.x = "eid", by.y = "eid")
 }
-names(women_feature_data_residuals) <- c("eid", FDR_significant_features_residuals)
-women_features_no_id_residuals <- women_feature_data_residuals[,-1]
+names(high_gender_effect_women_feature_data_residuals) <- c("eid", top_20_gender_features)
+high_gender_effect_women_feature_data_residuals_no_id_residuals <- high_gender_effect_women_feature_data_residuals[,-1]
+
+high_gender_effect_men_cor_residuals <- cor(high_gender_effect_men_feature_data_residuals_no_id, use = "pairwise.complete.obs")
+high_gender_effect_women_cor_residuals <- cor(high_gender_effect_women_feature_data_residuals_no_id_residuals,use = "pairwise.complete.obs")
+high_gender_effect_combined_correaltion_residuals <- high_gender_effect_men_cor_residuals
+high_gender_effect_combined_correaltion_residuals[lower.tri(high_gender_effect_combined_correaltion_residuals)] <- high_gender_effect_women_cor_residuals[lower.tri(high_gender_effect_women_cor_residuals)]
+```
+
+```{r corrplot by familiy both genders all data}
+corrplot(high_gender_effect_combined_correaltion_residuals, title="both genders - high gender effect", method = 'square', order = "alphabet",tl.cex = 0.1,tl.srt = 45)
+```
+
+### No gender effect data
+```{r top gender affected features, include=FALSE}
+no_gender_effect_features_residuals <- biobank_feature_residual_analysis[no_gender_effect_data]
+
+no_gender_men_data_residuals <- lapply(no_gender_effect_features_residuals, function(x){x$hypothesis_results$mixture_model$men_responsebilities})
+
+no_gender_women_data_residuals <- lapply(no_gender_effect_features_residuals, function(x){x$hypothesis_results$mixture_model$women_responsebilities})
+
+no_gender_effect_men_feature_data_residuals <- no_gender_men_data_residuals[[1]]
+for(i in 2:length(no_gender_men_data_residuals))
+{
+  no_gender_effect_men_feature_data_residuals <- base::merge(no_gender_effect_men_feature_data_residuals, no_gender_men_data_residuals[[i]], by.x = "eid", by.y = "eid")
+}
+names(no_gender_effect_men_feature_data_residuals) <- c("eid", top_20_gender_features)
+no_gender_effect_men_feature_data_residuals_no_id <- no_gender_effect_men_feature_data_residuals[,-1]
+
+no_gender_effect_women_feature_data_residuals <- no_gender_women_data_residuals[[1]]
+for(i in 2:length(no_gender_women_data_residuals))
+{
+  no_gender_effect_women_feature_data_residuals <- base::merge(no_gender_effect_women_feature_data_residuals, no_gender_women_data_residuals[[i]], by.x = "eid", by.y = "eid")
+}
+names(no_gender_effect_women_feature_data_residuals) <- c("eid", top_20_gender_features)
+no_gender_effect_women_feature_data_residuals_no_id_residuals <- no_gender_effect_women_feature_data_residuals[,-1]
+
+no_gender_effect_men_cor_residuals <- cor(no_gender_effect_men_feature_data_residuals, use = "pairwise.complete.obs")
+no_gender_effect_women_cor_residuals <- cor(no_gender_effect_women_feature_data_residuals,use = "pairwise.complete.obs")
+no_gender_effect_combined_correaltion_residuals <- no_gender_effect_men_cor_residuals
+no_gender_effect_combined_correaltion_residuals[lower.tri(no_gender_effect_combined_correaltion_residuals)] <- no_gender_effect_women_cor_residuals[lower.tri(no_gender_effect_women_cor_residuals)]
+
+corrplot(no_gender_effect_combined_correaltion_residuals, title="both genders - no gender effect", method = 'square', order = "alphabet",tl.cex = 0.1,tl.srt = 45)
+```
+
+## Compare pure types to exterem mixture
+```{r compare features between pure types and equal probability}
+MD_features_for_pure_types_vs_mixture <- c(grep("Mean MD", top_20_gender_features),
+                 grep("mean MD", top_20_gender_features))
+Volume_features_for_pure_types_vs_mixture <- c(grep("Volume", top_20_gender_features))
+```
+
+```{r volume features both data sets}
+volume_features_residuals_for_comparison <- biobank_feature_residual_analysis[Volume_features_for_pure_types_vs_mixture]
+
+no_gender_men_data_residuals <- lapply(no_gender_effect_features_residuals, function(x){x$hypothesis_results$mixture_model$men_responsebilities})
+
+no_gender_women_data_residuals <- lapply(no_gender_effect_features_residuals, function(x){x$hypothesis_results$mixture_model$women_responsebilities})
+
+no_gender_effect_men_feature_data_residuals <- no_gender_men_data_residuals[[1]]
+for(i in 2:length(no_gender_men_data_residuals))
+{
+  no_gender_effect_men_feature_data_residuals <- base::merge(no_gender_effect_men_feature_data_residuals, no_gender_men_data_residuals[[i]], by.x = "eid", by.y = "eid")
+}
+names(no_gender_effect_men_feature_data_residuals) <- c("eid", top_20_gender_features)
+no_gender_effect_men_feature_data_residuals_no_id <- no_gender_effect_men_feature_data_residuals[,-1]
+
+no_gender_effect_women_feature_data_residuals <- no_gender_women_data_residuals[[1]]
+for(i in 2:length(no_gender_women_data_residuals))
+{
+  no_gender_effect_women_feature_data_residuals <- base::merge(no_gender_effect_women_feature_data_residuals, no_gender_women_data_residuals[[i]], by.x = "eid", by.y = "eid")
+}
+names(no_gender_effect_women_feature_data_residuals) <- c("eid", top_20_gender_features)
+no_gender_effect_women_feature_data_residuals_no_id_residuals <- no_gender_effect_women_feature_data_residuals[,-1]
+
+no_gender_effect_men_cor_residuals <- cor(no_gender_effect_men_feature_data_residuals, use = "pairwise.complete.obs")
+no_gender_effect_women_cor_residuals <- cor(no_gender_effect_women_feature_data_residuals,use = "pairwise.complete.obs")
+no_gender_effect_combined_correaltion_residuals <- no_gender_effect_men_cor_residuals
+no_gender_effect_combined_correaltion_residuals[lower.tri(no_gender_effect_combined_correaltion_residuals)] <- no_gender_effect_women_cor_residuals[lower.tri(no_gender_effect_women_cor_residuals)]
+
+corrplot(no_gender_effect_combined_correaltion_residuals, title="both genders - no gender effect", method = 'square', order = "alphabet",tl.cex = 0.1,tl.srt = 45)
 ```
 
 
@@ -295,11 +378,11 @@ pure_type_features_for_correlation_analysis_names <- c(
   "Volume of grey matter in Temporal Occipital Fusiform Cortex (right)"
 )
 
-pure_type_features_log <- biobank_feature_standard_analysis[pure_type_features_for_correlation_analysis_names]
+pure_type_features_log <- biobank_feature_standard_analysis[t_test_data_log_data$Row.names]
 
-pure_type_men_data_log <- lapply(pure_type_features_log, function(x){x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$men_responsebilities})
+pure_type_men_data_log <- lapply(pure_type_features_log, function(x){x$hypothesis_results$mixture_model$men_responsebilities})
 
-pure_type_women_data_log <- lapply(pure_type_features_log, function(x){x$hypothesis_results$pure_type_vs_mixed_gender_em_results$alternative_hypothesis$women_responsebilities})
+pure_type_women_data_log <- lapply(pure_type_features_log, function(x){x$hypothesis_results$mixture_model$women_responsebilities})
 ```
 
 join the tables
@@ -309,8 +392,8 @@ for(i in 2:length(pure_type_men_data_log))
 {
   pure_type_men_feature_data_log <- base::merge(pure_type_men_feature_data_log, pure_type_men_data_log[[i]], by.x = "eid", by.y = "eid")
 }
-names(pure_type_men_feature_data_log) <- c("eid", pure_type_features_for_correlation_analysis_names)
-pure_type_men_feature_data_log_no_id_log <- pure_type_men_feature_data_log[,-1]
+names(pure_type_men_feature_data_log) <- c("eid", t_test_data_log_data$Row.names)
+pure_type_men_feature_data_log_no_id <- pure_type_men_feature_data_log[,-1]
 ```
 
 ```{r create women table all data, include=FALSE, warning=FALSE}
@@ -319,13 +402,13 @@ for(i in 2:length(pure_type_women_data_log))
 {
   pure_type_women_feature_data_log <- base::merge(pure_type_women_feature_data_log, pure_type_women_data_log[[i]], by.x = "eid", by.y = "eid")
 }
-names(pure_type_women_feature_data_log) <- c("eid", pure_type_features_for_correlation_analysis_names)
-pure_type_women_feature_data_log_no_id_log <- pure_type_women_feature_data_log[,-1]
+names(pure_type_women_feature_data_log) <- c("eid", t_test_data_log_data$Row.names)
+pure_type_women_feature_data_log_no_id <- pure_type_women_feature_data_log[,-1]
 ```
 
 ```{r correlation matrix by gender pure types, include=FALSE}
-pure_type_men_cor_log <- cor(pure_type_men_feature_data_log_no_id_log , use = "pairwise.complete.obs")
-pure_type_women_cor_log <- cor(pure_type_women_feature_data_log_no_id_log ,use = "pairwise.complete.obs")
+pure_type_men_cor_log <- cor(pure_type_men_feature_data_log_no_id , use = "pairwise.complete.obs")
+pure_type_women_cor_log <- cor(pure_type_women_feature_data_log_no_id ,use = "pairwise.complete.obs")
 pure_type_combined_correaltion_log <- pure_type_men_cor_log
 pure_type_combined_correaltion_log[lower.tri(pure_type_combined_correaltion_log)] <- pure_type_women_cor_log[lower.tri(pure_type_women_cor_log)]
 ```

@@ -31,6 +31,7 @@ library(ggplot2)
 library(dplyr)
 library(Jmisc)
 library(config)
+library(magrittr)
 ```
 
 ```{r source data for fdr analysis,warning=FALSE,include=FALSE}
@@ -218,7 +219,7 @@ names(combined_df_resid_equal_probs) <- c("feature_name", "p_values","p","q","Co
 ```
 
 ```{r pure type vs mixture model plotting with colors}
-combined_df_resid_equal_probs$bins_of_pv <- cut(combined_df_resid_equal_probs$p_values, c(1e-9,1e-8,1e-3,1e-2,1))
+combined_df_resid_equal_probs$bins_of_pv <- cut(combined_df_resid_equal_probs$p_values, c(1e-9,1e-8,1e-3,1e-2,5e-2,1e-1,1))
 ```
 
 ```{r fdr procedure, include = FALSE}
@@ -243,12 +244,13 @@ combined_df_resid_equal_probs_sorted$fdr_pv <-
   })
   
 combined_df_resid_equal_probs_sorted$bins_for_fdr <- cut(combined_df_resid_equal_probs_sorted$fdr_pv, c(0,1e-2,5e-2,0.1,1))
+combined_df_resid_equal_probs_sorted$p_equal_q <- combined_df_resid_equal_probs_sorted$bins_for_fdr %in% levels(combined_df_resid_equal_probs_sorted$bins_for_fdr)[c(3,4)]
 ```
 
 ```{r plot FDR bins for pure mixture vs mosaic mixture }
-ggplot(combined_df_resid_equal_probs_sorted[combined_df_resid_equal_probs_sorted$bins_for_fdr %in% levels(combined_df_resid_equal_probs_sorted$bins_for_fdr)[c(1,2)],], aes(p,q, colour = Cohen_D)) +
-  geom_point(aes(shape = bins_for_fdr)) +
-  scale_shape_manual(values=c(15, 17))+
+ggplot(combined_df_resid_equal_probs_sorted, aes(p,q, colour = Cohen_D)) +
+  geom_point(aes(shape = p_equal_q)) +
+  scale_shape_manual(values=c(3, 1))+
   geom_vline(xintercept = 0.5) +
   geom_hline(yintercept = 0.5) +
   ggtitle("Values of p and q", subtitle = "Shape indicate FDR pv") + 
@@ -256,12 +258,13 @@ ggplot(combined_df_resid_equal_probs_sorted[combined_df_resid_equal_probs_sorted
   scale_color_gradient2(midpoint=0, 
                         low="darkblue", 
                         mid="yellow",
-                        high="red", space ="Lab" )
+                        high="red", space ="Lab")
 ```
 
 #### Selecting extreme gender oriented features
-```{r selecting extreme gender oriented features, include=FALSE}
-top_20_gender_features <- combined_df_resid_equal_probs_sorted$feature_name[order(combined_df_resid_equal_probs_sorted$fdr_pv, decreasing = T)][1:20]
+```{r p equal q features, include=FALSE}
+single_mixture_model_features <- combined_df_resid_equal_probs_sorted[combined_df_resid_equal_probs_sorted$p_equal_q,]
+write.csv(single_mixture_model_features, "equal_mixture_model_features_residuals.csv")
 ```
 
 

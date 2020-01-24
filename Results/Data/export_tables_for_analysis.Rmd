@@ -8,15 +8,22 @@ output: html_document
 # First table
 First we summarize for each non significant feature the following: Name, Cohen-D for log transformation, Cohen-D for residual analysis and double sided T-Test
 ```{r non significant residual features table, warning=FALSE}
+library(dplyr)
 pure_types_residual_model_residual_table <- 
 combined_df_long_sorted_residuals[combined_df_long_sorted_residuals$bins_for_fdr %in% levels(combined_df_long_sorted_residuals$bins_for_fdr)[c(3,4)],] %>% 
   select(p_values, p, q, Cohen_D) 
 
 pure_types_residual_model_log_table <- 
-combined_df_long_sorted_standard[rownames(pure_types_residual_model_table),] %>% 
+combined_df_long_sorted_standard[combined_df_long_sorted_standard$bins_for_fdr %in% levels(combined_df_long_sorted_standard$bins_for_fdr)[c(3,4)],] %>% 
   select(p_values, p, q, Cohen_D) 
+
+log_volume_data_for_residual_pure_type <- 
+combined_df_long_sorted_standard[rownames(combined_df_long_sorted_standard) %in% 
+                                   rownames(pure_types_residual_model_residual_table),] %>% 
+  select(p_values, p, q, Cohen_D) 
+
 pure_types_residual_data <- base::merge(pure_types_residual_model_residual_table,
-                                  pure_types_residual_model_log_table, by = 0,
+                                  log_volume_data_for_residual_pure_type, by = 0,
                                   all = TRUE,
                                   suffixes = c(".residual",".log"))
 
@@ -29,7 +36,7 @@ pure_types_residual_data_with_t_test <- base::merge(pure_types_residual_data,
 names(pure_types_residual_data_with_t_test)[ncol(pure_types_residual_data_with_t_test)] <- 't_test_p_value'
 pure_types_residual_data_with_t_test$adjusted_pv <- p.adjust(pure_types_residual_data_with_t_test$t_test_p_value, method = 'BH')
 
-write.csv(pure_types_residual_data_with_t_test, file = "pure_types_features_residual_data.csv", row.names = T)
+write.csv(pure_types_residual_data_with_t_test, file = "~/Human_brain_research/data_for_paper/pure_types_features_residual_data.csv", row.names = T)
 ```
 
 ```{r non significant log features table, warning=FALSE}
@@ -59,20 +66,143 @@ pure_types_log_data_with_t_test$adjusted_pv <- p.adjust(pure_types_log_data_with
 write.csv(pure_types_log_data_with_t_test, file = "pure_types_features_log_data.csv", row.names = T)
 ```
 
-```{r particular analysis}
-str(biobank_feature_residual_analysis$`Volume of grey matter in Postcentral Gyrus (left)`)
-```
 
 # Plots 
-```{r plotting features for the paper}
-plotGenderHistogram(biobank_residuals_data$`Volume of grey matter in Postcentral Gyrus (left)`,
-  biobank_feature_residual_analysis$`Volume of grey matter in Postcentral Gyrus (left)`, "Volume of grey matter in Postcentral Gyrus (left)")
-```
-```{r plotting features for the paper}
-plotGenderHistogram(biobank_standardized_data$`Volume of grey matter in Planum Temporale (left)`,
-  biobank_feature_residual_analysis$`Volume of grey matter in Planum Temporale (left)`, "Volume of grey matter in Planum Temporale (left)")
 
-plotGenderHistogram(biobank_standardized_data$`Volume of grey matter in Planum Temporale (left)`,
-  biobank_feature_standard_analysis$`Volume of grey matter in Planum Temporale (left)`, "Volume of grey matter in Planum Temporale (left)")
+```{r selecting features for each analysis}
+pure_types_volume_features <- rownames(pure_types_residual_model_residual_table)[rownames(pure_types_residual_model_residual_table) %>% grep("Volume", .)]
+
+single_mixture_model_volume_features <-single_mixture_model_features$feature_name[single_mixture_model_features$feature_name %>% grep("Volume",.)]
+
+two_mixture_model_volume_features <- 
+mosaic_mixture_model_features$feature_name[mosaic_mixture_model_features$feature_name %>% grep("Volume",.)]
 ```
 
+```{r full mixture model histograms}
+i <- which(mosaic_mixture_model_features$feature_name == 'Volume of grey matter in Lingual Gyrus (left)')
+plotGenderHistogram(biobank_standardized_data[[mosaic_mixture_model_features$feature_name[i]]],
+  biobank_feature_standard_analysis[[mosaic_mixture_model_features$feature_name[i]]], mosaic_mixture_model_features$feature_name[i])
+
+plotGenderHistogram(biobank_residuals_data[[mosaic_mixture_model_features$feature_name[i]]],
+  biobank_feature_residual_analysis[[mosaic_mixture_model_features$feature_name[i]]], mosaic_mixture_model_features$feature_name[i])
+```
+
+```{r single mixture model histograms}
+i <- which(single_mixture_model_volume_features == 'Volume of grey matter in Vermis VIIIa Cerebellum')
+plotGenderHistogram(biobank_standardized_data[[single_mixture_model_features$feature_name[i]]],
+  biobank_feature_standard_analysis[[single_mixture_model_features$feature_name[i]]], single_mixture_model_features$feature_name[i])
+
+plotGenderHistogram(biobank_residuals_data[[single_mixture_model_features$feature_name[i]]],
+  biobank_feature_residual_analysis[[single_mixture_model_features$feature_name[i]]], single_mixture_model_features$feature_name[i])
+```
+
+
+```{r residual pure type with log data}
+i <- which(rownames(pure_types_residual_model_residual_table) == "Volume of grey matter in Postcentral Gyrus (left)")
+plotGenderHistogram(biobank_standardized_data[[rownames(pure_types_residual_model_residual_table)[i]]],
+  biobank_feature_standard_analysis[[rownames(pure_types_residual_model_residual_table)[i]]], rownames(pure_types_residual_model_residual_table)[i])
+
+plotGenderHistogram(biobank_residuals_data[[rownames(pure_types_residual_model_residual_table)[i]]],
+  biobank_feature_residual_analysis[[rownames(pure_types_residual_model_residual_table)[i]]], rownames(pure_types_residual_model_residual_table)[i])
+```
+
+Plotting 2 features side by side to see the mosiac 
+```{r scatter plot of two features}
+str(biobank_standardized_data[[volume_features_for_plot[1]]])
+str(biobank_standardized_data[[volume_features_for_plot[2]]])
+```
+
+```{r correlation validation}
+inner_join(biobank_standardized_data[[volume_features_for_plot[1]]],
+        biobank_standardized_data[[volume_features_for_plot[2]]],
+     by = 'eid') %>% 
+  select(value.x, value.y) %>% 
+  cor()
+```
+
+
+```{r scatter plot}
+inner_join(biobank_standardized_data[[volume_features_for_plot[1]]],
+        biobank_standardized_data[[volume_features_for_plot[5]]],
+     by = 'eid') %>% 
+ggplot(aes(value.x, value.y,color = factor(sex.x))) + 
+  geom_point(shape=1, size = 1) + 
+  coord_fixed() 
+```
+
+```{r scatter plot two probabilities}
+scatter_plot_two_probabilities <- cbind(
+rbind(inner_join(biobank_feature_residual_analysis[[volume_features_for_plot[1]]]$hypothesis_results$mixture_model$women_responsebilities,
+        biobank_feature_residual_analysis[[volume_features_for_plot[5]]]$hypothesis_results$mixture_model$women_responsebilities,
+     by = 'eid'),
+     inner_join(biobank_feature_residual_analysis[[volume_features_for_plot[1]]]$hypothesis_results$mixture_model$men_responsebilities,
+        biobank_feature_residual_analysis[[volume_features_for_plot[5]]]$hypothesis_results$mixture_model$men_responsebilities,
+     by = 'eid')), c(rep(0,nrow(inner_join(biobank_feature_residual_analysis[[volume_features_for_plot[1]]]$hypothesis_results$mixture_model$women_responsebilities,
+        biobank_feature_residual_analysis[[volume_features_for_plot[5]]]$hypothesis_results$mixture_model$women_responsebilities,
+     by = 'eid'))), sex = rep(1,nrow(inner_join(biobank_feature_residual_analysis[[volume_features_for_plot[1]]]$hypothesis_results$mixture_model$men_responsebilities,
+        biobank_feature_residual_analysis[[volume_features_for_plot[5]]]$hypothesis_results$mixture_model$men_responsebilities,
+     by = 'eid'))))) %>% data.frame()
+names(scatter_plot_two_probabilities) = c('eid','responsebility.x', 'responsebility.y', 'sex')
+
+ggplot(scatter_plot_two_probabilities, aes(responsebility.x, responsebility.y, col = factor(sex))) + 
+  geom_point(shape=1, size = 1) + 
+  coord_fixed(ratio = 1, xlim = c(0,1), ylim = c(0,1)) 
+```
+
+```{r scatter plot}
+inner_join(biobank_standardized_data[[volume_features_for_plot[1]]],
+        biobank_standardized_data[[volume_features_for_plot[2]]],
+     by = 'eid') %>% 
+ggplot(aes(value.x, value.y,color = factor(sex.x))) + 
+  geom_point(shape=1, size = 1) + 
+  coord_fixed() 
+```
+
+```{r scatter plot two probabilities}
+scatter_plot_two_probabilities <- cbind(
+rbind(inner_join(biobank_feature_residual_analysis[[volume_features_for_plot[1]]]$hypothesis_results$mixture_model$women_responsebilities,
+        biobank_feature_residual_analysis[[volume_features_for_plot[2]]]$hypothesis_results$mixture_model$women_responsebilities,
+     by = 'eid'),
+     inner_join(biobank_feature_residual_analysis[[volume_features_for_plot[1]]]$hypothesis_results$mixture_model$men_responsebilities,
+        biobank_feature_residual_analysis[[volume_features_for_plot[2]]]$hypothesis_results$mixture_model$men_responsebilities,
+     by = 'eid')), c(rep(0,nrow(inner_join(biobank_feature_residual_analysis[[volume_features_for_plot[1]]]$hypothesis_results$mixture_model$women_responsebilities,
+        biobank_feature_residual_analysis[[volume_features_for_plot[2]]]$hypothesis_results$mixture_model$women_responsebilities,
+     by = 'eid'))), sex = rep(1,nrow(inner_join(biobank_feature_residual_analysis[[volume_features_for_plot[1]]]$hypothesis_results$mixture_model$men_responsebilities,
+        biobank_feature_residual_analysis[[volume_features_for_plot[2]]]$hypothesis_results$mixture_model$men_responsebilities,
+     by = 'eid'))))) %>% data.frame()
+names(scatter_plot_two_probabilities) = c('eid','responsebility.x', 'responsebility.y', 'sex')
+
+ggplot(scatter_plot_two_probabilities, aes(responsebility.x, responsebility.y, col = factor(sex))) + 
+  geom_point(shape=1, size = 1) + 
+  coord_fixed(ratio = 1, xlim = c(0,1), ylim = c(0,1)) 
+```
+
+
+```{r scatter plot}
+inner_join(biobank_standardized_data[[volume_features_for_plot[5]]],
+        biobank_standardized_data[[volume_features_for_plot[2]]],
+     by = 'eid') %>% 
+ggplot(aes(value.x, value.y,color = factor(sex.x))) + 
+  geom_point(shape=1, size = 1) + 
+  coord_fixed() 
+```
+
+
+```{r scatter plot two probabilities}
+scatter_plot_two_probabilities <- cbind(
+rbind(inner_join(biobank_feature_residual_analysis[[volume_features_for_plot[5]]]$hypothesis_results$mixture_model$women_responsebilities,
+        biobank_feature_residual_analysis[[volume_features_for_plot[2]]]$hypothesis_results$mixture_model$women_responsebilities,
+     by = 'eid'),
+     inner_join(biobank_feature_residual_analysis[[volume_features_for_plot[5]]]$hypothesis_results$mixture_model$men_responsebilities,
+        biobank_feature_residual_analysis[[volume_features_for_plot[2]]]$hypothesis_results$mixture_model$men_responsebilities,
+     by = 'eid')), c(rep(0,nrow(inner_join(biobank_feature_residual_analysis[[volume_features_for_plot[5]]]$hypothesis_results$mixture_model$women_responsebilities,
+        biobank_feature_residual_analysis[[volume_features_for_plot[2]]]$hypothesis_results$mixture_model$women_responsebilities,
+     by = 'eid'))), sex = rep(1,nrow(inner_join(biobank_feature_residual_analysis[[volume_features_for_plot[5]]]$hypothesis_results$mixture_model$men_responsebilities,
+        biobank_feature_residual_analysis[[volume_features_for_plot[2]]]$hypothesis_results$mixture_model$men_responsebilities,
+     by = 'eid'))))) %>% data.frame()
+names(scatter_plot_two_probabilities) = c('eid','responsebility.x', 'responsebility.y', 'sex')
+
+ggplot(scatter_plot_two_probabilities, aes(responsebility.x, responsebility.y, col = factor(sex))) + 
+  geom_point(shape=1, size = 1) + 
+  coord_fixed(ratio = 1, xlim = c(0,1), ylim = c(0,1)) 
+```
