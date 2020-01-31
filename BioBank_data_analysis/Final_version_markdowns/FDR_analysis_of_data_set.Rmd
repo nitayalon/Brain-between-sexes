@@ -326,43 +326,6 @@ write.csv(single_mixture_model_features, "equal_mixture_model_features_residuals
 
 # Analysis of non signifanct features
 
-Following the discussion from 10/11/2019 we test the non-significant features, at each data set, to see if they are indeed pure types or not.
-```{r install relevant library}
-# install.packages("TOSTER")
-library("TOSTER")
-```
-
-
-```{r extracting pure types feature from each data set}
-residual_pure_types_features_names <- combined_df_long_sorted_residuals[which(combined_df_long_sorted_residuals$bh_pvalue > 0.05),] %>% 
-  row.names() 
-residual_pure_types_features <- biobank_residuals_data[residual_pure_types_features_names]
-
-residual_pure_types_features[[residual_pure_types_features_names[5]]] %>% 
-  group_by(sex) %>% 
-  summarise(avg = mean(value),
-            std = sd(value),
-            count = n())
-
-TOSTtwo(m1=0.02148792,
-        m2=-0.02424953,
-        sd1=1.0031235,
-        sd2=0.9959662,
-        n1=9501,
-        n2=8419,
-        low_eqbound_d=-0.1, 
-        high_eqbound_d=0.1, 
-        alpha = 0.025, 
-        var.equal=FALSE)
-
-residual_pure_types_features[[residual_pure_types_features_names[5]]] %>% 
-  select(sex,value) %>% 
-  ggplot(aes(x = value, fill = factor(sex))) +
-  geom_density(alpha = 0.5) +
-  geom_vline(xintercept = c(0.04633958,-0.05172520), linetype="dotted", 
-                color = "blue", size=1.5)
-```
-
 # 23/12/2019
 ```{r fdr logit value by quadrant, warnings = FALSE}
 ggplot(combined_df_long_sorted_residuals[combined_df_long_sorted_residuals$bins_for_fdr %in% levels(combined_df_long_sorted_residuals$bins_for_fdr)[c(1,2)],], aes(log(p / (1-p)),log(q/(1-q)), colour = Cohen_D)) +

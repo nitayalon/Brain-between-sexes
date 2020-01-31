@@ -141,6 +141,14 @@ ggplot(combined_df_long_sorted_standard_with_means[combined_df_long_sorted_stand
   ylab("Masculine - Feminine")
 dev.off()
 
+
+# Final plots for paper --------------------------------------------------
+
+## Write csv's
+write.csv(pure_types_residual_model_residual_table, "pure_types_features_residual_data.csv")
+write.csv(single_model_mosaic_mixture_model_features, "equal_mixture_model_features_residuals.csv")
+write.csv(mosaic_mixture_model_features, "non_equal_mixture_model_features_residuals.csv")
+
 jpeg('p_vs_q_residuals_plot_color_indicates_cohen_d_shape_indicates_p_equal_q_or_not.jpeg')
 ggplot(combined_df_resid_equal_probs_sorted, aes(p,q, colour = Cohen_D)) +
   geom_point(aes(shape = p_equal_q)) +
@@ -157,7 +165,6 @@ ggplot(combined_df_resid_equal_probs_sorted, aes(p,q, colour = Cohen_D)) +
 dev.off()
 
 # Mixture model example
-
 i <- which(mosaic_mixture_model_features$feature_name == 'Volume of grey matter in Lingual Gyrus (left)')
 jpeg(sprintf('histogram of %s log volume.jpeg', mosaic_mixture_model_features$feature_name[i]))
 plotGenderHistogram(biobank_standardized_data[[mosaic_mixture_model_features$feature_name[i]]],
@@ -170,19 +177,16 @@ plotGenderHistogram(biobank_residuals_data[[mosaic_mixture_model_features$featur
                     biobank_feature_residual_analysis[[mosaic_mixture_model_features$feature_name[i]]], mosaic_mixture_model_features$feature_name[i])
 dev.off()
 
-mosaic_mixture_model_features <- combined_df_resid_equal_probs_sorted[!combined_df_resid_equal_probs_sorted$p_equal_q,]
-write.csv(mosaic_mixture_model_features, "non_equal_mixture_model_features_residuals.csv")
-
 # Equal proportions
-i <- which(single_mixture_model_volume_features == 'Volume of grey matter in Vermis VIIIa Cerebellum')
-jpeg(sprintf('histogram of %s log volume.jpeg', single_mixture_model_features$feature_name[i]))
-plotGenderHistogram(biobank_standardized_data[[single_mixture_model_features$feature_name[i]]],
-                    biobank_feature_standard_analysis[[single_mixture_model_features$feature_name[i]]], single_mixture_model_features$feature_name[i])
+i <- which(single_mixture_model_volume_features == "Volume of grey matter in Occipital Fusiform Gyrus (left)")
+jpeg(sprintf('histogram of %s log volume.jpeg', single_mixture_model_volume_features[i]))
+plotGenderHistogram(biobank_standardized_data[[single_mixture_model_volume_features[i]]],
+                    biobank_feature_standard_analysis[[single_mixture_model_volume_features[i]]], single_mixture_model_volume_features[i])
 dev.off()
 
-jpeg(sprintf('histogram of %s residuals.jpeg', single_mixture_model_features$feature_name[i]))
-plotGenderHistogram(biobank_residuals_data[[single_mixture_model_features$feature_name[i]]],
-                    biobank_feature_residual_analysis[[single_mixture_model_features$feature_name[i]]], single_mixture_model_features$feature_name[i])
+jpeg(sprintf('histogram of %s residuals.jpeg', single_mixture_model_volume_features[i]))
+plotGenderHistogram(biobank_residuals_data[[single_mixture_model_volume_features[i]]],
+                    biobank_feature_residual_analysis[[single_mixture_model_volume_features[i]]], single_mixture_model_volume_features[i])
 dev.off()
 
 # Pure types
@@ -196,9 +200,6 @@ jpeg(sprintf('histogram of %s residuals.jpeg', rownames(pure_types_residual_mode
 plotGenderHistogram(biobank_residuals_data[[rownames(pure_types_residual_model_residual_table)[i]]],
                     biobank_feature_residual_analysis[[rownames(pure_types_residual_model_residual_table)[i]]], rownames(pure_types_residual_model_residual_table)[i])
 dev.off()
-
-
-write.csv(pure_types_residual_data_with_t_test, file = "~/Human_brain_research/data_for_paper/pure_types_features_residual_data.csv", row.names = T)
 
 i <- 1
 j <- 2

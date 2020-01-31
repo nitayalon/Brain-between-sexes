@@ -30,11 +30,11 @@ load("~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/colom
 ## Pure types
 In this section we compute corelation matrix for pure types features only
 ```{r pure types features, include=FALSE}
-# pure_type_features_residuals <- biobank_feature_residual_analysis[pure_types_residual_data_with_t_test$Row.names]
-pure_type_features_residuals_names <- rownames(pure_types_residual_model_residual_table)[rownames(pure_types_residual_model_residual_table) %>% 
-  grep(pattern = "Volume", .)]
+pure_types_features_names_by_type <- pure_types_features_names[
+  c(pure_types_features_names %>% grep("Volume",.),
+          pure_types_features_names %>% grep("MD",.))]
 
-pure_type_features_residuals <- biobank_feature_residual_analysis[pure_type_features_residuals_names]
+pure_type_features_residuals <- biobank_feature_residual_analysis[pure_types_features_names_by_type]
 
 pure_type_men_data_residuals <- lapply(pure_type_features_residuals, function(x){x$hypothesis_results$mixture_model$men_responsebilities})
 
@@ -48,7 +48,7 @@ for(i in 2:length(pure_type_men_data_residuals))
 {
   pure_type_men_feature_data_residuals <- base::merge(pure_type_men_feature_data_residuals, pure_type_men_data_residuals[[i]], by.x = "eid", by.y = "eid")
 }
-names(pure_type_men_feature_data_residuals) <- c("eid", pure_type_features_residuals_names)
+names(pure_type_men_feature_data_residuals) <- c("eid", pure_types_features_names_by_type)
 pure_type_men_feature_data_residuals_no_id_residuals <- pure_type_men_feature_data_residuals[,-1]
 ```
 
@@ -58,7 +58,7 @@ for(i in 2:length(pure_type_women_data_residuals))
 {
   pure_type_women_feature_data_residuals <- base::merge(pure_type_women_feature_data_residuals, pure_type_women_data_residuals[[i]], by.x = "eid", by.y = "eid")
 }
-names(pure_type_women_feature_data_residuals) <- c("eid", pure_type_features_residuals_names)
+names(pure_type_women_feature_data_residuals) <- c("eid", pure_types_features_names_by_type)
 pure_type_women_features_no_id_residuals <- pure_type_women_feature_data_residuals[,-1]
 ```
 
@@ -70,36 +70,29 @@ pure_type_combined_correaltion_residuals[lower.tri(pure_type_combined_correaltio
 ```
 
 ```{r corrplot by name both genders all data}
-corrplot(pure_type_combined_correaltion_residuals, title="Residual posterior probability", order = "alphabet",
-         tl.cex = 0.5,tl.srt = 45)
+LabelCol = c("black", rep("blue",5), "black")
+corrplot(pure_type_combined_correaltion_residuals, order = "alphabet", method = 'number',
+         tl.cex = 0.5,tl.srt = 45, tl.col=LabelCol,
+         col= colorRampPalette(c("red","green","blue"))(10) ,
+         cl.lim = c(-1,1))
 ```
 
-## Gender affected features
-
-### Full list
-```{r filter FDR significant features all data, include=FALSE}
-sig_level <- 0.05
-FDR_significant_features_residuals <- combined_df_resid_equal_probs_sorted$feature_name[
-    with(combined_df_resid_equal_probs_sorted,(fdr_pv <= sig_level))]  
-FDR_significant_features_residuals <- na.omit(FDR_significant_features_residuals)
-```
-
-extract feature data:
+## Single mixture model (Equal probabilities)
 
 ```{r extract FDR significant features all data, include=FALSE}
-significant_features_residuals <- biobank_feature_residual_analysis[FDR_significant_features_residuals]
+single_mixture_model_features_residuals <- biobank_feature_residual_analysis[equal_probability_mixture_names]
 
-men_data_residuals <- lapply(significant_features_residuals, function(x){x$hypothesis_results$mixture_model$men_responsebilities})
+men_data_residuals <- lapply(single_mixture_model_features_residuals, function(x){x$hypothesis_results$mixture_model$men_responsebilities})
 
-women_data_residuals <- lapply(significant_features_residuals, function(x){x$hypothesis_results$mixture_model$women_responsebilities})
+women_data_residuals <- lapply(single_mixture_model_features_residuals, function(x){x$hypothesis_results$mixture_model$women_responsebilities})
 ```
 
 ```{r partiton to features all data, include=FALSE}
-FA_features_residuals <- c(grep("Mean FA", names(significant_features_residuals)),
-                 grep("mean FA", names(significant_features_residuals)))
-MD_features_residuals <- c(grep("Mean MD", names(significant_features_residuals)),
-                 grep("mean MD", names(significant_features_residuals)))
-Volume_features_residuals <- c(grep("Volume", names(significant_features_residuals)))
+FA_features_residuals <- c(grep("Mean FA", names(single_mixture_model_features_residuals)),
+                 grep("mean FA", names(single_mixture_model_features_residuals)))
+MD_features_residuals <- c(grep("Mean MD", names(single_mixture_model_features_residuals)),
+                 grep("mean MD", names(single_mixture_model_features_residuals)))
+Volume_features_residuals <- c(grep("Volume", names(single_mixture_model_features_residuals)))
 feature_order_for_corrplot_residuals <- c(FA_features_residuals, MD_features_residuals, Volume_features_residuals)
 ```
 
@@ -110,7 +103,7 @@ for(i in 2:length(men_data_residuals))
 {
   men_feature_data_residuals <- base::merge(men_feature_data_residuals, men_data_residuals[[i]], by.x = "eid", by.y = "eid")
 }
-names(men_feature_data_residuals) <- c("eid", FDR_significant_features_residuals)
+names(men_feature_data_residuals) <- c("eid", equal_probability_mixture_names)
 men_features_no_id_residuals <- men_feature_data_residuals[,-1]
 ```
 
@@ -120,7 +113,7 @@ for(i in 2:length(women_data_residuals))
 {
   women_feature_data_residuals <- base::merge(women_feature_data_residuals, women_data_residuals[[i]], by.x = "eid", by.y = "eid")
 }
-names(women_feature_data_residuals) <- c("eid", FDR_significant_features_residuals)
+names(women_feature_data_residuals) <- c("eid", equal_probability_mixture_names)
 women_features_no_id_residuals <- women_feature_data_residuals[,-1]
 ```
 
@@ -140,10 +133,20 @@ combined_correaltion_residuals <- men_cor_residuals
 combined_correaltion_residuals[lower.tri(combined_correaltion_residuals)] <- women_cor_residuals[lower.tri(women_cor_residuals)]
 ```
 
-```{r corrplot by name both genders all data}
-corrplot(combined_correaltion_residuals, title="both genders - full data", order = "alphabet",
+```{r corrplot of volume features single mixture model}
+corrplot(combined_correaltion_residuals[Volume_features_residuals,Volume_features_residuals], order = "alphabet",
          tl.cex = 0.1,tl.srt = 45)
 ```
+
+```{r corrplot of MD features single mixture model}
+corrplot(combined_correaltion_residuals[MD_features_residuals,MD_features_residuals], order = "alphabet",
+         tl.cex = 0.1,tl.srt = 45)
+```
+```{r corrplot of FA features single mixture model}
+corrplot(combined_correaltion_residuals[FA_features_residuals,FA_features_residuals], order = "alphabet",
+         tl.cex = 0.1,tl.srt = 45)
+```
+
 
 ```{r corrplot by eigenvalues both genders all data}
 corrplot(combined_correaltion_residuals, title="both genders - full data", order = "FPC",
