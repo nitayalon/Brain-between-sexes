@@ -187,6 +187,50 @@ ggplot(combined_df_long_sorted_residuals[combined_df_long_sorted_residuals$bins_
                         high="red", space ="Lab" )
 ```
 
+### Combined data sets plot
+This section was added at 26/01/2019
+
+```{r validating data sets sizes}
+names(combined_df_resid_equal_probs_sorted)
+names(combined_df_long_sorted_residuals)
+length(intersect(row.names(combined_df_long_sorted_residuals[combined_df_long_sorted_residuals$bins_for_fdr %in% levels(combined_df_long_sorted_residuals$bins_for_fdr)[c(1,2)],]),
+          combined_df_resid_equal_probs_sorted$feature_name))
+length(row.names(combined_df_long_sorted_residuals[combined_df_long_sorted_residuals$bins_for_fdr %in% levels(combined_df_long_sorted_residuals$bins_for_fdr)[c(1,2)],]))
+```
+
+```{r joining the data sets for single plot}
+non_pure_types_features_data_set <- combined_df_long_sorted_residuals[combined_df_long_sorted_residuals$bins_for_fdr %in% levels(combined_df_long_sorted_residuals$bins_for_fdr)[c(1,2)],]
+
+non_pure_types_features_data_set$feature_name = rownames(non_pure_types_features_data_set)
+
+str(non_pure_types_features_data_set)
+combined_df_resid_equal_probs_sorted$feature_name <- as.character(combined_df_resid_equal_probs_sorted$feature_name)
+
+non_pure_types_features_data_set_with_equal_mixture_model_hypothesis <- 
+  inner_join(non_pure_types_features_data_set,combined_df_resid_equal_probs_sorted,
+             by = 'feature_name')
+str(non_pure_types_features_data_set_with_equal_mixture_model_hypothesis)
+```
+
+```{r final FDR plot for residuals}
+non_pure_types_features_data_set_with_equal_mixture_model_hypothesis %>% 
+  select(q = q.x,p = p.x,Cohen_D = Cohen_D.x, p_equal_q, feature_name) %>% 
+ggplot(aes(p,q, colour = Cohen_D)) +
+  geom_point(aes(shape = p_equal_q)) +
+  scale_shape_manual(values=c(3, 19))+
+  geom_vline(xintercept = 0.5) +
+  geom_hline(yintercept = 0.5) +
+  ggtitle("Values of p and q", subtitle = "shape is p=q hypothesis") + 
+  geom_abline(slope = 1, intercept = 0) + 
+  scale_color_gradient2(midpoint=0, 
+                        low="darkblue", 
+                        mid="yellow",
+                        high="red", space ="Lab" ) +
+  coord_fixed() #+
+  #geom_text(aes(label=ifelse(p_equal_q,as.character(feature_name),'')),hjust=0,vjust=0)
+
+```
+
 ### Equal mixture vs mixture model
 
 Repeating the same analysis but this time the null hypothesis is $p=q$.
@@ -200,34 +244,42 @@ biobank_feature_residual_analysis_without_pure_type <- biobank_feature_residual_
 equal_mixture_probabilities_p_value <- equalProbabilityMixturePV(biobank_feature_residual_analysis_without_pure_type)
 
 pvalue_mixture_vs_equal_prob_pv <- equal_mixture_probabilities_p_value %>% data.frame() 
+
 names(pvalue_mixture_vs_equal_prob_pv) <- "p_value"
+
 residuals_p_and_q_df_equal_probs <- residuals_p_and_q_df[!(names(residuals_p_and_q_df) %in% row.names(pure_types_residual_model_table))] %>% t()
 
 names(residuals_p_and_q_df_equal_probs) <- c("p","q")
 
 combined_df_resid_equal_probs <- base::merge(pvalue_mixture_vs_equal_prob_pv, residuals_p_and_q_df_equal_probs,by = 0, all = T)
-combined_df_resid_equal_probs <- combined_df_resid_equal_probs[,c(2,3,4)]
-names(combined_df_resid_equal_probs) <- c("p_value", "p", "q")
-rownames(combined_df_resid_equal_probs) <- rownames(pvalue_mixture_vs_equal_prob_pv)
+
+names(combined_df_resid_equal_probs) <- c("feature","p_value", "p", "q")
 
 cohens_d_per_feature_residuals_equal_probs <- cohens_d_per_feature_residuals[!(names(cohens_d_per_feature_residuals) %in% row.names(pure_types_residual_model_table))] %>% data.frame()
 
 names(cohens_d_per_feature_residuals_equal_probs) <- "Cohen_D"
-combined_df_resid_equal_probs <- base::merge(combined_df_resid_equal_probs, cohens_d_per_feature_residuals_equal_probs,by = 0, all = T)
+cohens_d_per_feature_residuals_equal_probs$feature = row.names(cohens_d_per_feature_residuals_equal_probs)
 
-names(combined_df_resid_equal_probs) <- c("feature_name", "p_values","p","q","Cohen_D")
+combined_df_resid_equal_probs <- inner_join(combined_df_resid_equal_probs, cohens_d_per_feature_residuals_equal_probs)
 ```
 
+```{r validating results}
+biobank_feature_residual_analysis_without_pure_type[['Volume of grey matter in Parahippocampal Gyrus, anterior division (left)']] %>% str()
+equal_mixture_probabilities_p_value['Volume of grey matter in Parahippocampal Gyrus, anterior division (left)']
+combined_df_resid_equal_probs %>% filter(feature == 'Volume of grey matter in Parahippocampal Gyrus, anterior division (left)')
+```
+
+
 ```{r pure type vs mixture model plotting with colors}
-combined_df_resid_equal_probs$bins_of_pv <- cut(combined_df_resid_equal_probs$p_values, c(1e-9,1e-8,1e-3,1e-2,5e-2,1e-1,1))
+combined_df_resid_equal_probs$bins_of_pv <- cut(combined_df_resid_equal_probs$p_value, c(1e-9,1e-8,1e-3,1e-2,5e-2,1e-1,1))
 ```
 
 ```{r fdr procedure, include = FALSE}
 N <- nrow(combined_df_resid_equal_probs)
-combined_df_resid_equal_probs_sorted <- combined_df_resid_equal_probs[order(combined_df_resid_equal_probs$p_values,decreasing = F),]
-rownames(combined_df_resid_equal_probs_sorted) = rownames(combined_df_resid_equal_probs_sorted)[order(combined_df_resid_equal_probs$p_values,decreasing = F)]
+combined_df_resid_equal_probs_sorted <- combined_df_resid_equal_probs[order(combined_df_resid_equal_probs$p_value,decreasing = F),]
+rownames(combined_df_resid_equal_probs_sorted) = rownames(combined_df_resid_equal_probs_sorted)[order(combined_df_resid_equal_probs$p_value,decreasing = F)]
 combined_df_resid_equal_probs_sorted$i <- seq(1:N)
-combined_df_resid_equal_probs_sorted$bh_pvalue <- with(combined_df_resid_equal_probs_sorted, p_values * i / N)
+combined_df_resid_equal_probs_sorted$bh_pvalue <- with(combined_df_resid_equal_probs_sorted, p_value * i / N)
 combined_df_resid_equal_probs_sorted$region <- apply(combined_df_resid_equal_probs_sorted, 1, function(x){fitQuadrant(x[3],x[4])})
 ```
 
@@ -245,20 +297,24 @@ combined_df_resid_equal_probs_sorted$fdr_pv <-
   
 combined_df_resid_equal_probs_sorted$bins_for_fdr <- cut(combined_df_resid_equal_probs_sorted$fdr_pv, c(0,1e-2,5e-2,0.1,1))
 combined_df_resid_equal_probs_sorted$p_equal_q <- combined_df_resid_equal_probs_sorted$bins_for_fdr %in% levels(combined_df_resid_equal_probs_sorted$bins_for_fdr)[c(3,4)]
+
+combined_df_resid_equal_probs_sorted %>% 
+  filter(feature == 'Volume of grey matter in Parahippocampal Gyrus, anterior division (left)')
 ```
 
 ```{r plot FDR bins for pure mixture vs mosaic mixture }
 ggplot(combined_df_resid_equal_probs_sorted, aes(p,q, colour = Cohen_D)) +
   geom_point(aes(shape = p_equal_q)) +
-  scale_shape_manual(values=c(3, 1))+
+  scale_shape_manual(values=c(3, 19))+
   geom_vline(xintercept = 0.5) +
   geom_hline(yintercept = 0.5) +
-  ggtitle("Values of p and q", subtitle = "Shape indicate FDR pv") + 
+  ggtitle("Values of p and q", subtitle = "shape is p=q hypothesis") + 
   geom_abline(slope = 1, intercept = 0) + 
   scale_color_gradient2(midpoint=0, 
                         low="darkblue", 
                         mid="yellow",
-                        high="red", space ="Lab")
+                        high="red", space ="Lab" ) +
+  coord_fixed()
 ```
 
 #### Selecting extreme gender oriented features

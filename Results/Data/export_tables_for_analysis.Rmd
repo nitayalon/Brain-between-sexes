@@ -9,9 +9,7 @@ output: html_document
 First we summarize for each non significant feature the following: Name, Cohen-D for log transformation, Cohen-D for residual analysis and double sided T-Test
 ```{r non significant residual features table, warning=FALSE}
 library(dplyr)
-pure_types_residual_model_residual_table <- 
-combined_df_long_sorted_residuals[combined_df_long_sorted_residuals$bins_for_fdr %in% levels(combined_df_long_sorted_residuals$bins_for_fdr)[c(3,4)],] %>% 
-  select(p_values, p, q, Cohen_D) 
+pure_types_residual_model_residual_table <-  combined_df_long_sorted_residuals[row.names(combined_df_long_sorted_residuals) %in% row.names(pure_types_residual_model_table),]
 
 pure_types_residual_model_log_table <- 
 combined_df_long_sorted_standard[combined_df_long_sorted_standard$bins_for_fdr %in% levels(combined_df_long_sorted_standard$bins_for_fdr)[c(3,4)],] %>% 
@@ -21,6 +19,12 @@ log_volume_data_for_residual_pure_type <-
 combined_df_long_sorted_standard[rownames(combined_df_long_sorted_standard) %in% 
                                    rownames(pure_types_residual_model_residual_table),] %>% 
   select(p_values, p, q, Cohen_D) 
+
+pure_types_residual_model_residual_table <- sapply(pure_types_residual_model_residual_data, function(x){
+  c(x$mixture_model$m_parameters$p,
+    x$mixture_model$m_parameters$q,
+    x$hypothesis_results$cohen_d_test$estimate)
+})
 
 pure_types_residual_data <- base::merge(pure_types_residual_model_residual_table,
                                   log_volume_data_for_residual_pure_type, by = 0,
@@ -125,8 +129,13 @@ inner_join(biobank_standardized_data[[volume_features_for_plot[1]]],
 inner_join(biobank_standardized_data[[volume_features_for_plot[1]]],
         biobank_standardized_data[[volume_features_for_plot[5]]],
      by = 'eid') %>% 
-ggplot(aes(value.x, value.y,color = factor(sex.x))) + 
-  geom_point(shape=1, size = 1) + 
+  select(value.x, value.y, sex = sex.x) %>% 
+  mutate(sex = factor(sex)) %>% 
+ggplot(aes(value.x, value.y,color = sex)) + 
+  geom_point(shape=20, size = 1, alpha = 1/2) +
+  ggtitle("Volume") + 
+  xlab(sprintf(volume_features_for_plot[1])) + 
+  ylab(sprintf(volume_features_for_plot[5])) +
   coord_fixed() 
 ```
 
@@ -145,7 +154,7 @@ rbind(inner_join(biobank_feature_residual_analysis[[volume_features_for_plot[1]]
 names(scatter_plot_two_probabilities) = c('eid','responsebility.x', 'responsebility.y', 'sex')
 
 ggplot(scatter_plot_two_probabilities, aes(responsebility.x, responsebility.y, col = factor(sex))) + 
-  geom_point(shape=1, size = 1) + 
+  geom_point(shape=20, size = 1) + 
   coord_fixed(ratio = 1, xlim = c(0,1), ylim = c(0,1)) 
 ```
 
@@ -153,9 +162,15 @@ ggplot(scatter_plot_two_probabilities, aes(responsebility.x, responsebility.y, c
 inner_join(biobank_standardized_data[[volume_features_for_plot[1]]],
         biobank_standardized_data[[volume_features_for_plot[2]]],
      by = 'eid') %>% 
-ggplot(aes(value.x, value.y,color = factor(sex.x))) + 
-  geom_point(shape=1, size = 1) + 
+  select(value.x, value.y, sex = sex.x) %>% 
+  mutate(sex = factor(sex)) %>% 
+ggplot(aes(value.x, value.y,color = sex)) + 
+  geom_point(shape=1, size = 1) +
+  ggtitle("Volume") + 
+  xlab(sprintf(volume_features_for_plot[1])) + 
+  ylab(sprintf(volume_features_for_plot[2])) +
   coord_fixed() 
+
 ```
 
 ```{r scatter plot two probabilities}
@@ -179,12 +194,18 @@ ggplot(scatter_plot_two_probabilities, aes(responsebility.x, responsebility.y, c
 
 
 ```{r scatter plot}
-inner_join(biobank_standardized_data[[volume_features_for_plot[5]]],
-        biobank_standardized_data[[volume_features_for_plot[2]]],
+inner_join(biobank_standardized_data[[volume_features_for_plot[2]]],
+        biobank_standardized_data[[volume_features_for_plot[5]]],
      by = 'eid') %>% 
-ggplot(aes(value.x, value.y,color = factor(sex.x))) + 
-  geom_point(shape=1, size = 1) + 
+  select(value.x, value.y, sex = sex.x) %>% 
+  mutate(sex = factor(sex)) %>% 
+ggplot(aes(value.x, value.y,color = sex)) + 
+  geom_point(shape=1, size = 1) +
+  ggtitle("Volume") + 
+  xlab(sprintf(volume_features_for_plot[2])) + 
+  ylab(sprintf(volume_features_for_plot[5])) +
   coord_fixed() 
+
 ```
 
 

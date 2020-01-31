@@ -144,15 +144,16 @@ dev.off()
 jpeg('p_vs_q_residuals_plot_color_indicates_cohen_d_shape_indicates_p_equal_q_or_not.jpeg')
 ggplot(combined_df_resid_equal_probs_sorted, aes(p,q, colour = Cohen_D)) +
   geom_point(aes(shape = p_equal_q)) +
-  scale_shape_manual(values=c(1, 3))+
+  scale_shape_manual(values=c(3, 19))+
   geom_vline(xintercept = 0.5) +
   geom_hline(yintercept = 0.5) +
-  ggtitle("p vs q", subtitle = "Shape indicates p=q") + 
+  ggtitle("Values of p and q", subtitle = "shape is p=q hypothesis") + 
   geom_abline(slope = 1, intercept = 0) + 
   scale_color_gradient2(midpoint=0, 
                         low="darkblue", 
                         mid="yellow",
-                        high="red", space ="Lab")
+                        high="red", space ="Lab" ) +
+  coord_fixed()
 dev.off()
 
 # Mixture model example
@@ -199,13 +200,19 @@ dev.off()
 
 write.csv(pure_types_residual_data_with_t_test, file = "~/Human_brain_research/data_for_paper/pure_types_features_residual_data.csv", row.names = T)
 
-i <- 5
+i <- 1
 j <- 2
-jpeg(sprintf('scatter_plot_of_%s_vs_%s_volume.jpeg',volume_features_for_plot[i],volume_features_for_plot[j]))
+jpeg(sprintf('scatter_plot_of_%s_vs_%s_volume.jpeg',volume_features_for_plot[i],
+             volume_features_for_plot[j]))
 inner_join(biobank_standardized_data[[volume_features_for_plot[i]]],
            biobank_standardized_data[[volume_features_for_plot[j]]],
            by = 'eid') %>% 
-  ggplot(aes(value.x, value.y,color = factor(sex.x))) + 
+  select(`Frontal Pole (left)` = value.x,
+         `Planum Polare (right)` = value.y,
+         sex = sex.x) %>% 
+  mutate(sex = factor(sex)) %>% 
+  ggplot(aes(`Frontal Pole (left)`, `Planum Polare (right)`,
+             color = sex)) + 
   geom_point(shape=1, size = 1) + 
   coord_fixed() 
 dev.off()
