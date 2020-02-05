@@ -69,12 +69,14 @@ pure_type_combined_correaltion_residuals <- pure_type_men_cor_residuals
 pure_type_combined_correaltion_residuals[lower.tri(pure_type_combined_correaltion_residuals)] <- pure_type_women_cor_residuals[lower.tri(pure_type_women_cor_residuals)]
 ```
 
+```{r corrplot names editing}
+colnames(pure_type_combined_correaltion_residuals) <-
+```
+
+
 ```{r corrplot by name both genders all data}
 LabelCol = c("black", rep("blue",5), "black")
-corrplot(pure_type_combined_correaltion_residuals, order = "alphabet", method = 'number',
-         tl.cex = 0.5,tl.srt = 45, tl.col=LabelCol,
-         col= colorRampPalette(c("red","green","blue"))(10) ,
-         cl.lim = c(-1,1))
+corrplot(pure_type_combined_correaltion_residuals, order = "alphabet", method = 'circle',tl.cex = 0.5,tl.srt = 45)
 ```
 
 ## Single mixture model (Equal probabilities)

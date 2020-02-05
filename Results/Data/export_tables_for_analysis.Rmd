@@ -101,12 +101,12 @@ two_mixture_model_volume_features <- non_equal_probability_mixture_names[non_equ
 ```
 
 ```{r full mixture model histograms}
-i <- which(mosaic_mixture_model_features$feature_name == 'Volume of grey matter in Lingual Gyrus (left)')
-plotGenderHistogram(biobank_standardized_data[[mosaic_mixture_model_features$feature_name[i]]],
-  biobank_feature_standard_analysis[[mosaic_mixture_model_features$feature_name[i]]], mosaic_mixture_model_features$feature_name[i])
+i <- which(non_equal_probability_mixture_names == 'Volume of grey matter in Lingual Gyrus (left)')
+plotGenderHistogram(biobank_standardized_data[[non_equal_probability_mixture_names[i]]],
+  biobank_feature_standard_analysis[[non_equal_probability_mixture_names[i]]], non_equal_probability_mixture_names[i])
 
-plotGenderHistogram(biobank_residuals_data[[mosaic_mixture_model_features$feature_name[i]]],
-  biobank_feature_residual_analysis[[mosaic_mixture_model_features$feature_name[i]]], mosaic_mixture_model_features$feature_name[i])
+plotGenderHistogram(biobank_residuals_data[[non_equal_probability_mixture_names[i]]],
+  biobank_feature_residual_analysis[[non_equal_probability_mixture_names[i]]], non_equal_probability_mixture_names[i])
 ```
 
 ```{r single mixture model histograms}
@@ -145,9 +145,25 @@ inner_join(biobank_standardized_data[[volume_features_for_plot[1]]],
 ```
 
 
-```{r scatter plot}
-inner_join(biobank_standardized_data[[volume_features_for_plot[1]]],
-        biobank_standardized_data[[volume_features_for_plot[5]]],
+```{r scatter plot log volume}
+i <- 1
+j <- 2
+inner_join(biobank_standardized_data[[volume_features_for_plot[i]]],
+        biobank_standardized_data[[volume_features_for_plot[j]]],
+     by = 'eid') %>% 
+  select(value.x, value.y, sex = sex.x) %>% 
+  mutate(sex = factor(sex)) %>% 
+ggplot(aes(value.x, value.y,color = sex)) + 
+  geom_point(shape=20, size = 1, alpha = 1/2) +
+  ggtitle("Volume") + 
+  xlab(sprintf(volume_features_for_plot[1])) + 
+  ylab(sprintf(volume_features_for_plot[5])) +
+  coord_fixed() 
+```
+
+```{r scatter plot residuals}
+inner_join(biobank_residuals_data[[volume_features_for_plot[i]]],
+        biobank_residuals_data[[volume_features_for_plot[j]]],
      by = 'eid') %>% 
   select(value.x, value.y, sex = sex.x) %>% 
   mutate(sex = factor(sex)) %>% 
@@ -161,15 +177,15 @@ ggplot(aes(value.x, value.y,color = sex)) +
 
 ```{r scatter plot two probabilities}
 scatter_plot_two_probabilities <- cbind(
-rbind(inner_join(biobank_feature_residual_analysis[[volume_features_for_plot[1]]]$hypothesis_results$mixture_model$women_responsebilities,
-        biobank_feature_residual_analysis[[volume_features_for_plot[5]]]$hypothesis_results$mixture_model$women_responsebilities,
+rbind(inner_join(biobank_residuals_data[[volume_features_for_plot[i]]],
+        biobank_residuals_data[[volume_features_for_plot[j]]],
      by = 'eid'),
-     inner_join(biobank_feature_residual_analysis[[volume_features_for_plot[1]]]$hypothesis_results$mixture_model$men_responsebilities,
-        biobank_feature_residual_analysis[[volume_features_for_plot[5]]]$hypothesis_results$mixture_model$men_responsebilities,
-     by = 'eid')), c(rep(0,nrow(inner_join(biobank_feature_residual_analysis[[volume_features_for_plot[1]]]$hypothesis_results$mixture_model$women_responsebilities,
-        biobank_feature_residual_analysis[[volume_features_for_plot[5]]]$hypothesis_results$mixture_model$women_responsebilities,
+     inner_join(biobank_feature_residual_analysis[[volume_features_for_plot[i]]]$hypothesis_results$mixture_model$men_responsebilities,
+        biobank_feature_residual_analysis[[volume_features_for_plot[j]]]$hypothesis_results$mixture_model$men_responsebilities,
+     by = 'eid')), c(rep(0,nrow(inner_join(biobank_feature_residual_analysis[[volume_features_for_plot[i]]]$hypothesis_results$mixture_model$women_responsebilities,
+        biobank_feature_residual_analysis[[volume_features_for_plot[j]]]$hypothesis_results$mixture_model$women_responsebilities,
      by = 'eid'))), sex = rep(1,nrow(inner_join(biobank_feature_residual_analysis[[volume_features_for_plot[1]]]$hypothesis_results$mixture_model$men_responsebilities,
-        biobank_feature_residual_analysis[[volume_features_for_plot[5]]]$hypothesis_results$mixture_model$men_responsebilities,
+        biobank_feature_residual_analysis[[volume_features_for_plot[j]]]$hypothesis_results$mixture_model$men_responsebilities,
      by = 'eid'))))) %>% data.frame()
 names(scatter_plot_two_probabilities) = c('eid','responsebility.x', 'responsebility.y', 'sex')
 

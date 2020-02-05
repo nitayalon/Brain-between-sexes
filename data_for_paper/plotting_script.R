@@ -158,68 +158,91 @@ ggplot(combined_df_resid_equal_probs_sorted, aes(p,q, colour = Cohen_D)) +
   ggtitle("Values of p and q", subtitle = "shape is p=q hypothesis") + 
   geom_abline(slope = 1, intercept = 0) + 
   scale_color_gradient2(midpoint=0, 
-                        low="darkblue", 
+                        low="red", 
                         mid="yellow",
-                        high="red", space ="Lab" ) +
+                        high="darkblue", space ="Lab" ) +
   coord_fixed()
 dev.off()
 
 # Mixture model example
-i <- which(mosaic_mixture_model_features$feature_name == 'Volume of grey matter in Lingual Gyrus (left)')
-jpeg(sprintf('histogram of %s log volume.jpeg', mosaic_mixture_model_features$feature_name[i]))
-plotGenderHistogram(biobank_standardized_data[[mosaic_mixture_model_features$feature_name[i]]],
-                    biobank_feature_standard_analysis[[mosaic_mixture_model_features$feature_name[i]]], mosaic_mixture_model_features$feature_name[i])
-
+mixture_model_feature_name <- 'Volume of grey matter in Lingual Gyrus (left)'
+jpeg(sprintf('histogram of %s log volume.jpeg', mixture_model_feature_name))
+plotGenderHistogram(biobank_standardized_data[[mixture_model_feature_name]],
+                    biobank_feature_standard_analysis[[mixture_model_feature_name]],
+mixture_model_feature_name)
 dev.off()
 
-jpeg(sprintf('histogram of %s residuals.jpeg', mosaic_mixture_model_features$feature_name[i]))
-plotGenderHistogram(biobank_residuals_data[[mosaic_mixture_model_features$feature_name[i]]],
-                    biobank_feature_residual_analysis[[mosaic_mixture_model_features$feature_name[i]]], mosaic_mixture_model_features$feature_name[i])
+jpeg(sprintf('histogram of %s residuals.jpeg', mixture_model_feature_name))
+plotGenderHistogram(biobank_residuals_data[[mixture_model_feature_name]],
+                    biobank_feature_residual_analysis[[mixture_model_feature_name]], mixture_model_feature_name)
 dev.off()
 
 # Equal proportions
-i <- which(single_mixture_model_volume_features == "Volume of grey matter in Occipital Fusiform Gyrus (left)")
-jpeg(sprintf('histogram of %s log volume.jpeg', single_mixture_model_volume_features[i]))
-plotGenderHistogram(biobank_standardized_data[[single_mixture_model_volume_features[i]]],
-                    biobank_feature_standard_analysis[[single_mixture_model_volume_features[i]]], single_mixture_model_volume_features[i])
+single_mixture_model_feature_name <- 'Volume of grey matter in Occipital Fusiform Gyrus (left)'
+jpeg(sprintf('histogram of %s log volume.jpeg', single_mixture_model_feature_name))
+plotGenderHistogram(biobank_standardized_data[[single_mixture_model_feature_name]],
+                    biobank_feature_standard_analysis[[single_mixture_model_feature_name]],
+                    single_mixture_model_feature_name)
 dev.off()
 
-jpeg(sprintf('histogram of %s residuals.jpeg', single_mixture_model_volume_features[i]))
-plotGenderHistogram(biobank_residuals_data[[single_mixture_model_volume_features[i]]],
-                    biobank_feature_residual_analysis[[single_mixture_model_volume_features[i]]], single_mixture_model_volume_features[i])
+jpeg(sprintf('histogram of %s residuals.jpeg', single_mixture_model_feature_name))
+plotGenderHistogram(biobank_residuals_data[[single_mixture_model_feature_name]],
+                    biobank_feature_residual_analysis[[single_mixture_model_feature_name]], single_mixture_model_feature_name)
 dev.off()
 
 # Pure types
-i <- which(rownames(pure_types_residual_model_residual_table) == "Volume of grey matter in Postcentral Gyrus (left)")
-
-jpeg(sprintf('histogram of %s log volume.jpeg', rownames(pure_types_residual_model_residual_table)[i]))
-plotGenderHistogram(biobank_standardized_data[[rownames(pure_types_residual_model_residual_table)[i]]],
-                    biobank_feature_standard_analysis[[rownames(pure_types_residual_model_residual_table)[i]]], rownames(pure_types_residual_model_residual_table)[i])
-dev.off()
-jpeg(sprintf('histogram of %s residuals.jpeg', rownames(pure_types_residual_model_residual_table)[i]))
-plotGenderHistogram(biobank_residuals_data[[rownames(pure_types_residual_model_residual_table)[i]]],
-                    biobank_feature_residual_analysis[[rownames(pure_types_residual_model_residual_table)[i]]], rownames(pure_types_residual_model_residual_table)[i])
+pure_type_model_feature_name <- 'Volume of grey matter in Postcentral Gyrus (left)'
+jpeg(sprintf('histogram of %s log volume.jpeg', pure_type_model_feature_name))
+plotGenderHistogram(biobank_standardized_data[[pure_type_model_feature_name]],
+                    biobank_feature_standard_analysis[[pure_type_model_feature_name]],
+                    pure_type_model_feature_name)
 dev.off()
 
-i <- 1
-j <- 2
+jpeg(sprintf('histogram of %s residuals.jpeg', pure_type_model_feature_name))
+plotGenderHistogram(biobank_residuals_data[[pure_type_model_feature_name]],
+                    biobank_feature_residual_analysis[[pure_type_model_feature_name]], pure_type_model_feature_name)
+dev.off()
+
+#### Scatter plots
+i <- 2
+j <- 5
+x_feature <- strsplit(volume_features_for_plot[i], split="in")[[1]][2] %>% trimws()
+y_feature <- strsplit(volume_features_for_plot[j], split="in")[[1]][2] %>% trimws()
 jpeg(sprintf('scatter_plot_of_%s_vs_%s_volume.jpeg',volume_features_for_plot[i],
              volume_features_for_plot[j]))
-inner_join(biobank_standardized_data[[volume_features_for_plot[i]]],
+  inner_join(biobank_standardized_data[[volume_features_for_plot[i]]],
            biobank_standardized_data[[volume_features_for_plot[j]]],
            by = 'eid') %>% 
-  select(`Frontal Pole (left)` = value.x,
-         `Planum Polare (right)` = value.y,
+  select(`Planum Polare (right)` = value.x,
+         `Insular Cortex (right)` = value.y,
          sex = sex.x) %>% 
   mutate(sex = factor(sex)) %>% 
-  ggplot(aes(`Frontal Pole (left)`, `Planum Polare (right)`,
+  ggplot(aes(`Planum Polare (right)`, `Insular Cortex (right)`,
              color = sex)) + 
-  geom_point(shape=1, size = 1) + 
+  geom_point(shape=20, size = 1) + 
+  labs(title = sprintf('%s vs %s',
+                       x_feature, y_feature
+                       ),
+         subtitle = "Log volume",
+         caption = "Measure:Volume of gery matter") + 
   coord_fixed() 
 dev.off()
 
 jpeg(sprintf('scatter_plot_of_%s_vs_%s_residuals.jpeg',volume_features_for_plot[i],volume_features_for_plot[j]))
-ggplot(scatter_plot_two_probabilities, aes(responsebility.x, responsebility.y, col = factor(sex))) + 
-  geom_point(shape=1, size = 1) + 
-  coord_fixed(ratio = 1, xlim = c(0,1), ylim = c(0,1))  
+  inner_join(biobank_residuals_data[[volume_features_for_plot[i]]],
+           biobank_residuals_data[[volume_features_for_plot[j]]],
+           by = 'eid') %>% 
+    select(`Planum Polare (right)` = value.x,
+           `Insular Cortex (right)` = value.y,
+           sex = sex.x) %>% 
+    mutate(sex = factor(sex)) %>% 
+    ggplot(aes(`Planum Polare (right)`, `Insular Cortex (right)`,
+               color = sex)) + 
+    geom_point(shape=20, size = 1) + 
+    labs(title = sprintf('%s vs %s',
+                         x_feature, y_feature
+    ),
+    subtitle = "Residuals",
+    caption = "Measure:Volume of gery matter") + 
+  coord_fixed() 
 dev.off()
