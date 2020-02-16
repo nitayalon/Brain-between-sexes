@@ -263,3 +263,32 @@ ggplot(scatter_plot_two_probabilities, aes(responsebility.x, responsebility.y, c
   geom_point(shape=1, size = 1) + 
   coord_fixed(ratio = 1, xlim = c(0,1), ylim = c(0,1)) 
 ```
+
+
+```{r}
+df_p_vs_q <- combined_df_resid_equal_probs_sorted %>% 
+  select(p,q,Cohen_D,p_equal_q) %>% 
+  mutate(bins_for_cohen_d = cut(Cohen_D, c(-0.3,-0.2,-0.1, 0.1, 0.2, 0.3,0.4))) 
+
+ggplot(df_p_vs_q, aes(p,q)) +
+  geom_point(aes(colour = bins_for_cohen_d,shape = p_equal_q)) +
+  scale_shape_manual(values=c(3, 19))+
+  geom_vline(xintercept = 0.5) +
+  geom_hline(yintercept = 0.5) +
+  ggtitle("Values of p and q", subtitle = "shape is p=q hypothesis") + 
+  geom_abline(slope = 1, intercept = 0) + 
+  scale_color_manual(name = "Cohen D",
+                     values = c("(-0.3,-0.2]" = "red4",
+                                "(-0.2,-0.1]" = "red1",
+                                "(-0.1,0.1]" = "orange1",
+                                "(0.1,0.2]" = "deepskyblue1",
+                                "(0.2,0.3]" = "dodgerblue1",
+                                "(0.3,0.4]" = "dodgerblue2"),
+                     labels = c("<-0.2","0.2<=d<-0.1","-0.1<=d<0.1","0.1<=d<0.2","0.2<=d<3","0.3<=d<0.4")) +
+  theme_bw() + 
+  theme(axis.text.x = element_text(face="bold", color="black", 
+                           size=7),
+          axis.text.y = element_text(face="bold", color="black", 
+                           size=7))
+```
+
