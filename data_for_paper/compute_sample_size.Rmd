@@ -1,0 +1,175 @@
+---
+title: "Compute sample size"
+author: "Nitay Alon"
+date: "March 21, 2020"
+output: html_document
+---
+
+In this report, we illustrate the power function of the mixture model hypothesis, given the sample size. The goal of this report is to demonstrate that the Bio-bank data set is sufficiently large for the mosaic hypothesis testing.
+```{r load functions, include=FALSE}
+library(mixtools)
+library(ggplot2)
+library(dplyr)
+```
+
+```{r comuting under null hypothesis, warning=FALSE}
+n_reps <- 1000
+llrt_500 <- lapply(1:n_reps, function(x){nullHypothesisIsTrueLlk(500)})
+llrt_1000 <- lapply(1:n_reps, function(x){nullHypothesisIsTrueLlk(1000)})
+llrt_5000 <- lapply(1:n_reps, function(x){nullHypothesisIsTrueLlk(5000)})
+llrt_10000 <- lapply(1:n_reps, function(x){nullHypothesisIsTrueLlk(10000)})
+llrt_20000 <- lapply(1:n_reps, function(x){nullHypothesisIsTrueLlk(20000)})
+
+llrt_500_llrt <- sapply(llrt_500, function(x){max(0,x$llrt)})
+llrt_1000_llrt <- sapply(llrt_1000, function(x){max(0,x$llrt)})
+llrt_5000_llrt <- sapply(llrt_5000, function(x){max(0,x$llrt)})
+llrt_10000_llrt <- sapply(llrt_10000, function(x){max(0,x$llrt)})
+llrt_20000_llrt <- sapply(llrt_20000, function(x){max(0,x$llrt)})
+```
+
+```{r}
+plot(ecdf(rexp(1000,0.5)), cex = 0.2)
+lines(ecdf(llrt_500_llrt[llrt_500_llrt > 0.1]),col = 'red',lwd = 0.1)
+lines(ecdf(llrt_1000_llrt[llrt_1000_llrt > 0.1]),col = 'blue',lwd = 0.1)
+lines(ecdf(llrt_5000_llrt[llrt_5000_llrt > 0.1]),col = 'green',lwd = 0.1)
+lines(ecdf(llrt_10000_llrt[llrt_10000_llrt > 0.1]),col = 'pink',lwd = 0.1)
+lines(ecdf(llrt_20000_llrt[llrt_20000_llrt > 0.1]),col = 'orange',lwd = 0.1)
+```
+
+
+```{r plotting llrt cdf}
+h0_data_frame = data.frame(data = c(rexp(1000,0.5),
+                           llrt_500_llrt,
+                            llrt_1000_llrt,
+                            llrt_5000_llrt,
+                            llrt_10000_llrt,
+                           llrt_20000_llrt),
+                           names = factor(c(rep(1:6,rep(1000,6)))))
+                           
+ggplot(h0_data_frame, aes(data, color = names)) + stat_ecdf(geom = "step") + 
+  scale_colour_hue(name="Sample size", labels=c('Chi^2','500', '1000','5000','10000','20000')) + 
+  xlab("X") + 
+  ggtitle("Emprical CDF of log-likelihood ratio", sub = "H0") + 
+  coord_cartesian(
+  xlim = c(0.1,1),
+  ylim = NULL,
+  expand = TRUE,
+  default = FALSE,
+  clip = "on"
+)
+```
+
+```{r h0 ks}
+F500 <- ecdf(llrt_500_llrt)
+F1000 <- ecdf(llrt_1000_llrt)
+F5000 <- ecdf(llrt_5000_llrt)
+F10000 <- ecdf(llrt_10000_llrt)
+F20000 <- ecdf(llrt_20000_llrt)
+chi_sq = rchisq(1000,2)
+Fchiq <- ecdf(chi_sq)
+obs = sort(c(chi_sq,llrt_20000_llrt))
+modified_obs <- obs[obs > 0.1]
+F500_new <- (F500(modified_obs) - F500(0.1)) / (1 - F500(0.1))
+F1000_new <- (F1000(modified_obs) - F1000(0.1)) / (1 - F1000(0.1))
+F5000_new <- (F5000(modified_obs) - F5000(0.1)) / (1 - F5000(0.1))
+F10000_new <- (F10000(modified_obs) - F10000(0.1)) / (1 - F10000(0.1))
+F20000_new <- (F20000(modified_obs) - F20000(0.1)) / (1 - F20000(0.1))
+Fchiq_new <- (Fchiq(modified_obs) - Fchiq(0.1)) / (1 - Fchiq(0.1))
+h0_data_frame = data.frame(ks = c((F500_new - Fchiq_new)
+                            * sqrt(1000 * (1 - F500(0.1))),
+                            (F1000_new - Fchiq_new) * sqrt(1000 * (1 - F1000(0.1))),
+                            (F5000_new - Fchiq_new) * sqrt(1000 * (1 - F5000(0.1))),
+                            (F10000_new - Fchiq_new) * sqrt(1000 * (1 - F10000(0.1))),
+                            (F20000_new - Fchiq_new) * sqrt(1000 * (1 - F20000(0.1)))),
+                           names = factor(c(rep(1:5,rep(length(modified_obs),5)))),
+                           x = rep(modified_obs,5))
+ggplot(h0_data_frame, aes(x=x, y=ks, color = names)) + geom_line() + 
+  scale_colour_hue(name="Sample size", labels=c('500', '1000','5000','10000','20000')) + 
+  xlab("X") + 
+  ggtitle("Emprical CDF of log-likelihood ratio", sub = "H0")
+```
+
+
+```{r alternative llk}
+two_mixture_model_volume_features[1]
+h1_parameters <- 
+biobank_feature_standard_analysis[[two_mixture_model_volume_features[1]]]$hypothesis_results$mixture_model$m_parameters
+llrt_500_h1 <- lapply(1:n_reps, function(x){alternativeHypothesisIsTrueLlk(h1_parameters, 500)})
+llrt_1000_h1 <- lapply(1:n_reps, function(x){alternativeHypothesisIsTrueLlk(h1_parameters, 1000)})
+llrt_5000_h1 <- lapply(1:n_reps, function(x){alternativeHypothesisIsTrueLlk(h1_parameters, 5000)})
+llrt_10000_h1 <- lapply(1:n_reps, function(x){alternativeHypothesisIsTrueLlk(h1_parameters, 10000)})
+llrt_20000_h1 <- lapply(1:n_reps, function(x){alternativeHypothesisIsTrueLlk(h1_parameters, 20000)})
+```
+
+```{r preparing data for plot H1}
+llrt_500_h1_llrt <- unlist(sapply(llrt_500_h1, function(x){x$llrt}))
+llrt_1000_h1_llrt <- unlist(sapply(llrt_1000_h1, function(x){x$llrt}))
+llrt_5000_h1_llrt <- unlist(sapply(llrt_5000_h1, function(x){x$llrt}))
+llrt_10000_h1_llrt <- unlist(sapply(llrt_10000_h1, function(x){x$llrt}))
+llrt_20000_h1_llrt <- lapply(llrt_20000_h1, function(x){x$llrt})
+llrt_20000_h1_llrt_unlist <- unlist(llrt_20000_h1_llrt)
+```
+
+```{r converting it to data frame}
+chi_2_df = data.frame(data = rchisq(1000,3), label = rep(1,1000))
+
+h1_500_df = data.frame(data = llrt_500_h1_llrt, label = rep(2,length(llrt_500_h1_llrt)))
+
+h1_1000_df = data.frame(data = llrt_1000_h1_llrt[llrt_1000_h1_llrt > 0], label = rep(3,length(llrt_1000_h1_llrt[llrt_1000_h1_llrt > 0])))
+
+h1_5000_df = data.frame(data = llrt_5000_h1_llrt[llrt_5000_h1_llrt > 0], label = rep(4,length(llrt_5000_h1_llrt[llrt_5000_h1_llrt > 0])))
+
+h1_10000_df = data.frame(data = llrt_10000_h1_llrt[llrt_10000_h1_llrt > 0], label = rep(5,length(llrt_10000_h1_llrt[llrt_10000_h1_llrt > 0])))
+
+h1_20000_df = data.frame(data = llrt_20000_h1_llrt_unlist[llrt_20000_h1_llrt_unlist > 0], label = rep(6,length(llrt_20000_h1_llrt_unlist[llrt_20000_h1_llrt_unlist > 0])))
+
+h1_data = rbind(chi_2_df,h1_500_df,h1_1000_df,h1_5000_df,h1_10000_df,h1_20000_df)
+names(h1_data) = c('data','names')
+h1_data$names <- as.factor(h1_data$names)
+```
+
+
+```{r plotting H1 llrt CDF}
+ggplot(h1_data, aes(x = data, color = names)) + stat_ecdf(geom = "step") + 
+  scale_colour_hue(name="Sample size", labels=c('Chi^2','500', '1000','5000','10000','20000')) + 
+  xlab("X") + 
+  ggtitle("Emprical CDF of log-likelihood ratio", sub = "H1") + 
+  coord_cartesian(
+  xlim = c(0.1,80),
+  ylim = NULL,
+  expand = TRUE,
+  default = FALSE,
+  clip = "on"
+)
+```
+
+```{r data preparation for plotting H0 and H1 on same plot for comparision}
+h0_1000_samples_llrt <- data.frame(data = llrt_1000_llrt,
+sample_size = rep(1000,length(llrt_1000_llrt)), 
+hypothesis = rep('H0',length(llrt_1000_llrt)))
+h0_5000_samples_llrt <- data.frame(data = llrt_5000_llrt,
+sample_size = rep(5000,length(llrt_1000_llrt)), 
+hypothesis = rep('H0',length(llrt_1000_llrt)))
+
+h1_1000_samples_llrt <- data.frame(data = llrt_1000_h1_llrt,
+sample_size = rep(1000,length(llrt_1000_h1_llrt)), 
+hypothesis = rep('H1',length(llrt_1000_h1_llrt)))
+h1_5000_samples_llrt <- data.frame(data = llrt_5000_h1_llrt,
+sample_size = rep(5000,length(llrt_5000_h1_llrt)), 
+hypothesis = rep('H1',length(llrt_5000_h1_llrt)))
+
+h0_and_h1_power_plot_data <- rbind(h0_1000_samples_llrt, h0_5000_samples_llrt,h1_1000_samples_llrt,h1_5000_samples_llrt)
+h0_and_h1_power_plot_data$sample_size = factor(h0_and_h1_power_plot_data$sample_size)
+```
+
+```{r plotting H0 and H1 on same plot for comparision}
+h0_and_h1_power_plot_data_no_zeros <- h0_and_h1_power_plot_data %>% 
+filter(data > 0)
+
+ggplot(h0_and_h1_power_plot_data_no_zeros, aes(x = data, color = sample_size,linetype = hypothesis)) + 
+  stat_ecdf(geom = "step") + 
+  xlab("X") + 
+  ggtitle("Emprical CDF of log-likelihood ratio", sub = "H0 and H1") +
+  geom_vline(xintercept = quantile(h0_5000_samples_llrt$data, 0.95), linetype = 'dotted', color = 'blue')
+```
+
