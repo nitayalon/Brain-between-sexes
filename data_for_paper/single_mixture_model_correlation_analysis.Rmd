@@ -1,0 +1,81 @@
+---
+title: "Single mixture model corrplot analysis"
+author: "Nitay Alon"
+date: "April 20, 2020"
+output: html_document
+---
+
+```{r select single mixture model features}
+single_mixture_model_features_residuals <- biobank_feature_residual_analysis[equal_probability_mixture_names]
+```
+
+```{r partition t ofeature groups}
+volume_features_single_mixture_model_features <- grep('Volume',equal_probability_mixture_names)
+weighted_mean_MD_features_single_mixture_model_features <- grep('Weighted-mean MD',equal_probability_mixture_names)
+MD_features_single_mixture_model_features <- grep('Mean MD',equal_probability_mixture_names)[!grep('Mean MD',equal_probability_mixture_names) %in% weighted_mean_MD_features_single_mixture_model_features]
+weighted_mean_FA_features_single_mixture_model_features <- grep('Weighted-mean FA',equal_probability_mixture_names)
+FA_features_single_mixture_model_features <- grep('Mean FA',equal_probability_mixture_names)[!grep('Mean FA',equal_probability_mixture_names) %in% weighted_mean_FA_features_single_mixture_model_features]
+```
+
+extract feature data:
+```{r extract FDR significant features data, include=FALSE}
+men_data <- lapply(single_mixture_model_features_residuals, function(x){x$hypothesis_results$mixture_model$men_responsebilities})
+
+women_data <- lapply(single_mixture_model_features_residuals, function(x){x$hypothesis_results$mixture_model$women_responsebilities})
+```
+
+join the tables:
+```{r create men table, include=FALSE, warning=FALSE}
+men_feature_data <- men_data[[1]]
+for(i in 2:length(men_data))
+{
+  men_feature_data <- base::merge(men_feature_data, men_data[[i]], by.x = "eid", by.y = "eid")
+}
+names(men_feature_data) <- c("eid", equal_probability_mixture_names)
+men_features_no_id <- men_feature_data[,-1]
+```
+
+```{r create women table, include=FALSE, warning=FALSE}
+women_feature_data <- women_data[[1]]
+for(i in 2:length(women_data))
+{
+  women_feature_data <- base::merge(women_feature_data, women_data[[i]], by.x = "eid", by.y = "eid")
+}
+names(women_feature_data) <- c("eid", equal_probability_mixture_names)
+women_features_no_id <- women_feature_data[,-1]
+```
+
+```{r correlation matrix by gender, include=FALSE}
+men_cor <- cor(men_features_no_id, use = "pairwise.complete.obs")
+women_cor <- cor(women_features_no_id,use = "pairwise.complete.obs")
+combined_correaltion <- men_cor
+combined_correaltion[lower.tri(combined_correaltion)] <- women_cor[lower.tri(women_cor)]
+colnames(combined_correaltion) <- rownames(combined_correaltion) <- 1:ncol(combined_correaltion)
+```
+
+```{r corrplot mosaic features volume}
+corrplot(combined_correaltion[volume_features_single_mixture_model_features,volume_features_single_mixture_model_features], order="alphabet", 
+         tl.cex = 0.5,tl.srt = 45)
+```
+
+```{r corrplot mosaic Mean MD}
+corrplot(combined_correaltion[MD_features_single_mixture_model_features,MD_features_single_mixture_model_features], order="alphabet", 
+         tl.cex = 1,tl.srt = 45)
+```
+
+```{r corrplot weighted mosaic Mean MD}
+corrplot(combined_correaltion[weighted_mean_MD_features_single_mixture_model_features,weighted_mean_MD_features_single_mixture_model_features], order="alphabet", 
+         tl.cex = 1,tl.srt = 45)
+```
+
+```{r corrplot mosaic Mean FA}
+corrplot(combined_correaltion[FA_features_single_mixture_model_features,FA_features_single_mixture_model_features], order="alphabet", 
+         tl.cex = 1,tl.srt = 45)
+```
+
+```{r corrplot mosaic Weighted Mean FA}
+corrplot(combined_correaltion[weighted_mean_FA_features_single_mixture_model_features,weighted_mean_FA_features_single_mixture_model_features], order="alphabet",
+         tl.cex = 1,tl.srt = 45)
+```
+
+

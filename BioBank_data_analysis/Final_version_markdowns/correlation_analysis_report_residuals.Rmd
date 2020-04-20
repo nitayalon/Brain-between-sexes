@@ -82,33 +82,42 @@ corrplot(pure_type_combined_correaltion_residuals, order = "alphabet", method = 
 ```{r extract FDR significant features all data, include=FALSE}
 two_mixture_model_features_residuals <- biobank_feature_residual_analysis[non_equal_probability_mixture_names]
 
-men_data_residuals <- lapply(two_mixture_model_features_residuals, function(x){x$hypothesis_results$mixture_model$men_responsebilities})
+two_mixture_model_men_data_residuals <- lapply(two_mixture_model_features_residuals, function(x){x$hypothesis_results$mixture_model$men_responsebilities})
 
-women_data_residuals <- lapply(two_mixture_model_features_residuals, function(x){x$hypothesis_results$mixture_model$women_responsebilities})
+two_mixture_model_women_data_residuals <- lapply(two_mixture_model_features_residuals, function(x){x$hypothesis_results$mixture_model$women_responsebilities})
 ```
 
 join the tables:
 ```{r create men table all data, include=FALSE, warning=FALSE}
-men_feature_data_residuals <- men_data_residuals[[1]]
-for(i in 2:length(men_data_residuals))
+two_mixture_model_men_feature_data_residuals <- two_mixture_model_men_data_residuals[[1]]
+for(i in 2:length(two_mixture_model_men_data_residuals))
 {
-  men_feature_data_residuals <- base::merge(men_feature_data_residuals, men_data_residuals[[i]], by.x = "eid", by.y = "eid")
+  two_mixture_model_men_feature_data_residuals <- base::merge(two_mixture_model_men_feature_data_residuals, two_mixture_model_men_data_residuals[[i]], by.x = "eid", by.y = "eid")
 }
-names(men_feature_data_residuals) <- c("eid", non_equal_probability_mixture_names)
-men_features_no_id_residuals <- men_feature_data_residuals[,-1]
+names(two_mixture_model_men_feature_data_residuals) <- c("eid", non_equal_probability_mixture_names)
+two_mixture_model_men_features_no_id_residuals <- two_mixture_model_men_feature_data_residuals[,-1]
 ```
 
 ```{r create women table all data, include=FALSE, warning=FALSE}
-women_feature_data_residuals <- women_data_residuals[[1]]
-for(i in 2:length(women_data_residuals))
+two_mixture_model_women_feature_data_residuals <- two_mixture_model_women_data_residuals[[1]]
+for(i in 2:length(two_mixture_model_women_data_residuals))
 {
-  women_feature_data_residuals <- base::merge(women_feature_data_residuals, women_data_residuals[[i]], by.x = "eid", by.y = "eid")
+  two_mixture_model_women_feature_data_residuals <- base::merge(two_mixture_model_women_feature_data_residuals, two_mixture_model_women_data_residuals[[i]], by.x = "eid", by.y = "eid")
 }
-names(women_feature_data_residuals) <- c("eid", non_equal_probability_mixture_names)
-women_features_no_id_residuals <- women_feature_data_residuals[,-1]
+names(two_mixture_model_women_feature_data_residuals) <- c("eid", non_equal_probability_mixture_names)
+two_mixture_model_women_features_no_id_residuals <- two_mixture_model_women_feature_data_residuals[,-1]
 ```
 
-## Correlation matrix
+```{r separate features by group}
+volume_features_mosaic_features <- grep('Volume',non_equal_probability_mixture_names)
+
+weighted_mean_MD_features_mosaic_features <- grep('Weighted-mean MD',non_equal_probability_mixture_names)
+MD_features_mosaic_features <- grep('Mean MD',non_equal_probability_mixture_names)[!grep('MD',non_equal_probability_mixture_names) %in%  weighted_mean_MD_features_mosaic_features]
+
+weighted_mean_FA_features_mosaic_features <- grep('Weighted-mean FA',non_equal_probability_mixture_names)
+FA_features_mosaic_features <- grep('Mean FA',non_equal_probability_mixture_names)[!grep('FA',non_equal_probability_mixture_names) %in% weighted_mean_FA_features_mosaic_features]
+```
+
 
 ```{r correlation matrix by gender all data, include=FALSE}
 men_cor_residuals <- cor(men_features_no_id_residuals, use = "pairwise.complete.obs")
@@ -120,27 +129,31 @@ combined_correaltion_residuals[lower.tri(combined_correaltion_residuals)] <- wom
 ```{r preparing the feature names lagend}
 two_mixture_model_corrplot_legend <- data.frame(feature_name = colnames(combined_correaltion_residuals), 
                                                 number = 1:ncol(combined_correaltion_residuals))
-volume_features_two_mixture_model <- grep('Volume',two_mixture_model_corrplot_legend$feature_name)
-MD_features_two_mixture_model <- grep('MD',two_mixture_model_corrplot_legend$feature_name)
-weighted_mean_MD_features_two_mixture_model <- grep('Weighted-mean MD',two_mixture_model_corrplot_legend$feature_name)
-
-FA_features_two_mixture_model <- grep('FA',two_mixture_model_corrplot_legend$feature_name)
 colnames(combined_correaltion_residuals) <- rownames(combined_correaltion_residuals) <- 1:ncol(combined_correaltion_residuals)
 ```
 
 
 ```{r corrplot of volume features single mixture model}
-corrplot(combined_correaltion_residuals[volume_features_two_mixture_model,volume_features_two_mixture_model], order = "alphabet",
-         tl.cex = 0.6)#,tl.srt = 45)
+corrplot(combined_correaltion_residuals[volume_features_mosaic_features,volume_features_mosaic_features], order = "alphabet",tl.cex = 0.4)
 ```
 
 ```{r corrplot of MD features single mixture model}
-corrplot(combined_correaltion_residuals[MD_features_two_mixture_model,MD_features_two_mixture_model], order = "alphabet",
+corrplot(combined_correaltion_residuals[MD_features_mosaic_features,MD_features_mosaic_features], order = "alphabet",
          tl.cex = 1.0,tl.srt = 45)
 ```
 
+```{r corrplot of weighted mean MD features single mixture model}
+corrplot(combined_correaltion_residuals[weighted_mean_MD_features_mosaic_features,weighted_mean_MD_features_mosaic_features], order = "alphabet",
+         tl.cex = 1.0,tl.srt = 45)
+```
+
+
 ```{r corrplot of FA features single mixture model}
-corrplot(combined_correaltion_residuals[FA_features_two_mixture_model,FA_features_two_mixture_model], order = "alphabet",
+corrplot(combined_correaltion_residuals[FA_features_mosaic_features,FA_features_mosaic_features], order = "alphabet",
+         tl.cex = 0.8)
+```
+```{r corrplot of weighted mean FA features single mixture model}
+corrplot(combined_correaltion_residuals[weighted_mean_FA_features_mosaic_features,weighted_mean_FA_features_mosaic_features], order = "alphabet",
          tl.cex = 0.8)
 ```
 
