@@ -8,6 +8,7 @@ output: html_document
 This markdown file contains a set of functions and scripts required for importing and data cleansing of the BioBank data set.
 ```{r load libraries, include=FALSE}
 library(dplyr)
+library(magrittr)
 library(ggplot2)
 library(Jmisc)
 library(pbapply)
@@ -30,6 +31,15 @@ columns_names <- read.csv("~/Human_brain_research/Data/Biobank/convertcsv.csv", 
 names(bio_bank_data) = columns_names$Description
 ```
 
+```{r april 2020 update}
+daphna_names <- read.delim("~/Desktop/columns_names.txt",header = F)
+original_names <- read.delim("~/Desktop/columns_names_original.txt",header = F)
+length(daphna_names$V1)
+length(original_names$V1)
+length(intersect(list.of.names,daphna_names$V1)) - length(list.of.names)
+```
+
+
 ```{r filter relevant features}
 relevant_region <- c(seq(45,167)
                      ,seq(177,194)
@@ -48,8 +58,10 @@ total.brain.volume.data <- filtered_bio_bank_data %>%
   select("Volume of brain, grey+white matter","Volume of ventricular cerebrospinal fluid")
 names(filtered_bio_bank_data)[1] <- "eid"
 user_data <- select(filtered_bio_bank_data, eid, Sex)
-relevant_data <- bio_bank_data[,relevant_region]
+# This part is changed
+relevant_data <- bio_bank_data[,names(bio_bank_data) %in% daphna_names$V1]
 list.of.names <- names(relevant_data)
+length(intersect(list.of.names,daphna_names$V1))
 ```
 
 # Preparing the data sets
@@ -61,7 +73,7 @@ biobank_residuals_data <- pblapply(list.of.names,function(x){
 methodHelperOfResidualComputation(x,user_data,total.brain.volume.data)
 })
 names(biobank_residuals_data) <- list.of.names
-save(biobank_residuals_data, file = "~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/BioBank_residual_data.RData")
+save(biobank_residuals_data, file = "~/Desktop/BioBank_residual_data.RData")
 ```
 
 Second data set - log, winsorized, standardize.
@@ -71,7 +83,7 @@ biobank_standardized_data <- pblapply(list.of.names,function(x){
 methodHelperFeatureNormalization(x,user_data)
 })
 names(biobank_standardized_data) <- list.of.names
-save(biobank_standardized_data, file = "~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/BioBank_standardized_data.RData")
+save(biobank_standardized_data, file = "~/Desktop/BioBank_standardized_data.RData")
 ```
 
 Third data set - log, winsorized, residuals, normalized
@@ -84,7 +96,7 @@ methodHelperOfResidualComputation(x,user_data,total.brain.volume.data,
                                   normalized = T)
 })
 names(biobank_normalized_residuals_data) <- list.of.names
-save(biobank_normalized_residuals_data, file = "~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/Biobank_normalized_residuals_data.RData")
+save(biobank_normalized_residuals_data, file = "~/Desktop/Biobank_normalized_residuals_data.RData")
 ```
 
 Next edit the code for EM computation and apply it on both data sets
@@ -102,7 +114,7 @@ biobank_feature_residual_analysis <- pblapply(biobank_residuals_data,function(x)
   BrainFeatureAnalysis(x)
 })
 names(biobank_feature_residual_analysis) <- list.of.names
-save(biobank_feature_residual_analysis, file = "~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/biobank_feature_residual_analysis.RData")
+save(biobank_feature_residual_analysis, file = "~/Desktop/biobank_feature_residual_analysis.RData")
 ```
 
 
@@ -113,7 +125,7 @@ biobank_feature_standard_analysis <- pblapply(biobank_standardized_data,function
   BrainFeatureAnalysis(x, including_equal_mixture_model = F)
 })
 names(biobank_feature_standard_analysis) <- list.of.names
-save(biobank_feature_standard_analysis, file = "~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/biobank_feature_standard_analysis.RData")
+save(biobank_feature_standard_analysis, file = "~/Desktop/biobank_feature_standard_analysis.RData")
 ```
 
 

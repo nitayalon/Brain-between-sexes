@@ -122,6 +122,8 @@ two_mixture_model_corrplot_legend <- data.frame(feature_name = colnames(combined
                                                 number = 1:ncol(combined_correaltion_residuals))
 volume_features_two_mixture_model <- grep('Volume',two_mixture_model_corrplot_legend$feature_name)
 MD_features_two_mixture_model <- grep('MD',two_mixture_model_corrplot_legend$feature_name)
+weighted_mean_MD_features_two_mixture_model <- grep('Weighted-mean MD',two_mixture_model_corrplot_legend$feature_name)
+
 FA_features_two_mixture_model <- grep('FA',two_mixture_model_corrplot_legend$feature_name)
 colnames(combined_correaltion_residuals) <- rownames(combined_correaltion_residuals) <- 1:ncol(combined_correaltion_residuals)
 ```

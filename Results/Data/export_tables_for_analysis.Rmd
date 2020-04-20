@@ -292,3 +292,9 @@ ggplot(df_p_vs_q, aes(p,q)) +
                            size=7))
 ```
 
+```{r checking number of significantly different features}
+mosaic_mixture_model_features %>%
+  filter(p < 0.5 & q > 0.5) %>% 
+  nrow()
+```
+
