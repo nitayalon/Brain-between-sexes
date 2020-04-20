@@ -9,6 +9,7 @@ output: html_document
 First we summarize for each non significant feature the following: Name, Cohen-D for log transformation, Cohen-D for residual analysis and double sided T-Test
 ```{r final residual data partition to tables, warning=FALSE}
 library(dplyr)
+library(RColorBrewer)
 
 pure_types_features_names <- row.names(pure_types_residual_model_table)
 
@@ -100,6 +101,7 @@ single_mixture_model_volume_features <- equal_probability_mixture_names[equal_pr
 two_mixture_model_volume_features <- non_equal_probability_mixture_names[non_equal_probability_mixture_names %>% grep("Volume",.)]
 ```
 
+
 ```{r full mixture model histograms}
 i <- which(non_equal_probability_mixture_names == 'Volume of grey matter in Lingual Gyrus (left)')
 plotGenderHistogram(biobank_standardized_data[[non_equal_probability_mixture_names[i]]],
@@ -124,10 +126,10 @@ plotGenderHistogram(biobank_residuals_data[[single_mixture_model_volume_features
 ```{r residual pure type with log data}
 i <- which(pure_types_features_names == "Volume of grey matter in Postcentral Gyrus (left)")
 plotGenderHistogram(biobank_standardized_data[[pure_types_features_names[i]]],
-  biobank_feature_standard_analysis[[pure_types_features_names[i]]], pure_types_features_names[i])
+  biobank_feature_standard_analysis[[pure_types_features_names[i]]], pure_types_features_names[i],F)
 
 plotGenderHistogram(biobank_residuals_data[[pure_types_features_names[i]]],
-  biobank_feature_residual_analysis[[pure_types_features_names[i]]], pure_types_features_names[i])
+  biobank_feature_residual_analysis[[pure_types_features_names[i]]], pure_types_features_names[i],two_mixtures = F)
 ```
 
 Plotting 2 features side by side to see the mosiac 
@@ -292,9 +294,5 @@ ggplot(df_p_vs_q, aes(p,q)) +
                            size=7))
 ```
 
-```{r checking number of significantly different features}
-mosaic_mixture_model_features %>%
-  filter(p < 0.5 & q > 0.5) %>% 
-  nrow()
-```
+
 

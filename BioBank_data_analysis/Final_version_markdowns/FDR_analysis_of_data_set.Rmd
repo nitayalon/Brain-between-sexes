@@ -323,6 +323,20 @@ single_mixture_model_features <- combined_df_resid_equal_probs_sorted[combined_d
 write.csv(single_mixture_model_features, "equal_mixture_model_features_residuals.csv")
 ```
 
+Last (April 2020), we check the nubmer ofg features men and women sample diffrentley
+
+```{r checking number of significantly different features}
+mainly_women <- mosaic_mixture_model_features %>%
+  filter(p < 0.5 & q > 0.5)
+
+mainly_men <-mosaic_mixture_model_features %>%
+  filter(p > 0.5 & q < 0.5)
+
+nrow(mainly_women) + nrow(mainly_men)
+
+q2_q4_features_names <- c(mainly_women$feature, mainly_men$feature)
+```
+
 
 # Analysis of non signifanct features
 

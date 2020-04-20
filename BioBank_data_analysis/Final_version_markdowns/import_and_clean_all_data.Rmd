@@ -52,16 +52,27 @@ names(demographic_data) <- c("Sex","Year_Of_Birth",
 full_relevant_data <- cbind(demographic_data, relevant_data)
 ```
 
+```{r demographic data analysis}
+full_relevant_data %>% 
+  mutate(age = 2019 - Year_Of_Birth) %>% 
+  group_by(Sex) %>% 
+  summarise(avg = mean(age), std = sd(age), count = n())
+```
+
+
 ```{r list of features names}
 filtered_bio_bank_data <- bio_bank_data[,names(bio_bank_data) != ""]
 total.brain.volume.data <- filtered_bio_bank_data %>% 
   select("Volume of brain, grey+white matter","Volume of ventricular cerebrospinal fluid")
 names(filtered_bio_bank_data)[1] <- "eid"
 user_data <- select(filtered_bio_bank_data, eid, Sex)
-# This part is changed
 relevant_data <- bio_bank_data[,names(bio_bank_data) %in% daphna_names$V1]
 list.of.names <- names(relevant_data)
 length(intersect(list.of.names,daphna_names$V1))
+```
+
+```{r}
+user_data %>% group_by(Sex) %>% summarise(count = n())
 ```
 
 # Preparing the data sets

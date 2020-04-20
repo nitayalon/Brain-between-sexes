@@ -1,0 +1,68 @@
+---
+title: "Mosaic features corrplot"
+author: "Nitay Alon"
+date: "April 20, 2020"
+output: html_document
+---
+
+In this report we plot 5 corrplots for each of the five categories of brain measures
+```{r filter FDR significant features antidiagonal, include=FALSE}
+FDR_mosaic_features <- q2_q4_features_names
+```
+
+extract feature data:
+```{r extract FDR significant features data, include=FALSE}
+mosaic_features <- biobank_feature_residual_analysis[FDR_mosaic_features]
+
+men_data <- lapply(mosaic_features, function(x){x$hypothesis_results$mixture_model$men_responsebilities})
+
+women_data <- lapply(mosaic_features, function(x){x$hypothesis_results$mixture_model$women_responsebilities})
+```
+
+join the tables:
+```{r create men table, include=FALSE, warning=FALSE}
+men_feature_data <- men_data[[1]]
+for(i in 2:length(men_data))
+{
+  men_feature_data <- base::merge(men_feature_data, men_data[[i]], by.x = "eid", by.y = "eid")
+}
+names(men_feature_data) <- c("eid", FDR_mosaic_features)
+men_features_no_id <- men_feature_data[,-1]
+```
+
+```{r create women table, include=FALSE, warning=FALSE}
+women_feature_data <- women_data[[1]]
+for(i in 2:length(women_data))
+{
+  women_feature_data <- base::merge(women_feature_data, women_data[[i]], by.x = "eid", by.y = "eid")
+}
+names(women_feature_data) <- c("eid", FDR_mosaic_features)
+women_features_no_id <- women_feature_data[,-1]
+```
+
+```{r correlation matrix by gender, include=FALSE}
+men_cor <- cor(men_features_no_id, use = "pairwise.complete.obs")
+women_cor <- cor(women_features_no_id,use = "pairwise.complete.obs")
+combined_correaltion <- men_cor
+combined_correaltion[lower.tri(combined_correaltion)] <- women_cor[lower.tri(women_cor)]
+```
+
+Separating the regions:
+
+```{r partiton to features, include=FALSE}
+volume_features_mosaic_features <- grep('Volume',q2_q4_features_names)
+MD_features_mosaic_features <- grep('MD',q2_q4_features_names)
+weighted_mean_MD_features_mosaic_features <- grep('Weighted-mean MD',q2_q4_features_names)
+FA_features_mosaic_features <- grep('FA',q2_q4_features_names)
+weighted_mean_FA_features_mosaic_features <- grep('Weighted-mean FA',q2_q4_features_names)
+# colnames(combined_correaltion_residuals) <- rownames(combined_correaltion_residuals) <- 1:ncol(combined_correaltion_residuals)
+```
+
+```{r corrplot by name both genders}
+corrplot(combined_correaltion[volume_features_mosaic_features,volume_features_mosaic_features], order="alphabet", title="both genders",
+         tl.cex = 0.1,tl.srt = 45)
+```
+```{r corrplot by name both genders}
+corrplot(combined_correaltion[FA_features_mosaic_features,FA_features_mosaic_features], order="alphabet", title="both genders",method = 'ellipse',
+         tl.cex = 0.1,tl.srt = 45)
+```

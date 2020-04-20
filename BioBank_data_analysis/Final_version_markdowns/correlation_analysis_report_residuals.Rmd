@@ -144,7 +144,6 @@ corrplot(combined_correaltion_residuals[FA_features_two_mixture_model,FA_feature
          tl.cex = 0.8)
 ```
 
-
 ## Single mixture model
 
 ```{r extract FDR significant features all data, include=FALSE}
@@ -217,12 +216,6 @@ corrplot(combined_correaltion_residuals[MD_features_single_mixture_model,MD_feat
 corrplot(combined_correaltion_residuals[FA_features_single_mixture_model,FA_features_single_mixture_model], order = "alphabet",
          tl.cex = 1.5,tl.srt = 45)
 ```
-
-
-
-
-
-
 
 ```{r corrplot by eigenvalues both genders all data}
 corrplot(combined_correaltion_residuals, title="both genders - full data", order = "FPC",
@@ -346,11 +339,7 @@ corrplot(no_gender_effect_combined_correaltion_residuals, title="both genders - 
 ## Anti diagonal
 First select only FDR significant features from the antidiagonal: 
 ```{r filter FDR significant features antidiagonal, include=FALSE}
-sig_level <- 0.01
-FDR_significant_features <- rownames(combined_df_long_sorted_residuals)[
-    with(combined_df_long_sorted_residuals,(fdr_pv <= sig_level & 
-region == "Anti"))]  
-FDR_significant_features <- na.omit(FDR_significant_features)
+FDR_significant_features <- q2_q4_features_names
 ```
 
 extract feature data:
@@ -574,3 +563,6 @@ corrplot(combined_correaltion_standard[MD_features_standard,MD_features_standard
 corrplot(combined_correaltion_standard[Volume_features_standard,Volume_features_standard], method="color", title="Volume",
          tl.cex = 0.1,tl.srt = 45, order = "alphabet")  
 ```
+
+
+
