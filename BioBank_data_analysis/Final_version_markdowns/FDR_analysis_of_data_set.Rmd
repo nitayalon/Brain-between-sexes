@@ -329,12 +329,18 @@ Last (April 2020), we check the nubmer ofg features men and women sample diffren
 mainly_women <- mosaic_mixture_model_features %>%
   filter(p < 0.5 & q > 0.5)
 
-mainly_men <-mosaic_mixture_model_features %>%
+mainly_men <- mosaic_mixture_model_features %>%
   filter(p > 0.5 & q < 0.5)
 
 nrow(mainly_women) + nrow(mainly_men)
 
 q2_q4_features_names <- c(mainly_women$feature, mainly_men$feature)
+
+min(mainly_men$p);max(mainly_men$p)
+min(mainly_men$q);max(mainly_men$q)
+which.max(mainly_men$p)
+which.min(mainly_men$p)
+mainly_men[7,]$q
 ```
 
 

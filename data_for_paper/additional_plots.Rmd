@@ -5,8 +5,99 @@ date: "April 20, 2020"
 output: html_document
 ---
 
-This report creates additional plots for the paper
-```{r Figure 1}
+Four plots for different features
+```{r load libraries}
+library(RColorBrewer)
+library(dplyr)
+```
 
+```{r Figure 1 dominant male distribution}
+i <- which(non_equal_probability_mixture_names == 'Volume of grey matter in Lingual Gyrus (left)')
+plotGenderHistogram(biobank_residuals_data[[non_equal_probability_mixture_names[i]]],
+  biobank_feature_residual_analysis[[non_equal_probability_mixture_names[i]]], non_equal_probability_mixture_names[i])
+```
+
+```{r Figure 1 single mixture model}
+i <- which(single_mixture_model_volume_features == "Volume of grey matter in Occipital Fusiform Gyrus (left)")
+
+plotGenderHistogram(biobank_residuals_data[[non_equal_probability_mixture_names[i]]],
+  biobank_feature_residual_analysis[[single_mixture_model_volume_features[i]]], 
+  single_mixture_model_volume_features[i])
+```
+
+```{r Figure 1 two mixture main diagonal}
+i <- which(non_equal_probability_mixture_names == "Volume of grey matter in Postcentral Gyrus (right)")
+
+plotGenderHistogram(biobank_residuals_data[[non_equal_probability_mixture_names[i]]],
+  biobank_feature_residual_analysis[[non_equal_probability_mixture_names[i]]], non_equal_probability_mixture_names[i])
+```
+
+```{r Figure 1 pure types}
+i <- which(pure_types_features_names == "Volume of grey matter in Postcentral Gyrus (left)")
+plotGenderHistogram(biobank_residuals_data[[pure_types_features_names[i]]],
+  biobank_feature_residual_analysis[[pure_types_features_names[i]]], pure_types_features_names[i],two_mixtures = F)
+```
+
+# Sorted correlation plot
+
+```{r extract FDR significant features all data, include=FALSE}
+all_men_data_residuals <- lapply(biobank_feature_residual_analysis, function(x){x$hypothesis_results$mixture_model$men_responsebilities})
+
+all_women_data_residuals <- lapply(biobank_feature_residual_analysis, function(x){x$hypothesis_results$mixture_model$women_responsebilities})
+```
+
+join the tables:
+```{r create men table all data, include=FALSE, warning=FALSE}
+all_men_feature_data_residuals <- all_men_data_residuals[[1]]
+for(i in 2:length(all_men_data_residuals))
+{
+  all_men_feature_data_residuals <- base::merge(all_men_feature_data_residuals, all_men_data_residuals[[i]], by.x = "eid", by.y = "eid")
+}
+names(all_men_feature_data_residuals) <- c("eid", non_equal_probability_mixture_names)
+all_men_features_no_id_residuals <- all_men_feature_data_residuals[,-1]
+```
+
+```{r create women table all data, include=FALSE, warning=FALSE}
+all_women_feature_data_residuals <- all_women_data_residuals[[1]]
+for(i in 2:length(all_women_data_residuals))
+{
+  all_women_feature_data_residuals <- base::merge(all_women_feature_data_residuals, all_women_data_residuals[[i]], by.x = "eid", by.y = "eid")
+}
+names(all_women_feature_data_residuals) <- c("eid", non_equal_probability_mixture_names)
+all_women_features_no_id_residuals <- all_women_feature_data_residuals[,-1]
+```
+
+```{r correlation matrix by gender all data, include=FALSE}
+all_men_cor_residuals <- cor(all_men_features_no_id_residuals, use = "pairwise.complete.obs")
+all_women_cor_residuals <- cor(all_women_features_no_id_residuals,use = "pairwise.complete.obs")
+combined_correaltion_all_residuals <- all_men_cor_residuals
+combined_correaltion_all_residuals[lower.tri(combined_correaltion_all_residuals)] <- all_women_cor_residuals[lower.tri(all_women_cor_residuals)]
+```
+
+
+```{r sorted correlation plot}
+all_men_cor_residuals_vector <- 
+  all_men_cor_residuals[upper.tri(all_men_cor_residuals)] %>% 
+  as.vector()
+
+all_women_cor_residuals_vector <- 
+  all_women_cor_residuals[upper.tri(all_women_cor_residuals)] %>% 
+  as.vector()
+
+both_genders_residuals_correlation_vector_df = data.frame(index = seq(1,length(sort(all_men_cor_residuals_vector))),
+                                                          men_residual_correlation = sort(all_men_cor_residuals_vector),
+                                                          women_residual_correlation = sort(all_women_cor_residuals_vector))
+
+```
+
+```{r}
+ggplot(both_genders_residuals_correlation_vector_df, aes(x = index)) + 
+  geom_line(aes(y = men_residual_correlation, color = 'men')) + 
+  geom_line(aes(y = women_residual_correlation, color = 'women')) + 
+  scale_color_manual(values=c('dodgerblue','tomato'))+
+  scale_size_manual(values=c(1.0, 1.0))+
+  ggtitle("Men and women sorted residual correlation") + 
+  xlab("Index") + 
+  ylab('Correlation')
 ```
 

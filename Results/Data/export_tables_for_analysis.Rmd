@@ -104,6 +104,7 @@ two_mixture_model_volume_features <- non_equal_probability_mixture_names[non_equ
 
 ```{r full mixture model histograms}
 i <- which(non_equal_probability_mixture_names == 'Volume of grey matter in Lingual Gyrus (left)')
+
 plotGenderHistogram(biobank_standardized_data[[non_equal_probability_mixture_names[i]]],
   biobank_feature_standard_analysis[[non_equal_probability_mixture_names[i]]], non_equal_probability_mixture_names[i])
 

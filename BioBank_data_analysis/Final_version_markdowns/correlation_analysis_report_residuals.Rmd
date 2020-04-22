@@ -8,13 +8,8 @@ output: html_document
 In the E-step of the EM algorithm we compute the above conditional probabilities. The first step is to extract these probabilities and create a new table of id and probabilities.
 
 ```{r load methods, include=FALSE}
-# local_server_prefix <- "~/Documents/Human_brain_research/DAPHNA_JOEL/"
 library(pbapply)
 library(corrplot)
-local_server_prefix <- "~/Human_brain_research/"
-source(paste0(local_server_prefix,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/analyze_full_brain_feature.R"))
-source(paste0(local_server_prefix,"BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/method_helper.R"))
-# source(paste0(local_server_prefix,"BioBank_data_analysis/load_biobank_data.R"))
 ```
 
 ```{r load data, include=FALSE}

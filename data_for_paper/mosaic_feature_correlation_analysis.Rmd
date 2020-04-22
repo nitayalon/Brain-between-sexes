@@ -62,6 +62,12 @@ colnames(combined_correaltion) <- rownames(combined_correaltion) <- 1:ncol(combi
 corrplot(combined_correaltion[volume_features_mosaic_features,volume_features_mosaic_features], order="alphabet", 
          tl.cex = 0.5,tl.srt = 45)
 ```
+```{r distribution of correlation, include=FALSE}
+sum(abs(combined_correaltion[volume_features_mosaic_features,volume_features_mosaic_features]) < 0.1) / 
+  (nrow(combined_correaltion[volume_features_mosaic_features,volume_features_mosaic_features]) * ncol(combined_correaltion[volume_features_mosaic_features,volume_features_mosaic_features]))
+```
+
+
 ```{r corrplot mosaic Mean MD}
 corrplot(combined_correaltion[MD_features_mosaic_features,MD_features_mosaic_features], order="alphabet", 
          tl.cex = 1,tl.srt = 45)
