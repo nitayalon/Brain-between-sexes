@@ -112,8 +112,6 @@ ggplot(combined_df_long_sorted_residuals, aes(i,bh_pvalue,colour = region)) +
   geom_hline(yintercept = 0.05) +
   geom_hline(yintercept = 0.1) +
   ggtitle("FDR p-values")
-  # geom_vline(xintercept = 0.5) +
-  # geom_abline(slope = 1, intercept = 0)
 ```
 
 The tables below are the number of significant features, per significance level:
@@ -158,6 +156,9 @@ pure_types_residual_model_em_results <- biobank_feature_residual_analysis[rownam
 pure_types_residual_model_table[order(pure_types_residual_model_table$Cohen_D),]
 ```
 
+```{r combine the EM results with the FDR results for export}
+write.csv(pure_types_residual_model_table, file = "pure_types_features_residual_data.csv", row.names = T)
+```
 
 
 ```{r fdr p value by quadrant, warnings = FALSE}
