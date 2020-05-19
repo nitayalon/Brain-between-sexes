@@ -1,0 +1,70 @@
+---
+title: "compare correlation matrix structure"
+author: "Nitay Alon"
+date: "May 15, 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(corrplot)
+library(pbapply)
+library(dplyr)
+```
+
+```{r Q2 Q4 quaradnts correlation matrix, warning=FALSE}
+q2_q4_correlation_matrix <- computeCorrelationMatrix(q2_q4_features_names)
+```
+
+```{r Q1 Q3 quaradnts correlation matrix, warning=FALSE}
+q1_q3_features_sorted <- sort(q1_and_q3_features)
+q1_q3_correlation_matrix <- computeCorrelationMatrix(q1_q3_features_sorted)
+```
+
+```{r p equals q correlation matrix,warning=FALSE}
+p_equal_q_correlation_matrix <- computeCorrelationMatrix(equal_probability_mixture_names)
+```
+
+
+# Plot new correlation plots
+
+```{r features location list}
+volume_features_mosaic_features <- grep('Volume',sort(q2_q4_correlation_matrix$legend$feature_name))
+weighted_mean_MD_features_mosaic_features <- grep('Weighted-mean MD',sort(names(q2_q4_correlation_matrix$legend$feature_name)))
+MD_features_mosaic_features <- grep('Mean MD',sort(names(q2_q4_correlation_matrix$legend$feature_name)))[!grep('Mean MD',sort(names(q2_q4_correlation_matrix$legend$feature_name))) %in% weighted_mean_MD_features_mosaic_features]
+weighted_mean_FA_features_mosaic_features <- grep('Weighted-mean FA',sort(names(q2_q4_correlation_matrix$legend$feature_name)))
+FA_features_mosaic_features <- grep('Mean FA',sort(names(q2_q4_correlation_matrix$legend$feature_name)))[!grep('Mean FA',sort(names(q2_q4_correlation_matrix$legend$feature_name))) %in% weighted_mean_FA_features_mosaic_features]
+```
+
+
+```{r plot new mean fa correlation plot}
+plotCorrelationPlot(p_equal_q_correlation_matrix,'Weighted-mean FA', 1)
+```
+
+
+```{r remove diagonal}
+diag(q2_q4_correlation_matrix$correlation_matrix) <- NA
+diag(q1_q3_correlation_matrix$correlation_matrix) <- NA
+diag(p_equal_q_correlation_matrix$correlation_matrix) <- NA
+```
+
+```{r cdf plot}
+plot(ecdf(q2_q4_correlation_matrix$correlation_matrix), xlim = c(-1,1), col = 'red', main = 'Empirical CDF of corrplots values')
+lines(ecdf(q1_q3_correlation_matrix$correlation_matrix), col = 'green')
+lines(ecdf(p_equal_q_correlation_matrix$correlation_matrix), col = 'blue')
+legend(-1, 1.0, legend=c("Q2-Q4", "Q1-Q3", 'p=q'),
+       col=c("red", "green", 'blue'), lty = 1)
+```
+
+```{r Volume ecdf}
+region <- 'Weighted-mean MD'
+plot(ecdf(p_equal_q_correlation_matrix$correlation_matrix[grep(region,p_equal_q_correlation_matrix$legend$feature_name),
+                                                      grep(region,p_equal_q_correlation_matrix$legend$feature_name)]), xlim = c(-1,1), col = 'blue', main = 'Empirical CDF of corrplots values', sub = region)
+lines(ecdf(q1_q3_correlation_matrix$correlation_matrix[grep(region,q1_q3_correlation_matrix$legend$feature_name),
+                                                       grep(region,q1_q3_correlation_matrix$legend$feature_name)]), col = 'green')
+# lines(ecdf(q2_q4_correlation_matrix$correlation_matrix[grep(region,q2_q4_correlation_matrix$legend$feature_name),grep(region,q2_q4_correlation_matrix$legend$feature_name)]), col = 'red')
+legend(-1, 1.0, legend=c("Q2-Q4", "Q1-Q3", 'p=q'),
+       col=c("red", "green", 'blue'), lty = 1)
+
+```
+
+Foreach feature check where the majoirity of men are, if the men are at the higher feature do nothing. Else replace $p = (1-p)$ ,$q = (1-q)$, write donw the number of permutations.

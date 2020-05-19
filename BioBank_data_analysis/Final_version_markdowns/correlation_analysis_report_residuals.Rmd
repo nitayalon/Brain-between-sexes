@@ -53,6 +53,12 @@ names(pure_type_women_feature_data_residuals) <- c("eid", pure_types_features_na
 pure_type_women_features_no_id_residuals <- pure_type_women_feature_data_residuals[,-1]
 ```
 
+```{r order columns by Biobank order}
+pure_type_men_feature_data_residuals_no_id_residuals <- pure_type_men_feature_data_residuals_no_id_residuals[order(pure_types_features_names)]
+pure_type_women_features_no_id_residuals <- pure_type_women_features_no_id_residuals[order(pure_types_features_names)]
+```
+
+
 ```{r correlation matrix by gender pure types, include=FALSE}
 pure_type_men_cor_residuals <- cor(pure_type_men_feature_data_residuals_no_id_residuals , use = "pairwise.complete.obs")
 pure_type_women_cor_residuals <- cor(pure_type_women_features_no_id_residuals ,use = "pairwise.complete.obs")
@@ -61,15 +67,13 @@ pure_type_combined_correaltion_residuals[lower.tri(pure_type_combined_correaltio
 ```
 
 ```{r corrplot names editing}
-pure_type_correlation_plot_legend <- data.frame(feature_name = colnames(pure_type_combined_correaltion_residuals), 
-                                                number = 1:ncol(pure_type_combined_correaltion_residuals))
 colnames(pure_type_combined_correaltion_residuals) <- 1:ncol(pure_type_combined_correaltion_residuals)
 rownames(pure_type_combined_correaltion_residuals) <- 1:nrow(pure_type_combined_correaltion_residuals)
 ```
 
 
 ```{r corrplot by name both genders all data}
-corrplot(pure_type_combined_correaltion_residuals, order = "alphabet", method = 'circle',tl.cex = 1.5,tl.srt = 45)
+corrplot(pure_type_combined_correaltion_residuals, method = 'circle',tl.cex = 1.5,tl.srt = 45)
 ```
 
 ## Two mixture model (Full mosaic)

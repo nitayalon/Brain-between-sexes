@@ -227,9 +227,7 @@ ggplot(aes(p,q, colour = Cohen_D)) +
                         low="darkblue", 
                         mid="yellow",
                         high="red", space ="Lab" ) +
-  coord_fixed() #+
-  #geom_text(aes(label=ifelse(p_equal_q,as.character(feature_name),'')),hjust=0,vjust=0)
-
+  coord_fixed()
 ```
 
 ### Equal mixture vs mixture model

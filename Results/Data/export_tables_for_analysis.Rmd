@@ -10,26 +10,127 @@ For each cohort - pure types, single mixture model, two-mixture model in Q1+Q3 a
 ```{r load required libraries, warning=FALSE}
 library(dplyr)
 library(RColorBrewer)
+library(magrittr)
+library(ggplot2)
 ```
 
+## Pure types table
 
-```{r final residual data partition to tables, warning=FALSE}
+```{r extract t test pv}
+pure_types_t_test_data <- sapply(biobank_feature_residual_analysis[rownames(pure_types_residual_model_table)], function(x){x$`hypothesis_results`$`t_test_for_difference_between_genders`$`p.value`}) %>% data.frame()
+pure_types_cohen_d_data <- sapply(biobank_feature_residual_analysis[rownames(pure_types_residual_model_table)], function(x){x$`hypothesis_results`$`cohen_d_test`$`estimate`}) %>% data.frame()
+
+pure_types_t_test_data$`Region.name` <- rownames(pure_types_t_test_data)
+pure_types_residual_model_table$`Region.name` <- rownames(pure_types_residual_model_table)
+
+pure_types_residual_data_with_t_test <- base::merge(pure_types_residual_model_table,
+                                  pure_types_t_test_data, by.x = 'Region.name', by.y = 'Region.name',
+                                  all = TRUE, suffix = c(".mixture_model",".t_test"))
+names(pure_types_residual_data_with_t_test)[ncol(pure_types_residual_data_with_t_test)] <- 't_test_p_value'
+pure_types_residual_data_with_t_test$adjusted_pv <- p.adjust(pure_types_residual_data_with_t_test$t_test_p_value, method = 'BH')
+
+pure_types_residual_data_with_t_test_and_correlation_matrix_location <- 
+  base::merge(pure_types_residual_data_with_t_test,
+                                  pure_type_correlation_plot_legend, by.x = 'Region.name', by.y = 'feature_name',
+                                  all = TRUE, suffix = c(".mixture_model",".t_test"))
+
+pure_types_residual_data_with_t_test_and_correlation_matrix_location %>% 
+select(Region.name, p,q,Cohen_D,fdr_pv, adjusted_pv,number) %>% 
+write.csv(., file = "~/Human_brain_research/data_for_paper/pure_types_features_residual_data.csv", row.names = T)
+```
+
+## Single mixture model
+
+```{r single mixture model table, warning=FALSE}
 equal_probability_mixture_names <- combined_df_resid_equal_probs_sorted$feature[combined_df_resid_equal_probs_sorted$bh_pvalue > 0.05]
 
 equal_mixture_model_types_residual_table <- combined_df_resid_equal_probs_sorted %>% 
   filter(feature %in% equal_probability_mixture_names)
 
-non_equal_probability_mixture_names <- combined_df_resid_equal_probs_sorted$feature[combined_df_resid_equal_probs_sorted$bh_pvalue <= 0.05]
-non_equal_mixture_model_types_residual_table <- combined_df_resid_equal_probs_sorted %>% 
-  filter(feature %in% non_equal_probability_mixture_names)
+single_mixture_model_t_test_data <- sapply(biobank_feature_residual_analysis[equal_mixture_model_types_residual_table$feature], function(x){x$`hypothesis_results`$`t_test_for_difference_between_genders`$`p.value`}) %>% data.frame()
+single_mixture_model_cohen_d_data <- sapply(biobank_feature_residual_analysis[equal_probability_mixture_names], function(x){x$`hypothesis_results`$`cohen_d_test`$`estimate`}) %>% data.frame()
+
+single_mixture_model_t_test_data$`Region.name` <- rownames(single_mixture_model_t_test_data)
+single_mixture_model_cohen_d_data$`Region.name` <- rownames(single_mixture_model_t_test_data)
+
+
+single_mixture_model_residual_data_with_t_test <- base::merge(equal_mixture_model_types_residual_table,
+                                  single_mixture_model_t_test_data, by.x = 'feature', by.y = 'Region.name',
+                                  all = TRUE, suffix = c(".mixture_model",".t_test"))
+
+names(single_mixture_model_residual_data_with_t_test)[ncol(single_mixture_model_residual_data_with_t_test)] <- 't_test_p_value'
+
+single_mixture_model_residual_data_with_t_test$adjusted_pv <- p.adjust(single_mixture_model_residual_data_with_t_test$t_test_p_value, method = 'BH')
+
+single_mixture_model_residual_data_with_t_test_and_correlation_matrix_location <- 
+  base::merge(single_mixture_model_residual_data_with_t_test,
+                                  single_mixture_model_correlation_plot_legend, by.x = 'feature', by.y = 'feature_name',
+                                  all = TRUE, suffix = c(".mixture_model",".t_test"))
+
+single_mixture_model_residual_data_with_t_test_and_correlation_matrix_location %>% 
+select(feature, p,q,Cohen_D,fdr_pv, adjusted_pv,number) %>% 
+write.csv(., file = "~/Human_brain_research/data_for_paper/single_mixture_model_residual_data_with_t_test.csv", row.names = T)
 ```
 
-```{r make three datasets table}
-mosaic_mixture_model_features <- combined_df_resid_equal_probs_sorted[!combined_df_resid_equal_probs_sorted$p_equal_q,]
-single_model_mosaic_mixture_model_features <- combined_df_resid_equal_probs_sorted[combined_df_resid_equal_probs_sorted$p_equal_q,]
+## Two mixture model Q1,Q3
+
+```{r separate mixture model data to quadrants}
+non_equal_mixture_model_types_residual_table_q1_q3 <- combined_df_resid_equal_probs_sorted[combined_df_resid_equal_probs_sorted$feature %in% q1_and_q3_features,]
+
+non_equal_mixture_model_types_residual_table_q2_q4 <- combined_df_resid_equal_probs_sorted[combined_df_resid_equal_probs_sorted$feature %in% q2_q4_features_names,]
 ```
 
+```{r extract t test data q1 q3}
+q1_q3_mixture_model_t_test_data <- sapply(biobank_feature_residual_analysis[non_equal_mixture_model_types_residual_table_q1_q3$feature], function(x){x$`hypothesis_results`$`t_test_for_difference_between_genders`$`p.value`}) %>% data.frame()
 
+q1_q3_mixture_model_cohen_d <- sapply(biobank_feature_residual_analysis[non_equal_mixture_model_types_residual_table_q1_q3$feature], function(x){x$`hypothesis_results`$`cohen_d_test`$`estimate`}) %>% data.frame()
+
+q1_q3_mixture_model_t_test_data$`Region.name` <- rownames(q1_q3_mixture_model_t_test_data)
+q1_q3_mixture_model_cohen_d$`Region.name` <- rownames(q1_q3_mixture_model_t_test_data)
+
+q1_q3_mixture_model_residual_data_with_t_test <- base::merge(non_equal_mixture_model_types_residual_table_q1_q3,
+                                  q1_q3_mixture_model_t_test_data, by.x = 'feature', by.y = 'Region.name',
+                                  all = TRUE, suffix = c(".mixture_model",".t_test"))
+
+names(q1_q3_mixture_model_residual_data_with_t_test)[ncol(q1_q3_mixture_model_residual_data_with_t_test)] <- 't_test_p_value'
+q1_q3_mixture_model_residual_data_with_t_test$adjusted_pv <- p.adjust(q1_q3_mixture_model_residual_data_with_t_test$t_test_p_value, method = 'BH')
+
+q1_q3_mixture_model_residual_data_with_t_test_and_correlation_matrix_location <- 
+  base::merge(q1_q3_mixture_model_residual_data_with_t_test,
+                                  q1_q3_mixture_model_correlation_plot_legend, by.x = 'feature', by.y = 'feature_name',
+                                  all = TRUE)
+
+q1_q3_mixture_model_residual_data_with_t_test_and_correlation_matrix_location %>% 
+select(feature, p,q,Cohen_D,fdr_pv, adjusted_pv, number) %>% 
+write.csv(., file = "~/Human_brain_research/data_for_paper/q1_q3_mixture_model_residual_data_with_t_test.csv", row.names = T)
+```
+
+```{r extract t test data q2 q4}
+q2_q4_mixture_model_t_test_data <- sapply(biobank_feature_residual_analysis[non_equal_mixture_model_types_residual_table_q2_q4$feature], function(x){x$`hypothesis_results`$`t_test_for_difference_between_genders`$`p.value`}) %>% data.frame()
+q2_q4_mixture_model_cohen_d <- sapply(biobank_feature_residual_analysis[non_equal_mixture_model_types_residual_table_q2_q4$feature], function(x){x$`hypothesis_results`$`cohen_d_test`$`estimate`}) %>% data.frame()
+
+
+q2_q4_mixture_model_t_test_data$`Region.name` <- rownames(q2_q4_mixture_model_t_test_data)
+q2_q4_mixture_model_cohen_d$`Region.name` <- rownames(q2_q4_mixture_model_cohen_d)
+
+q2_q4_mixture_model_residual_data_with_t_test <- base::merge(non_equal_mixture_model_types_residual_table_q2_q4,
+                                  q2_q4_mixture_model_t_test_data, by.x = 'feature', by.y = 'Region.name',
+                                  all = TRUE, suffix = c(".mixture_model",".t_test"))
+
+names(q2_q4_mixture_model_residual_data_with_t_test)[ncol(q2_q4_mixture_model_residual_data_with_t_test)] <- 't_test_p_value'
+q2_q4_mixture_model_residual_data_with_t_test$adjusted_pv <- p.adjust(q2_q4_mixture_model_residual_data_with_t_test$t_test_p_value, method = 'BH')
+
+q2_q4_mixture_model_residual_data_with_t_test_and_correlation_matrix_location <- 
+  base::merge(q2_q4_mixture_model_residual_data_with_t_test,
+                                  q2_q4_mixture_model_correlation_plot_legend, by.x = 'feature', by.y = 'feature_name',
+                                  all = TRUE)
+
+q2_q4_mixture_model_residual_data_with_t_test_and_correlation_matrix_location %>% 
+select(feature, p,q,Cohen_D,fdr_pv, adjusted_pv, number) %>% 
+write.csv(., file = "~/Human_brain_research/data_for_paper/q2_q4_mixture_model_residual_data_with_t_test.csv", row.names = T)
+```
+
+# Legacy
 ```{r log data pure types, warning=FALSE}
 pure_types_residual_model_log_table <- 
 combined_df_long_sorted_standard[combined_df_long_sorted_standard$bins_for_fdr %in% levels(combined_df_long_sorted_standard$bins_for_fdr)[c(3,4)],] %>% 
@@ -50,17 +151,6 @@ pure_types_residual_data <- base::merge(pure_types_residual_model_residual_table
                                   log_volume_data_for_residual_pure_type, by = 0,
                                   all = TRUE,
                                   suffixes = c(".residual",".log"))
-
-
-t_test_data <- sapply(biobank_feature_residual_analysis[rownames(pure_types_residual_model_table)], function(x){x$`hypothesis_results`$`t_test_for_difference_between_genders`$`p.value`}) %>% data.frame()
-t_test_data$`Row.names` <- rownames(t_test_data)
-pure_types_residual_data_with_t_test <- base::merge(pure_types_residual_data,
-                                  t_test_data, by.x = 'Row.names', by.y = 'Row.names',
-                                  all = TRUE)
-names(pure_types_residual_data_with_t_test)[ncol(pure_types_residual_data_with_t_test)] <- 't_test_p_value'
-pure_types_residual_data_with_t_test$adjusted_pv <- p.adjust(pure_types_residual_data_with_t_test$t_test_p_value, method = 'BH')
-
-write.csv(pure_types_residual_data_with_t_test, file = "~/Human_brain_research/data_for_paper/pure_types_features_residual_data.csv", row.names = T)
 ```
 
 ```{r non significant log features table, warning=FALSE}
@@ -295,5 +385,54 @@ ggplot(df_p_vs_q, aes(p,q)) +
                            size=7))
 ```
 
+```{r Cohen's d analysis}
+combined_df_resid_equal_probs_sorted %>% 
+  summarise(min = min(Cohen_D), max = max(Cohen_D), avg = mean(Cohen_D))
+```
+
+```{r probability ratio analysis q2 q2}
+combined_df_resid_equal_probs_sorted %>% 
+  filter(feature %in% q2_q4_features_names) %>% 
+  mutate(women_to_women_ratio = q*q + (1-q)*(1-q),
+         men_to_men_ratio = p*p + (1-p)*(1-p),
+         men_to_women_ratio = p*q + (1-p)*(1-q)) %>% 
+  select(feature,women_to_women_ratio,men_to_men_ratio,men_to_women_ratio) %>% 
+  mutate(ratio_to_two_women = men_to_women_ratio / women_to_women_ratio,
+         ratio_to_two_men = men_to_women_ratio / men_to_men_ratio) %>% 
+  summarise(min_ratio_to_two_women = min(ratio_to_two_women), 
+            max_ratio_to_two_women = max(ratio_to_two_women),
+            avg_ratio_to_two_women = mean(ratio_to_two_women))
+```
+```{r probability ratio analysis q1 q3}
+combined_df_resid_equal_probs_sorted %>% 
+  filter(feature %in% q1_and_q3_features) %>% 
+  mutate(women_to_women_ratio = q*q + (1-q)*(1-q),
+         men_to_men_ratio = p*p + (1-p)*(1-p),
+         men_to_women_ratio = p*q + (1-p)*(1-q)) %>% 
+  select(feature,women_to_women_ratio,men_to_men_ratio,men_to_women_ratio) %>% 
+  mutate(ratio_to_two_women = men_to_women_ratio / women_to_women_ratio,
+         ratio_to_two_men = men_to_women_ratio / men_to_men_ratio) %>% 
+  summarise(min_ratio_to_two_women = min(ratio_to_two_women), 
+            max_ratio_to_two_women = max(ratio_to_two_women),
+            avg_ratio_to_two_women = mean(ratio_to_two_women),
+            min_ratio_to_two_men = min(ratio_to_two_men), 
+            max_ratio_to_two_men = max(ratio_to_two_men),
+            avg_ratio_to_two_men = mean(ratio_to_two_men))
+```
+```{r probability ratio analysis p equal q}
+single_mixture_model_features %>% 
+  mutate(women_to_women_ratio = q*q + (1-q)*(1-q),
+         men_to_men_ratio = p*p + (1-p)*(1-p),
+         men_to_women_ratio = p*q + (1-p)*(1-q)) %>% 
+  select(feature,women_to_women_ratio,men_to_men_ratio,men_to_women_ratio) %>% 
+  mutate(ratio_to_two_women = men_to_women_ratio / women_to_women_ratio,
+         ratio_to_two_men = men_to_women_ratio / men_to_men_ratio) %>% 
+  summarise(min_ratio_to_two_women = min(ratio_to_two_women), 
+            max_ratio_to_two_women = max(ratio_to_two_women),
+            avg_ratio_to_two_women = mean(ratio_to_two_women),
+            min_ratio_to_two_men = min(ratio_to_two_men), 
+            max_ratio_to_two_men = max(ratio_to_two_men),
+            avg_ratio_to_two_men = mean(ratio_to_two_men))
+```
 
 

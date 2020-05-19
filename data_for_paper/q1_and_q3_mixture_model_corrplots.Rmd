@@ -5,22 +5,19 @@ date: "April 20, 2020"
 output: html_document
 ---
 
+```{r load methods, include=FALSE}
+library(pbapply)
+library(corrplot)
+```
+
 In this report the Q1 and Q3 quadrants are corrploted:
 ```{r select q1 and q3 features}
 q1_and_q3_features <- non_equal_probability_mixture_names[!non_equal_probability_mixture_names %in% q2_q4_features_names]
-```
-
-```{r partition t ofeature groups}
-volume_features_mosaic_features <- grep('Volume',q1_and_q3_features)
-weighted_mean_MD_features_mosaic_features <- grep('Weighted-mean MD',q1_and_q3_features)
-MD_features_mosaic_features <- grep('Mean MD',q1_and_q3_features)[!grep('Mean MD',q1_and_q3_features) %in% weighted_mean_MD_features_mosaic_features]
-weighted_mean_FA_features_mosaic_features <- grep('Weighted-mean FA',q1_and_q3_features)
-FA_features_mosaic_features <- grep('Mean FA',q1_and_q3_features)[!grep('Mean FA',q1_and_q3_features) %in% weighted_mean_FA_features_mosaic_features]
+q1_q3_features <- biobank_feature_residual_analysis[q1_and_q3_features]
 ```
 
 extract feature data:
 ```{r extract FDR significant features data, include=FALSE}
-q1_q3_features <- biobank_feature_residual_analysis[q1_and_q3_features]
 
 men_data <- lapply(q1_q3_features, function(x){x$hypothesis_results$mixture_model$men_responsebilities})
 
@@ -34,7 +31,7 @@ for(i in 2:length(men_data))
 {
   men_feature_data <- base::merge(men_feature_data, men_data[[i]], by.x = "eid", by.y = "eid")
 }
-names(men_feature_data) <- c("eid", FDR_mosaic_features)
+names(men_feature_data) <- c("eid", q1_and_q3_features)
 men_features_no_id <- men_feature_data[,-1]
 ```
 
@@ -44,40 +41,115 @@ for(i in 2:length(women_data))
 {
   women_feature_data <- base::merge(women_feature_data, women_data[[i]], by.x = "eid", by.y = "eid")
 }
-names(women_feature_data) <- c("eid", FDR_mosaic_features)
+names(women_feature_data) <- c("eid", q1_and_q3_features)
 women_features_no_id <- women_feature_data[,-1]
 ```
+
+```{r order columns by Biobank order}
+men_features_no_id <- men_features_no_id[order(names(women_features_no_id))]
+women_features_no_id <- women_features_no_id[order(names(women_features_no_id))]
+```
+
+```{r partition t ofeature groups}
+volume_features_mosaic_features <- grep('Volume',sort(names(women_features_no_id)))
+weighted_mean_MD_features_mosaic_features <- grep('Weighted-mean MD',sort(names(women_features_no_id)))
+MD_features_mosaic_features <- grep('Mean MD',sort(names(women_features_no_id)))[!grep('Mean MD',sort(names(women_features_no_id))) %in% weighted_mean_MD_features_mosaic_features]
+weighted_mean_FA_features_mosaic_features <- grep('Weighted-mean FA',sort(names(women_features_no_id)))
+FA_features_mosaic_features <- grep('Mean FA',sort(names(women_features_no_id)))[!grep('Mean FA',sort(names(women_features_no_id))) %in% weighted_mean_FA_features_mosaic_features]
+```
+
 
 ```{r correlation matrix by gender, include=FALSE}
 men_cor <- cor(men_features_no_id, use = "pairwise.complete.obs")
 women_cor <- cor(women_features_no_id,use = "pairwise.complete.obs")
 combined_correaltion <- men_cor
 combined_correaltion[lower.tri(combined_correaltion)] <- women_cor[lower.tri(women_cor)]
+q1_q3_mixture_model_correlation_plot_legend <- data.frame(feature_name = colnames(men_cor), 
+                                                number = 1:ncol(combined_correaltion))
 colnames(combined_correaltion) <- rownames(combined_correaltion) <- 1:ncol(combined_correaltion)
 ```
 
+```{r collect data for eigen values analysis}
+q1_q3_mixture_model_men_correlation_eigenvalues <- eigen(men_cor)
+q1_q3_mixture_model_women_correlation_eigenvalues <- eigen(women_cor)
+plot(q1_q3_mixture_model_women_correlation_eigenvalues$values, q1_q3_mixture_model_men_correlation_eigenvalues$values)
+abline(a = 0, b = 1)
+```
+
+
 ```{r corrplot mosaic features volume}
-corrplot(combined_correaltion[volume_features_mosaic_features,volume_features_mosaic_features], order="alphabet", 
+corrplot(combined_correaltion[volume_features_mosaic_features,volume_features_mosaic_features], 
          tl.cex = 0.5,tl.srt = 45)
 ```
 
 ```{r corrplot mosaic Mean MD}
-corrplot(combined_correaltion[MD_features_mosaic_features,MD_features_mosaic_features], order="alphabet", 
+corrplot(combined_correaltion[MD_features_mosaic_features,MD_features_mosaic_features], 
          tl.cex = 1,tl.srt = 45)
 ```
 
 ```{r corrplot weighted mosaic Mean MD}
-corrplot(combined_correaltion[weighted_mean_MD_features_mosaic_features,weighted_mean_MD_features_mosaic_features], order="alphabet", 
+corrplot(combined_correaltion[weighted_mean_MD_features_mosaic_features,weighted_mean_MD_features_mosaic_features],
          tl.cex = 1,tl.srt = 45)
 ```
 
 ```{r corrplot mosaic Mean FA}
-corrplot(combined_correaltion[FA_features_mosaic_features,FA_features_mosaic_features], order="alphabet", 
+corrplot(combined_correaltion[FA_features_mosaic_features,FA_features_mosaic_features],
          tl.cex = 1,tl.srt = 45)
 ```
+
+```{r eigen values of mean FA features}
+q1_q3_mixture_model_men_correlation_eigenvalues_mean_fa <- eigen(men_cor[FA_features_mosaic_features,FA_features_mosaic_features])
+q1_q3_mixture_model_women_correlation_eigenvalues_mean_fa <- eigen(women_cor[FA_features_mosaic_features,FA_features_mosaic_features])
+plot(q1_q3_mixture_model_women_correlation_eigenvalues_mean_fa$values, q1_q3_mixture_model_men_correlation_eigenvalues_mean_fa$values)
+abline(a = 0, b = 1)
+```
+
 
 ```{r corrplot mosaic Weighted Mean FA}
-corrplot(combined_correaltion[weighted_mean_FA_features_mosaic_features,weighted_mean_FA_features_mosaic_features], order="alphabet",
+corrplot(combined_correaltion[weighted_mean_FA_features_mosaic_features,weighted_mean_FA_features_mosaic_features],
+         tl.cex = 1,tl.srt = 45)
+```
+## Only extreme features:
+```{r filter tail and center features}
+lower_tail_q1_q3_features <- 
+  combined_df_resid_equal_probs_sorted %>% 
+  filter(feature %in% q1_and_q3_features) %>% 
+  filter(p < 0.25 & q < 0.25) %>% 
+  select(feature)
+
+upper_tail_q1_q3_features <- 
+combined_df_resid_equal_probs_sorted %>% 
+  filter(feature %in% q1_and_q3_features) %>% 
+  filter(p > 0.75 & q > 0.75) %>% 
+  select(feature)
+
+central_q1_q3_features <- 
+combined_df_resid_equal_probs_sorted %>% 
+  filter(feature %in% q1_and_q3_features) %>% 
+  filter(p < 0.75 & q < 0.75 & p > 0.25 & q > 0.25) %>% 
+  select(feature)
+
+combined_df_resid_equal_probs_sorted %>% 
+  filter(!(feature %in% lower_tail_q1_q3_features | feature %in% upper_tail_q1_q3_features |
+             feature %in% central_q1_q3_features))
+```
+
+```{r lower tail corrmatrix}
+lower_tail_q1_q3_features_corr_matrix <- computeCorrelationMatrix(lower_tail_q1_q3_features$feature)
+corrplot(lower_tail_q1_q3_features_corr_matrix,
          tl.cex = 1,tl.srt = 45)
 ```
 
+```{r upper tail corrmatrix}
+upper_tail_q1_q3_features_corr_matrix <- computeCorrelationMatrix(upper_tail_q1_q3_features$feature)
+corrplot(upper_tail_q1_q3_features_corr_matrix,
+         tl.cex = 1,tl.srt = 45)
+```
+```{r upper tail corrmatrix}
+mean_fa <- central_q1_q3_features$feature[grep('Mean FA',central_q1_q3_features$feature)]
+sort(names(women_features_no_id))
+
+central_q1_q3_features_corr_matrix <- computeCorrelationMatrix(mean_fa)
+corrplot(central_q1_q3_features_corr_matrix,
+         tl.cex = 1,tl.srt = 45)
+```

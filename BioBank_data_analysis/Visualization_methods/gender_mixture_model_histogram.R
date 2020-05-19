@@ -1,4 +1,5 @@
 library(ggplot2)
+library(RColorBrewer)
 
 plot_mix_comps <- function(x, mu, sigma, lambda) {
   lambda * dnorm(x, mu, sigma)
@@ -16,15 +17,16 @@ plotGenderHistogram <- function(plot_data,
   names(myColors) <- levels(plot_data$sex)
   colScale <- scale_colour_manual(name = "sex",values = myColors)
   
-  plot_title <- sprintf("Histogram of gender data, feature %s", feature_name, p ,q)
-  subtitle <- sprintf("p=%s, q=%s", p ,q)
+  plot_title <- sprintf(feature_name)
   feature_histogram <- ggplot(plot_data, aes(x=value, fill=factor(sex))) +
     geom_histogram(aes(y=..density..),
                    bins = 100, 
                    alpha=.8, 
                    position="identity") + 
     scale_fill_manual(values = alpha(c('tomato','dodgerblue'),.1)) + 
-    ggtitle(plot_title, subtitle = subtitle) 
+    ggtitle(plot_title) +
+    scale_x_continuous('Valuw',limits = c(-4,4)) + 
+    scale_y_continuous(name="Density", limits=c(0, .5))
   if(two_mixtures)
   {
     feature_histogram <- feature_histogram + 

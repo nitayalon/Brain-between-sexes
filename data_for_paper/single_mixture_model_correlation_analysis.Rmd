@@ -7,6 +7,7 @@ output: html_document
 
 ```{r select single mixture model features}
 single_mixture_model_features_residuals <- biobank_feature_residual_analysis[equal_probability_mixture_names]
+equal_probability_mixture_names <- sort(equal_probability_mixture_names)
 ```
 
 ```{r partition t ofeature groups}
@@ -45,37 +46,58 @@ names(women_feature_data) <- c("eid", equal_probability_mixture_names)
 women_features_no_id <- women_feature_data[,-1]
 ```
 
+```{r order columns by Biobank order}
+men_features_no_id <- men_features_no_id[order(equal_probability_mixture_names)]
+women_features_no_id <- women_features_no_id[order(equal_probability_mixture_names)]
+```
+
 ```{r correlation matrix by gender, include=FALSE}
 men_cor <- cor(men_features_no_id, use = "pairwise.complete.obs")
 women_cor <- cor(women_features_no_id,use = "pairwise.complete.obs")
 combined_correaltion <- men_cor
 combined_correaltion[lower.tri(combined_correaltion)] <- women_cor[lower.tri(women_cor)]
+single_mixture_model_correlation_plot_legend <- data.frame(feature_name = colnames(combined_correaltion), 
+                                                number = 1:ncol(combined_correaltion))
+
 colnames(combined_correaltion) <- rownames(combined_correaltion) <- 1:ncol(combined_correaltion)
 ```
 
+```{r collect data for eigen values analysis}
+single_mixture_model_men_correlation_eigenvalues <- eigen(men_cor)
+single_mixture_model_women_correlation_eigenvalues <- eigen(women_cor)
+plot(single_mixture_model_women_correlation_eigenvalues$values, single_mixture_model_men_correlation_eigenvalues$values)
+abline(a = 0, b = 1)
+```
+
+
 ```{r corrplot mosaic features volume}
-corrplot(combined_correaltion[volume_features_single_mixture_model_features,volume_features_single_mixture_model_features], order="alphabet", 
+corrplot(combined_correaltion[volume_features_single_mixture_model_features,volume_features_single_mixture_model_features], 
          tl.cex = 0.5,tl.srt = 45)
 ```
 
 ```{r corrplot mosaic Mean MD}
-corrplot(combined_correaltion[MD_features_single_mixture_model_features,MD_features_single_mixture_model_features], order="alphabet", 
+corrplot(combined_correaltion[MD_features_single_mixture_model_features,MD_features_single_mixture_model_features], 
          tl.cex = 1,tl.srt = 45)
 ```
 
 ```{r corrplot weighted mosaic Mean MD}
-corrplot(combined_correaltion[weighted_mean_MD_features_single_mixture_model_features,weighted_mean_MD_features_single_mixture_model_features], order="alphabet", 
-         tl.cex = 1,tl.srt = 45)
+corrplot(combined_correaltion[weighted_mean_MD_features_single_mixture_model_features,weighted_mean_MD_features_single_mixture_model_features],tl.cex = 1,tl.srt = 45)
 ```
 
 ```{r corrplot mosaic Mean FA}
-corrplot(combined_correaltion[FA_features_single_mixture_model_features,FA_features_single_mixture_model_features], order="alphabet", 
+corrplot(combined_correaltion[FA_features_single_mixture_model_features,FA_features_single_mixture_model_features], 
          tl.cex = 1,tl.srt = 45)
 ```
 
+```{r eigen values of mean FA features}
+single_mixture_model_men_correlation_dapeigenvalues_mean_fa <- eigen(men_cor[FA_features_mosaic_features,FA_features_mosaic_features])
+single_mixture_model_women_correlation_eigenvalues_mean_fa <- eigen(women_cor[FA_features_mosaic_features,FA_features_mosaic_features])
+plot(single_mixture_model_women_correlation_eigenvalues_mean_fa$values, single_mixture_model_men_correlation_eigenvalues_mean_fa$values)
+abline(a = 0, b = 1)
+```
+
 ```{r corrplot mosaic Weighted Mean FA}
-corrplot(combined_correaltion[weighted_mean_FA_features_single_mixture_model_features,weighted_mean_FA_features_single_mixture_model_features], order="alphabet",
-         tl.cex = 1,tl.srt = 45)
+corrplot(combined_correaltion[weighted_mean_FA_features_single_mixture_model_features,weighted_mean_FA_features_single_mixture_model_features],tl.cex = 1,tl.srt = 45)
 ```
 
 
