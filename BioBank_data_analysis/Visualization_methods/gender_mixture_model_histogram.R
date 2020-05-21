@@ -30,7 +30,7 @@ plotGenderHistogram <- function(plot_data,
   if(two_mixtures)
   {
     feature_histogram <- feature_histogram + 
-        stat_function(geom = "line",
+      stat_function(geom = "line",
                       fun = plot_mix_comps,
                       args = list(mu = em_data$mu_1, sigma = sqrt(em_data$sigma_2_men), lambda = em_data$p),
                       colour = "blue", lwd = 1.2) +

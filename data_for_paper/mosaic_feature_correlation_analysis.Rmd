@@ -8,11 +8,12 @@ output: html_document
 ```{r load methods, include=FALSE}
 library(pbapply)
 library(corrplot)
+
 ```
 In this report we plot 5 corrplots for each of the five categories of brain measures
 ```{r filter FDR significant features antidiagonal, include=FALSE}
 FDR_mosaic_features <- q2_q4_features_names
-q2_q4_features_names <- sort(q2_q4_features_names)
+q2_q4_features_names <- sort(q2_q4_features_names$feature)
 ```
 
 ```{r partiton to features, include=FALSE}
@@ -25,7 +26,7 @@ FA_features_mosaic_features <- grep('Mean FA',q2_q4_features_names)[!grep('Mean 
 
 extract feature data:
 ```{r extract FDR significant features data, include=FALSE}
-mosaic_features <- biobank_feature_residual_analysis[FDR_mosaic_features]
+mosaic_features <- biobank_feature_residual_analysis[q2_q4_features_names]
 
 men_data <- lapply(mosaic_features, function(x){x$hypothesis_results$mixture_model$men_responsebilities})
 

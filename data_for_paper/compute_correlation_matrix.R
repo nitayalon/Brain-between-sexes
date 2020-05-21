@@ -1,14 +1,18 @@
-computeCorrelationMatrix <- function(features_names){
+computeCorrelationMatrix <- function(features_names, replace_responsebilities = TRUE){
   
-  # features <- biobank_feature_residual_analysis[features_names]
-  modified_features <- ComputeResponsibilities(features_names)
-  
-  number_of_revesed_features <- sapply(modified_features, function(x){x[[1]]})
-  
-  features <- lapply(modified_features, function(x){x[[2]]})
+  if(replace_responsebilities){
+    modified_features <- ComputeResponsibilities(features_names)
+    
+    number_of_revesed_features <- sapply(modified_features, function(x){x[[1]]})
+    
+    features <- lapply(modified_features, function(x){x[[2]]})
+  }
+  else{
+    features <- biobank_feature_residual_analysis[features_names]
+    number_of_revesed_features <- 0
+  }
   
   men_data <- lapply(features, function(x){x$hypothesis_results$mixture_model$men_responsebilities})
-  
   women_data <- lapply(features, function(x){x$hypothesis_results$mixture_model$women_responsebilities})
   men_feature_data <- men_data[[1]]
   for(i in 2:length(men_data))
@@ -36,7 +40,9 @@ computeCorrelationMatrix <- function(features_names){
   correlation_legend <- data.frame(feature_name = colnames(men_cor), 
                                                             number = 1:ncol(combined_correaltion))
   colnames(combined_correaltion) <- rownames(combined_correaltion) <- 1:ncol(combined_correaltion)
-  return(list(correlation_matrix = combined_correaltion,
+  return(list(men_features_no_id = men_features_no_id,
+              women_features_no_id = women_features_no_id,
+              correlation_matrix = combined_correaltion,
               legend = correlation_legend,
               number_of_revesed_features = number_of_revesed_features))
 }

@@ -27,7 +27,7 @@ mixture_model_feature_name <- 'Volume of grey matter in Lingual Gyrus (left)'
 jpeg(sprintf('histogram of %s log volume.jpeg', mixture_model_feature_name))
 plotGenderHistogram(biobank_standardized_data[[mixture_model_feature_name]],
                     biobank_feature_standard_analysis[[mixture_model_feature_name]],
-mixture_model_feature_name)
+                    mixture_model_feature_name)
 dev.off()
 
 jpeg(sprintf('histogram of %s residuals.jpeg', mixture_model_feature_name))

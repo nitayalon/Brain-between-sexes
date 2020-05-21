@@ -1,0 +1,25 @@
+---
+title: "plotting full correlation matrix tow genders"
+author: "Nitay Alon"
+date: "5/21/2020"
+output: html_document
+---
+
+In this report we plot the ordered correlation coefficients of both genders together.
+```{r all features correlation by ragion}
+all_names <- c(q2_q4_features_names,
+q1_q3_features_names,
+equal_probability_mixture_names)
+
+Volume_features <- all_names[grep('Volume',all_names)]
+Mean_MD_features <- all_names[grep('Mean MD',all_names)]
+Mean_FA_features <- all_names[grep('Mean FA',all_names)]
+Weighted_mean_FA_features <- all_names[grep('Weighted-mean FA',all_names)]
+Weighted_mean_MA_features <- all_names[grep('Weighted-mean MD',all_names)]
+```
+
+```{r compute correlations per subgroup}
+Volume_features_correlation_matrix <- computeCorrelationMatrix(Volume_features, T)
+
+```
+

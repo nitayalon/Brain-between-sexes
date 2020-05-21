@@ -30,15 +30,12 @@ fitQuadrant <- function(p,q)
 library(ggplot2)
 library(dplyr)
 library(Jmisc)
-library(config)
 library(magrittr)
 ```
 
 ```{r source data for fdr analysis,warning=FALSE,include=FALSE}
-load("~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/biobank_feature_residual_analysis.RData")
-load("~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/biobank_feature_standard_analysis.RData")
-load("~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/BioBank_residual_data.RData")
-load("~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/BioBank_standardized_data.RData")
+load("~/Human_brain_research/Data/Biobank/biobank_feature_residual_analysis.RData")
+load("~/Human_brain_research/Data/Biobank/BioBank_residual_data.RData")
 ```
 
 # Residual Data
@@ -157,7 +154,7 @@ pure_types_residual_model_table[order(pure_types_residual_model_table$Cohen_D),]
 ```
 
 ```{r combine the EM results with the FDR results for export}
-write.csv(pure_types_residual_model_table, file = "pure_types_features_residual_data.csv", row.names = T)
+write.csv(pure_types_residual_model_table, file = "~/Human_brain_research/data_for_paper/Tables/pure_types_features_residual_data.csv", row.names = T)
 ```
 
 
@@ -205,7 +202,7 @@ non_pure_types_features_data_set <- combined_df_long_sorted_residuals[combined_d
 non_pure_types_features_data_set$feature_name = rownames(non_pure_types_features_data_set)
 
 str(non_pure_types_features_data_set)
-combined_df_resid_equal_probs_sorted$feature_name <- as.character(combined_df_resid_equal_probs_sorted$feature_name)
+combined_df_resid_equal_probs_sorted$feature_name <- as.character(combined_df_resid_equal_probs_sorted$feature)
 
 non_pure_types_features_data_set_with_equal_mixture_model_hypothesis <- 
   inner_join(non_pure_types_features_data_set,combined_df_resid_equal_probs_sorted,

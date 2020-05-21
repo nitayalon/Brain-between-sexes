@@ -11,19 +11,43 @@ library(pbapply)
 library(dplyr)
 ```
 
-```{r Q2 Q4 quaradnts correlation matrix, warning=FALSE}
-q2_q4_correlation_matrix <- computeCorrelationMatrix(q2_q4_features_names)
+```{r load features}
+q2_q4_features_data <- read.csv('../data_for_paper/q2_q4_mixture_model_residual_data_with_t_test.csv', header = T)
+q1_q3_features_data <- read.csv('../data_for_paper/q1_q3_mixture_model_residual_data_with_t_test.csv', header = T)
+equal_probability_mixture_data <- read.csv('../data_for_paper/equal_mixture_model_features_residuals.csv', header = T)
+q2_q4_features_names <- q2_q4_features_data$feature
+q1_q3_features_names <- q1_q3_features_data$feature
+equal_probability_mixture_names <- equal_probability_mixture_data$feature
 ```
 
+
+```{r Q2 Q4 quaradnts correlation matrix, warning=FALSE}
+q2_q4_correlation_matrix <- computeCorrelationMatrix(q2_q4_features_names, F)
+```
+
+```{r plot new mean fa correlation plot}
+plotCorrelationPlot(q2_q4_correlation_matrix,'Mean FA', 1)
+```
+
+
 ```{r Q1 Q3 quaradnts correlation matrix, warning=FALSE}
-q1_q3_features_sorted <- sort(q1_and_q3_features)
+q1_q3_features_sorted <- sort(q1_q3_features_names)
 q1_q3_correlation_matrix <- computeCorrelationMatrix(q1_q3_features_sorted)
 ```
+
+```{r validate features 156, 155}
+cor(q1_q3_correlation_matrix$men_features_no_id[,155],
+     q1_q3_correlation_matrix$men_features_no_id[,156])
+```
+
 
 ```{r p equals q correlation matrix,warning=FALSE}
 p_equal_q_correlation_matrix <- computeCorrelationMatrix(equal_probability_mixture_names)
 ```
 
+```{r plot new mean fa correlation plot}
+plotCorrelationPlot(q1_q3_correlation_matrix,'Weighted-mean MD', 1)
+```
 
 # Plot new correlation plots
 
