@@ -22,11 +22,11 @@ equal_probability_mixture_names <- equal_probability_mixture_data$feature
 
 
 ```{r Q2 Q4 quaradnts correlation matrix, warning=FALSE}
-q2_q4_correlation_matrix <- computeCorrelationMatrix(q2_q4_features_names, T)
+q2_q4_correlation_matrix <- computeCorrelationMatrix(q2_q4_features_names, F)
 ```
 
 ```{r plot new mean fa correlation plot}
-plotCorrelationPlot(q2_q4_correlation_matrix,'Mean MD', 1)
+plotCorrelationPlot(q2_q4_correlation_matrix,'Volume', 1)
 ```
 
 
