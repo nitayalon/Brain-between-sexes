@@ -73,5 +73,37 @@ ggplot(df_p_vs_q, aes(p,q)) +
   coord_fixed()
 
 
+# Ordered correlation plot ------------------------------------------------
+
+ggplot(volume_ordered_correlations_melted, aes(x = index, y = Correlation, color = Sex)) + 
+  geom_line() + 
+  scale_color_manual(values = alpha(c('tomato','dodgerblue'),1)) + 
+  ylab('Correlation') + 
+  ggtitle('Sotred correlations, all regions')
+
+# Adding nice plot for tails ----------------------------------------------
+
+findEqualTailedFeatures <- function(feature_data){
+  cohen_d_indicator <- abs(feature_data$hypothesis_results$mixture_model$m_parameters$mu_1 - 
+                             feature_data$hypothesis_results$mixture_model$m_parameters$mu_2) < 0.1
+  p_equals_q_indiciator <- feature_data$hypothesis_results$mixture_model$m_parameters$sigma_2_men / feature_data$hypothesis_results$mixture_model$m_parameters$sigma_2_women > 2
+  if(cohen_d_indicator && p_equals_q_indiciator)
+  {
+    return(T)  
+  }
+  else{
+    return(F)
+  }
+}
 
 
+features_for_two_sides_tail_plot <- sapply(biobank_feature_residual_analysis, function(x){findEqualTailedFeatures(x)})
+which(features_for_two_sides_tail_plot)
+
+plotGenderHistogram(biobank_residuals_data[[names(features_for_two_sides_tail_plot)[which(features_for_two_sides_tail_plot)]]],
+                    biobank_feature_residual_analysis[[names(features_for_two_sides_tail_plot)[which(features_for_two_sides_tail_plot)]]], 
+                    names(features_for_two_sides_tail_plot)[which(features_for_two_sides_tail_plot)])
+
+# Variance ratio plot with tailed features marked -------------------------
+
+str(variance_ratio)

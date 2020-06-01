@@ -40,8 +40,8 @@ computeCorrelationMatrix <- function(features_names, replace_responsebilities = 
   correlation_legend <- data.frame(feature_name = colnames(men_cor), 
                                                             number = 1:ncol(combined_correaltion))
   colnames(combined_correaltion) <- rownames(combined_correaltion) <- 1:ncol(combined_correaltion)
-  return(list(men_features_no_id = men_features_no_id,
-              women_features_no_id = women_features_no_id,
+  return(list(men_correlation_matrix = men_cor,
+              women_correlation_matrix = women_cor,
               correlation_matrix = combined_correaltion,
               legend = correlation_legend,
               number_of_revesed_features = number_of_revesed_features))

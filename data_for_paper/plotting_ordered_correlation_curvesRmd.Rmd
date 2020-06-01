@@ -15,11 +15,57 @@ Volume_features <- all_names[grep('Volume',all_names)]
 Mean_MD_features <- all_names[grep('Mean MD',all_names)]
 Mean_FA_features <- all_names[grep('Mean FA',all_names)]
 Weighted_mean_FA_features <- all_names[grep('Weighted-mean FA',all_names)]
-Weighted_mean_MA_features <- all_names[grep('Weighted-mean MD',all_names)]
+Weighted_mean_MD_features <- all_names[grep('Weighted-mean MD',all_names)]
 ```
 
 ```{r compute correlations per subgroup}
 Volume_features_correlation_matrix <- computeCorrelationMatrix(Volume_features, T)
+men_volume_correlations <- Volume_features_correlation_matrix$men_correlation_matrix[upper.tri(Volume_features_correlation_matrix$men_correlation_matrix)] 
+women_volume_correlations <- Volume_features_correlation_matrix$women_correlation_matrix[upper.tri(Volume_features_correlation_matrix$women_correlation_matrix)] 
+```
 
+```{r compute correlations per subgroup, warning=FALSE}
+Mean_MD_features_correlation_matrix <- computeCorrelationMatrix(Mean_MD_features, T)
+men_Mean_MD_correlations <- Mean_MD_features_correlation_matrix$men_correlation_matrix[upper.tri(Mean_MD_features_correlation_matrix$men_correlation_matrix)] 
+women_Mean_MD_correlations <- Mean_MD_features_correlation_matrix$women_correlation_matrix[upper.tri(Mean_MD_features_correlation_matrix$women_correlation_matrix)] 
+```
+
+```{r compute correlations per subgroup, warning = FALSE}
+Mean_FA_features_correlation_matrix <- computeCorrelationMatrix(Mean_FA_features, T)
+men_Mean_FA_correlations <- Mean_FA_features_correlation_matrix$men_correlation_matrix[upper.tri(Mean_FA_features_correlation_matrix$men_correlation_matrix)] 
+women_Mean_FA_correlations <- Mean_FA_features_correlation_matrix$women_correlation_matrix[upper.tri(Mean_FA_features_correlation_matrix$women_correlation_matrix)] 
+```
+
+```{r compute correlations per subgroup, warning = FALSE}
+Weighted_mean_FA_features_correlation_matrix <- computeCorrelationMatrix(Weighted_mean_FA_features, T)
+men_Weighted_mean_FA_correlations <- Weighted_mean_FA_features_correlation_matrix$men_correlation_matrix[upper.tri(Weighted_mean_FA_features_correlation_matrix$men_correlation_matrix)] 
+women_Weighted_mean_FA_correlations <- Weighted_mean_FA_features_correlation_matrix$women_correlation_matrix[upper.tri(Weighted_mean_FA_features_correlation_matrix$women_correlation_matrix)] 
+```
+
+```{r compute correlations per subgroup, warning = FALSE}
+Weighted_mean_MD_features_correlation_matrix <- computeCorrelationMatrix(Weighted_mean_MD_features, T)
+men_Weighted_mean_MD_correlations <- Weighted_mean_MD_features_correlation_matrix$men_correlation_matrix[upper.tri(Weighted_mean_MD_features_correlation_matrix$men_correlation_matrix)] 
+women_Weighted_mean_MD_correlations <- Weighted_mean_MD_features_correlation_matrix$women_correlation_matrix[upper.tri(Weighted_mean_MD_features_correlation_matrix$women_correlation_matrix)] 
+```
+
+```{r collecting all correlations}
+men_correlations <- c(men_volume_correlations, men_Mean_FA_correlations,men_Mean_MD_correlations, men_Weighted_mean_FA_correlations, men_Weighted_mean_MD_correlations)
+women_correlations <- c(women_volume_correlations, women_Mean_FA_correlations,women_Mean_MD_correlations, women_Weighted_mean_FA_correlations, women_Weighted_mean_MD_correlations)
+```
+
+
+```{r combine correlations and plot}
+library(tidyverse)
+volume_ordered_correlations <- data.frame(index = 1:length(men_correlations),
+                                          men = men_correlations[order(men_correlations)],
+                                          women = women_correlations[order(women_correlations)])
+volume_ordered_correlations_melted <- volume_ordered_correlations %>%
+  pivot_longer(-index, names_to = "Sex", values_to = "Correlation")
+
+ggplot(volume_ordered_correlations_melted, aes(x = index, y = Correlation, color = Sex)) + 
+  geom_line() + 
+  scale_color_manual(values = alpha(c('tomato','dodgerblue'),1)) + 
+  ylab('Correlation') + 
+  ggtitle('Sotred correlations, all regions')
 ```
 

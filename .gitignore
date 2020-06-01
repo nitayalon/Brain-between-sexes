@@ -3,4 +3,10 @@
 *.RData
 *.Ruserdata
 *.csv
-.Rproj.user
+*.Rproj.user
+*.xlsx
+*.jpeg
+*.jpg
+*.png
+*.doc
+
