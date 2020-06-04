@@ -66,6 +66,8 @@ ggplot(volume_ordered_correlations_melted, aes(x = index, y = Correlation, color
   geom_line() + 
   scale_color_manual(values = alpha(c('tomato','dodgerblue'),1)) + 
   ylab('Correlation') + 
-  ggtitle('Sotred correlations, all regions')
+  ggtitle('Sotred correlations, all regions')+
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=14,face="bold"))
 ```
 
