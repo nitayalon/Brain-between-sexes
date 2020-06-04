@@ -9,5 +9,7 @@ Description: The description of a package is usually long,
     spanning multiple lines. The second and subsequent lines
     should be indented, usually with four spaces.
 License: What license is it under?
-Imports: Rcpp (>= 1.0.1)
+Imports: Rcpp (>= 1.0.1),
+         zoo
 LinkingTo: Rcpp
+SystemRequirements: C++11

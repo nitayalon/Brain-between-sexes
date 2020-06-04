@@ -1,0 +1,279 @@
+---
+title: "Bootstrap analysis"
+author: "Nitay Alon"
+date: "6/4/2020"
+output: html_document
+---
+
+```{r bootstrap analysis of Mean FA in retrolenticular part of internal capsule on FA skeleton (left)}
+feature_name <- 'Mean FA in retrolenticular part of internal capsule on FA skeleton (left)'
+bootstrap_results <- biobank_bootstrap_em(biobank_residuals_data[[feature_name]],
+                     biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters)
+beep('mario')
+plot(bootstrap_results$bootstrap_results[,1], main ='scatter of bootstrap', ylab = 'p_hat')
+points(biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$p, col = 'red')
+hist(bootstrap_results$bootstrap_results[,1])
+summary(bootstrap_results$bootstrap_results[,1])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$p
+sd(bootstrap_results$bootstrap_results[,1])
+
+plot(bootstrap_results$bootstrap_results[,2], main ='scatter of bootstrap', ylab = 'q_hat')
+points(biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$q, col = 'red')
+hist(bootstrap_results$bootstrap_results[,2])
+summary(bootstrap_results$bootstrap_results[,2])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$q
+sd(bootstrap_results$bootstrap_results[,2])
+
+plot(bootstrap_results$bootstrap_results[,3], main ='scatter of bootstrap', ylab = 'mu_1_hat')
+points(biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$mu_1, col = 'red')
+hist(bootstrap_results$bootstrap_results[,3])
+summary(bootstrap_results$bootstrap_results[,3])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$mu_1
+sd(bootstrap_results$bootstrap_results[,3])
+
+plot(bootstrap_results$bootstrap_results[,4], main ='scatter of bootstrap', ylab = 'mu_2_hat')
+points(biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$mu_2, col = 'red')
+hist(bootstrap_results$bootstrap_results[,4])
+summary(bootstrap_results$bootstrap_results[,4])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$mu_2
+sd(bootstrap_results$bootstrap_results[,4])
+
+
+hist(bootstrap_results$bootstrap_results[,5])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$sigma_2_men
+summary(bootstrap_results$bootstrap_results[,5])
+sd(bootstrap_results$bootstrap_results[,5])
+
+hist(bootstrap_results$bootstrap_results[,6])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$sigma_2_women
+summary(bootstrap_results$bootstrap_results[,6])
+sd(bootstrap_results$bootstrap_results[,6])
+```
+
+```{r bootstrap analysis of Mean MD in uncinate fasciculus on FA skeleton (left)}
+feature_name <- 'Mean MD in uncinate fasciculus on FA skeleton (left)'
+bootstrap_results <- biobank_bootstrap_em(biobank_residuals_data[[feature_name]],
+                     biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters)
+beep('mario')
+plot(bootstrap_results$bootstrap_results[,1], main ='scatter of bootstrap', ylab = 'p_hat')
+points(biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$p, col = 'red')
+hist(bootstrap_results$bootstrap_results[,1])
+summary(bootstrap_results$bootstrap_results[,1])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$p
+sd(bootstrap_results$bootstrap_results[,1])
+
+plot(bootstrap_results$bootstrap_results[,2], main ='scatter of bootstrap', ylab = 'q_hat')
+points(biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$q, col = 'red')
+hist(bootstrap_results$bootstrap_results[,2])
+summary(bootstrap_results$bootstrap_results[,2])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$q
+sd(bootstrap_results$bootstrap_results[,2])
+
+plot(bootstrap_results$bootstrap_results[,3], main ='scatter of bootstrap', ylab = 'mu_1_hat')
+points(biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$mu_1, col = 'red')
+hist(bootstrap_results$bootstrap_results[,3])
+summary(bootstrap_results$bootstrap_results[,3])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$mu_1
+sd(bootstrap_results$bootstrap_results[,3])
+
+plot(bootstrap_results$bootstrap_results[,4], main ='scatter of bootstrap', ylab = 'mu_2_hat')
+points(biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$mu_2, col = 'red')
+hist(bootstrap_results$bootstrap_results[,4])
+summary(bootstrap_results$bootstrap_results[,4])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$mu_2
+sd(bootstrap_results$bootstrap_results[,4])
+
+
+hist(bootstrap_results$bootstrap_results[,5])
+summary(bootstrap_results$bootstrap_results[,5])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$sigma_2_men
+sd(bootstrap_results$bootstrap_results[,5])
+
+hist(bootstrap_results$bootstrap_results[,6])
+summary(bootstrap_results$bootstrap_results[,6])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$sigma_2_women
+sd(bootstrap_results$bootstrap_results[,6])
+```
+
+```{r bootstrap analysis of Volume of grey matter in Juxtapositional Lobule Cortex (formerly Supplementary Motor Cortex) (right)}
+feature_name <- 'Volume of grey matter in Juxtapositional Lobule Cortex (formerly Supplementary Motor Cortex) (right)'
+bootstrap_results <- biobank_bootstrap_em(biobank_residuals_data[[feature_name]],
+                     biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters)
+beep('mario')
+
+plot(bootstrap_results$bootstrap_results[,1], main ='scatter of bootstrap', ylab = 'p_hat')
+points(biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$p, col = 'red')
+hist(bootstrap_results$bootstrap_results[,1])
+summary(bootstrap_results$bootstrap_results[,1])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$p
+sd(bootstrap_results$bootstrap_results[,1])
+
+plot(bootstrap_results$bootstrap_results[,2], main ='scatter of bootstrap', ylab = 'q_hat')
+points(biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$q, col = 'red')
+hist(bootstrap_results$bootstrap_results[,2])
+summary(bootstrap_results$bootstrap_results[,2])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$q
+sd(bootstrap_results$bootstrap_results[,2])
+
+plot(bootstrap_results$bootstrap_results[,3], main ='scatter of bootstrap', ylab = 'mu_1_hat')
+points(biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$mu_1, col = 'red')
+hist(bootstrap_results$bootstrap_results[,3])
+summary(bootstrap_results$bootstrap_results[,3])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$mu_1
+sd(bootstrap_results$bootstrap_results[,3])
+
+plot(bootstrap_results$bootstrap_results[,4], main ='scatter of bootstrap', ylab = 'mu_2_hat')
+points(biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$mu_2, col = 'red')
+hist(bootstrap_results$bootstrap_results[,4])
+summary(bootstrap_results$bootstrap_results[,4])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$mu_2
+sd(bootstrap_results$bootstrap_results[,4])
+
+
+hist(bootstrap_results$bootstrap_results[,5])
+summary(bootstrap_results$bootstrap_results[,5])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$sigma_2_men
+sd(bootstrap_results$bootstrap_results[,5])
+
+hist(bootstrap_results$bootstrap_results[,6])
+summary(bootstrap_results$bootstrap_results[,6])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$sigma_2_women
+sd(bootstrap_results$bootstrap_results[,6])
+```
+
+```{r bootstrap analysis of Weighted-mean MD in tract inferior fronto-occipital fasciculus (right)}
+feature_name <- 'Weighted-mean MD in tract inferior fronto-occipital fasciculus (right)'
+bootstrap_results <- biobank_bootstrap_em(biobank_residuals_data[[feature_name]],
+                     biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters)
+beep('mario')
+
+plot(bootstrap_results$bootstrap_results[,1], main ='scatter of bootstrap', ylab = 'p_hat')
+points(biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$p, col = 'red')
+hist(bootstrap_results$bootstrap_results[,1])
+summary(bootstrap_results$bootstrap_results[,1])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$p
+sd(bootstrap_results$bootstrap_results[,1])
+
+plot(bootstrap_results$bootstrap_results[,2], main ='scatter of bootstrap', ylab = 'q_hat')
+points(biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$q, col = 'red')
+hist(bootstrap_results$bootstrap_results[,2])
+summary(bootstrap_results$bootstrap_results[,2])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$q
+sd(bootstrap_results$bootstrap_results[,2])
+
+plot(bootstrap_results$bootstrap_results[,3], main ='scatter of bootstrap', ylab = 'mu_1_hat')
+points(biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$mu_1, col = 'red')
+hist(bootstrap_results$bootstrap_results[,3])
+summary(bootstrap_results$bootstrap_results[,3])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$mu_1
+sd(bootstrap_results$bootstrap_results[,3])
+
+plot(bootstrap_results$bootstrap_results[,4], main ='scatter of bootstrap', ylab = 'mu_2_hat')
+points(biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$mu_2, col = 'red')
+hist(bootstrap_results$bootstrap_results[,4])
+summary(bootstrap_results$bootstrap_results[,4])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$mu_2
+sd(bootstrap_results$bootstrap_results[,4])
+
+
+hist(bootstrap_results$bootstrap_results[,5])
+summary(bootstrap_results$bootstrap_results[,5])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$sigma_2_men
+sd(bootstrap_results$bootstrap_results[,5])
+
+hist(bootstrap_results$bootstrap_results[,6])
+summary(bootstrap_results$bootstrap_results[,6])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$sigma_2_women
+sd(bootstrap_results$bootstrap_results[,6])
+```
+
+```{r bootstrap analysis of Volume of grey matter in Temporal Fusiform Cortex, posterior division (left)}
+feature_name <- 'Volume of grey matter in Temporal Fusiform Cortex, posterior division (left)'
+bootstrap_results <- biobank_bootstrap_em(biobank_residuals_data[[feature_name]],
+                     biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters)
+beep('mario')
+
+plot(bootstrap_results$bootstrap_results[,1], main ='scatter of bootstrap', ylab = 'p_hat')
+points(biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$p, col = 'red')
+hist(bootstrap_results$bootstrap_results[,1])
+summary(bootstrap_results$bootstrap_results[,1])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$p
+sd(bootstrap_results$bootstrap_results[,1])
+
+plot(bootstrap_results$bootstrap_results[,2], main ='scatter of bootstrap', ylab = 'q_hat')
+points(biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$q, col = 'red')
+hist(bootstrap_results$bootstrap_results[,2])
+summary(bootstrap_results$bootstrap_results[,2])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$q
+sd(bootstrap_results$bootstrap_results[,2])
+
+plot(bootstrap_results$bootstrap_results[,3], main ='scatter of bootstrap', ylab = 'mu_1_hat')
+points(biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$mu_1, col = 'red')
+hist(bootstrap_results$bootstrap_results[,3])
+summary(bootstrap_results$bootstrap_results[,3])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$mu_1
+sd(bootstrap_results$bootstrap_results[,3])
+
+plot(bootstrap_results$bootstrap_results[,4], main ='scatter of bootstrap', ylab = 'mu_2_hat')
+points(biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$mu_2, col = 'red')
+hist(bootstrap_results$bootstrap_results[,4])
+summary(bootstrap_results$bootstrap_results[,4])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$mu_2
+sd(bootstrap_results$bootstrap_results[,4])
+
+
+hist(bootstrap_results$bootstrap_results[,5])
+summary(bootstrap_results$bootstrap_results[,5])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$sigma_2_men
+sd(bootstrap_results$bootstrap_results[,5])
+
+hist(bootstrap_results$bootstrap_results[,6])
+summary(bootstrap_results$bootstrap_results[,6])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$sigma_2_women
+sd(bootstrap_results$bootstrap_results[,6])
+```
+```{r bootstrap analysis of Weighted-mean MD in tract uncinate fasciculus (right)}
+feature_name <- 'Weighted-mean MD in tract uncinate fasciculus (right)'
+bootstrap_results <- biobank_bootstrap_em(biobank_residuals_data[[feature_name]],
+                     biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters)
+beep('mario')
+
+plot(bootstrap_results$bootstrap_results[,1], main ='scatter of bootstrap', ylab = 'p_hat')
+points(biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$p, col = 'red')
+hist(bootstrap_results$bootstrap_results[,1])
+summary(bootstrap_results$bootstrap_results[,1])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$p
+sd(bootstrap_results$bootstrap_results[,1])
+
+plot(bootstrap_results$bootstrap_results[,2], main ='scatter of bootstrap', ylab = 'q_hat')
+points(biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$q, col = 'red')
+hist(bootstrap_results$bootstrap_results[,2])
+summary(bootstrap_results$bootstrap_results[,2])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$q
+sd(bootstrap_results$bootstrap_results[,2])
+
+plot(bootstrap_results$bootstrap_results[,3], main ='scatter of bootstrap', ylab = 'mu_1_hat')
+points(biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$mu_1, col = 'red')
+hist(bootstrap_results$bootstrap_results[,3])
+summary(bootstrap_results$bootstrap_results[,3])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$mu_1
+sd(bootstrap_results$bootstrap_results[,3])
+
+plot(bootstrap_results$bootstrap_results[,4], main ='scatter of bootstrap', ylab = 'mu_2_hat')
+points(biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$mu_2, col = 'red')
+hist(bootstrap_results$bootstrap_results[,4])
+summary(bootstrap_results$bootstrap_results[,4])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$mu_2
+sd(bootstrap_results$bootstrap_results[,4])
+
+
+hist(bootstrap_results$bootstrap_results[,5])
+summary(bootstrap_results$bootstrap_results[,5])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$sigma_2_men
+sd(bootstrap_results$bootstrap_results[,5])
+
+hist(bootstrap_results$bootstrap_results[,6])
+summary(bootstrap_results$bootstrap_results[,6])
+biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$sigma_2_women
+sd(bootstrap_results$bootstrap_results[,6])
+```

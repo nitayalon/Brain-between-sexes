@@ -41,9 +41,9 @@ length(intersect(list.of.names,daphna_names$V1)) - length(list.of.names)
 
 
 ```{r filter relevant features}
-relevant_region <- c(seq(45,167)
-                     ,seq(177,194)
+relevant_region <- c(seq(45,194)
                      ,seq(195,333))
+relevant_data = bio_bank_data[,relevant_region]
 demographic_data <- bio_bank_data[,c(2,3,seq(13,15))]
 names(demographic_data) <- c("Sex","Year_Of_Birth",
                              "Ethnic_BG_1",
