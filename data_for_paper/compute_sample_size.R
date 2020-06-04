@@ -113,5 +113,9 @@ ggplot(h0_and_h1_power_plot_data_no_zeros, aes(x = data, color = sample_size,lin
   stat_ecdf(geom = "step") + 
   xlab("X") + 
   ggtitle("Emprical CDF of log-likelihood ratio", sub = "H0 and H1") +
-  geom_vline(xintercept = quantile(h0_5000_samples_llrt$data, 0.95), linetype = 'dotted', color = 'blue')
+  geom_vline(xintercept = quantile(h0_8000_samples_llrt$data, 0.95), linetype = 'dotted', color = 'black') + 
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=14,face="bold")) + 
+ expand_limits(x = 0, y = 0)
+
 
