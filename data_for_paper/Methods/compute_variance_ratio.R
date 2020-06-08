@@ -41,7 +41,7 @@ variance_ratio <- sapply(biobank_feature_residual_analysis[c(q2_q4_features$feat
                         function(x){computeStandardDeviationRation(x$hypothesis_results$mixture_model$m_parameters)})
 tail_features <- sapply(biobank_feature_residual_analysis[c(q2_q4_features$feature, q1_q3_features$feature, p_equals_q$feature)], 
                         function(x){isTailFeature(x$hypothesis_results$mixture_model$m_parameters)})
-plot(sort(variance_ratio))
+sum(sort(variance_ratio) > 3)
 extreme_variance_ratio <- variance_ratio[variance_ratio > 2 | variance_ratio < 0.5]
 str(biobank_feature_residual_analysis[[names(variance_ratio)[which.min(variance_ratio)]]])
 
