@@ -25,8 +25,9 @@ plotGenderHistogram <- function(plot_data,
                    position="identity") + 
     scale_fill_manual(values = alpha(c('tomato','dodgerblue'),.1)) + 
     ggtitle(plot_title) +
-    scale_x_continuous('Valuw',limits = c(-4,4)) + 
-    scale_y_continuous(name="Density", limits=c(0, .5))
+    scale_x_continuous('Value',limits = c(-4,4)) + 
+    scale_y_continuous(name="Density", limits=c(0, .5)) +
+    theme(plot.title = element_text(color = "black", size = 10))
   if(two_mixtures)
   {
     feature_histogram <- feature_histogram + 

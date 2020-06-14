@@ -151,3 +151,9 @@ jpeg('two_mixture_model_probability_correlation_matrix_fa_features.jpeg')
 corrplot(combined_correaltion_residuals[FA_features_two_mixture_model,FA_features_two_mixture_model], order = "alphabet",
          tl.cex = 0.8,tl.col="black")
 dev.off()
+
+feaure <- "Volume of grey matter in Lateral Occipital Cortex, superior division (left)"
+feaure <- "Volume of grey matter in Postcentral Gyrus (left)"
+plotGenderHistogram(biobank_standardized_data[[feaure]],
+                    biobank_feature_standard_analysis[[feaure]],
+                    feaure)
