@@ -153,7 +153,11 @@ corrplot(combined_correaltion_residuals[FA_features_two_mixture_model,FA_feature
 dev.off()
 
 feaure <- "Volume of grey matter in Lateral Occipital Cortex, superior division (left)"
+load('/media/nitay/36464add-7b3d-4516-90ae-6450ca1a4e19/Human_brain_research/Data/Biobank/biobank_feature_residual_analysis.RData')
+
 feaure <- "Volume of grey matter in Postcentral Gyrus (left)"
-plotGenderHistogram(biobank_standardized_data[[feaure]],
-                    biobank_feature_standard_analysis[[feaure]],
-                    feaure)
+feaure <- "Volume of grey matter in Occipital Fusiform Gyrus (left)"
+feaure <- "Volume of grey matter in VIIb Cerebellum (right)"
+plotGenderHistogram(biobank_residuals_data[[feaure]],
+                    biobank_feature_residual_analysis[[feaure]],
+                    feaure,two_mixtures = T)
