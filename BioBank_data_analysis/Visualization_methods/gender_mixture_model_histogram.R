@@ -27,8 +27,9 @@ plotGenderHistogram <- function(plot_data,
     ggtitle(plot_title) +
     scale_x_continuous('Value',limits = c(-4,4)) + 
     scale_y_continuous(name="Density", limits=c(0, .5)) +
-    theme(plot.title = element_text(color = "black", size = 10),
-          text = element_text(size=20))
+    theme(plot.title = element_text(color = "black", size = 11),
+          text = element_text(size=20),
+          legend.position = "none")
   if(two_mixtures)
   {
     feature_histogram <- feature_histogram + 
