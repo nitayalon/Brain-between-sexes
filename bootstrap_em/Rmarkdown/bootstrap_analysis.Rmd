@@ -5,11 +5,130 @@ date: "6/4/2020"
 output: html_document
 ---
 
+```{r sample 10 features for bootstrap}
+features_for_bootstrap = c('Mean FA in posterior corona radiata on FA skeleton (left)',
+                           "Mean MD in inferior cerebellar peduncle on FA skeleton (right)",
+                           "Mean MD in tapetum on FA skeleton (right)",
+                           "Mean FA in external capsule on FA skeleton (left)",
+                           "Mean FA in sagittal stratum on FA skeleton (left)",
+                           "Volume of grey matter in Crus II Cerebellum (right)",
+                           "Mean FA in cingulum cingulate gyrus on FA skeleton (right)",
+                           "Mean MD in posterior limb of internal capsule on FA skeleton (right)",
+                           "Volume of grey matter in Vermis X Cerebellum")
+for(feature_name in features_for_bootstrap){
+  bootstrap_results = biobank_bootstrap_em(biobank_residuals_data[[feature_name]],
+                     biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters)
+  summarizeBootstrapResults(feature_name, bootstrap_results)
+}
+```
+
+```{r 3D plot}
+library(plot3D)
+load('../results/Mean FA in cingulum cingulate gyrus on FA skeleton (right)/Mean FA in cingulum cingulate gyrus on FA skeleton (right).RData')
+bootstrap_results$original_em_results_list
+cor(bootstrap_results$bootstrap_results[,1],bootstrap_results$bootstrap_results[,2])
+cor(bootstrap_results$bootstrap_results[,3],bootstrap_results$bootstrap_results[,4])
+cor(bootstrap_results$bootstrap_results[,5],bootstrap_results$bootstrap_results[,6])
+hist(bootstrap_results$bootstrap_results[,3], xlim = c(-1,0))
+hist(bootstrap_results$bootstrap_results[,4], xlim = c(1,0))
+hist(bootstrap_results$bootstrap_results[,2],xlim = c(0,1))
+z = table(cut(bootstrap_results$bootstrap_results[,1],20), cut(bootstrap_results$bootstrap_results[,2],20))
+image2D(z=z, border="black")
+```
+
+```{r 2d histograms}
+library(MASS)
+library(grid)
+parameters_names = c('p',"q","mu_1","mu_2")
+bootstrap_results$original_em_results_list
+i = 3
+j = 4
+cor(bootstrap_results$bootstrap_results[,i],bootstrap_results$bootstrap_results[,j])
+
+h1 <- hist(bootstrap_results$bootstrap_results[,i][bootstrap_results$bootstrap_results[,i] < -0.08], breaks=25, plot=F)
+h2 <- hist(bootstrap_results$bootstrap_results[,j][bootstrap_results$bootstrap_results[,j] < 1.3], breaks=25, plot=F)
+top <- max(h1$counts, h2$counts)
+k <- kde2d(bootstrap_results$bootstrap_results[,i][bootstrap_results$bootstrap_results[,i] < -0.08],
+  bootstrap_results$bootstrap_results[,j][bootstrap_results$bootstrap_results[,j] < 1.3],
+           n=25)
+oldpar <- par()
+par(mar=c(3,3,1,1))
+layout(matrix(c(2,0,1,3),2,2,byrow=T),c(3,1), c(1,3))
+image(k) #plot the image
+segments(2,4,2,4)
+par(mar=c(0,2,1,0))
+barplot(h1$counts, axes=F, xlim=c(0, top), space=0, col='blue', main = parameters_names[j])
+par(mar=c(2,0,0.5,1))
+barplot(h2$counts, axes=F, ylim=c(0, top), space=0, col='blue', main = parameters_names[i], horiz=T)
+```
+
+```{r another 2d hist}
+library(ggplot2)
+library(gridExtra)
+DF <- data.frame(p = bootstrap_results$bootstrap_results[,1],
+                 q = bootstrap_results$bootstrap_results[,2])
+
+p1 <- ggplot(DF,aes(x=p,y=q,colour='pq')) + geom_point() +
+  scale_x_continuous(expand=c(0.02,0)) +
+  scale_y_continuous(expand=c(0.02,0)) +
+  theme_bw() +
+  theme(legend.position="none",plot.margin=unit(c(0,0,0,0),"points"))
+
+theme0 <- function(...) theme( legend.position = "none",
+                               panel.background = element_blank(),
+                               panel.grid.major = element_blank(),
+                               panel.grid.minor = element_blank(),
+                               panel.margin = unit(0,"null"),
+                               axis.ticks = element_blank(),
+                               axis.text.x = element_blank(),
+                               axis.text.y = element_blank(),
+                               axis.title.x = element_blank(),
+                               axis.title.y = element_blank(),
+                               axis.ticks.length = unit(0,"null"),
+                               axis.ticks.margin = unit(0,"null"),
+                               panel.border=element_rect(color=NA),...)
+
+p2 <- ggplot(DF,aes(x=p,colour='p',fill='p')) + 
+  geom_density(alpha=0.5) + 
+  scale_x_continuous(breaks=NULL,expand=c(0.02,0)) +
+  scale_y_continuous(breaks=NULL,expand=c(0.00,0)) +
+  theme_bw() +
+  theme0(plot.margin = unit(c(1,0,-0.48,2.2),"lines")) 
+
+p3 <- ggplot(DF,aes(x=q,colour='q',fill='q')) + 
+  geom_density(alpha=0.5) + 
+  coord_flip()  + 
+  scale_x_continuous(labels = NULL,breaks=NULL,expand=c(0.02,0)) +
+  scale_y_continuous(labels = NULL,breaks=NULL,expand=c(0.00,0)) +
+  theme_bw() +
+  theme0(plot.margin = unit(c(0,1,1.2,-0.48),"lines"))
+
+grid.arrange(arrangeGrob(p2,ncol=2,widths=c(3,1)),
+             arrangeGrob(p1,p3,ncol=2,widths=c(3,1)),
+             heights=c(1,3))
+```
+
+```{r last but not least}
+library("ggExtra")
+library("ggpubr")
+
+DF <- data.frame(p = bootstrap_results$bootstrap_results[,1],
+                 q = bootstrap_results$bootstrap_results[,2])
+p <- ggscatter(DF, x = "p", y = "q",
+               color = 'red', palette = "jco",
+               size = 3, alpha = 0.6) + 
+  geom_hline(yintercept = bootstrap_results$original_em_results_list[2], linetype = "dashed", color = "blue") +
+  geom_vline(xintercept = bootstrap_results$original_em_results_list[1], linetype = "dashed", color = "red")
+ggMarginal(p, type = "histogram")
+```
+
+
 ```{r bootstrap analysis of Mean FA in retrolenticular part of internal capsule on FA skeleton (left)}
 feature_name <- 'Mean FA in retrolenticular part of internal capsule on FA skeleton (left)'
 bootstrap_results <- biobank_bootstrap_em(biobank_residuals_data[[feature_name]],
                      biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters)
 beep('mario')
+
 plot(bootstrap_results$bootstrap_results[,1], main ='scatter of bootstrap', ylab = 'p_hat')
 points(biobank_feature_residual_analysis[[feature_name]]$hypothesis_results$mixture_model$m_parameters$p, col = 'red')
 hist(bootstrap_results$bootstrap_results[,1])

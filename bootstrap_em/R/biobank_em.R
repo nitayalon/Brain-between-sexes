@@ -27,6 +27,9 @@ biobank_bootstrap_em <- function(feature_data
     sigma_2_women = init_parameters$sigma_2_women
   }
   start_time = Sys.time()
+  
+  original_em_results = EM(observations$men, observations$women, 3000, p, q, mu_1, mu_2, sigma_2_men, sigma_2_women) 
+  original_em_results_list = unlist(original_em_results[1:6])  
   for(i in 1:number_of_bootstrap_iteration)
   {
     population_data = bootstrap_data_sample(observations)
@@ -61,7 +64,8 @@ biobank_bootstrap_em <- function(feature_data
   #                    llk = tail(llk,1),
   #                    men_responsebilities = men_responsebilities,
   #                    women_responsebilities = women_responsebilities)
-  em_results = list(bootstrap_results = bootstrap_results, 
+  em_results = list(original_em_results_list = original_em_results_list,
+                    bootstrap_results = bootstrap_results, 
                     iteration_progress = iteration_progress)
   return(em_results)
 }

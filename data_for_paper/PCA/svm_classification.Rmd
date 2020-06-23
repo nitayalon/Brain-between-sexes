@@ -1,0 +1,84 @@
+---
+title: "SVM classification"
+author: "Nitay Alon"
+date: "6/22/2020"
+output: html_document
+---
+
+```{r loading libraries}
+library(e1071)
+library(dplyr)
+library(glmnet)
+men_responsebilities_matrix = read.csv('~/Human_brain_research/data_for_paper/Tables/men_responsebilities.csv')
+women_responsebilities_matrix = read.csv('~/Human_brain_research/data_for_paper/Tables/women_responsebilities.csv')
+men_responsebilities_matrix$sex = T
+women_responsebilities_matrix$sex = F
+all_data = rbind(men_responsebilities_matrix, sample_n(women_responsebilities_matrix, nrow(men_responsebilities_matrix), F))
+all_data_no_id  = select(all_data, -'eid', -'X')
+```
+
+```{r glmnet elastic net model}
+set.seed(6431)
+smp_size <- floor(0.75 * nrow(all_data))
+
+train_ind <- sample(seq_len(nrow(all_data_no_id)), size = smp_size)
+train <- all_data_no_id[train_ind, ]
+validation_set <- all_data_no_id[-train_ind, ]
+x_matrix_train = as.matrix(select(train, -sex))
+y_matrix_train = as.matrix(select(train, sex))
+```
+
+```{r 10-flod glmnet}
+ten_fold_cv = cv.glmnet(x_matrix_train, y_matrix_train, type.measure = 'class',family = "binomial")
+summary(ten_fold_cv)
+plot(ten_fold_cv)
+ten_fold_cv$lambda.min
+ten_fold_cv$lambda.1se
+coef(ten_fold_cv, s = "lambda.min")
+```
+
+
+```{r model training}
+model = svm(sex ~ ., data = train, type = 'C-classification', 
+                 kernel = 'linear')
+summary(model)
+svm_hyperplane_equation = t(model$coefs) %*% model$SV
+export_svm_hyperplane_equation = tibble(svm_formula = t(svm_hyperplane_equation),
+                                        features = colnames(svm_hyperplane_equation))
+write.csv(export_svm_hyperplane_equation,'svm_equation.csv')
+```
+
+```{r 10-fold validation}
+library(caret)
+set.seed(6431)
+folds = createFolds(all_data_no_id$sex, k = 10)
+# in cv we are going to applying a created function to our 'folds'
+cv = lapply(folds, function(x) { # start of function
+  # in the next two lines we will separate the Training set into it's 10 pieces
+  training_fold =  all_data_no_id[-x,]# training fold =  training set minus (-) it's sub test fold
+  test_fold = all_data_no_id[x,] # here we describe the test fold individually
+  # now apply (train) the classifer on the training_fold
+  classifier = svm(formula = sex ~ .,
+                   data = training_fold,
+                   type = 'C-classification',
+                   kernel = 'linear')
+  # next step in the loop, we calculate the predictions and cm and we equate the accuracy
+  # note we are training on training_fold and testing its accuracy on the test_fold
+  prediced_sex = predict(classifier, newdata = select(test_fold,-sex))
+  cm = table(test_fold$sex, prediced_sex)
+  accuracy = (cm[1,1] + cm[2,2]) / (cm[1,1] + cm[2,2] + cm[1,2] + cm[2,1])
+  return(accuracy)
+})
+mean(as.numeric(cv))
+```
+
+```{r}
+w = t(classifier$coefs) %*% classifier$SV
+b = -classifier$rho
+a=-b/w[1,2]
+b=-w[1,1]/w[1,2]
+tibble(coefficient = classifier$coefs, feature = colnames(classifier$SV))
+
+```
+
+
