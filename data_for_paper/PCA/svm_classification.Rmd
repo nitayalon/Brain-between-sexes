@@ -6,15 +6,16 @@ output: html_document
 ---
 
 ```{r loading libraries}
-library(e1071)
 library(dplyr)
 library(glmnet)
-men_responsebilities_matrix = read.csv('~/Human_brain_research/data_for_paper/Tables/men_responsebilities.csv')
-women_responsebilities_matrix = read.csv('~/Human_brain_research/data_for_paper/Tables/women_responsebilities.csv')
-men_responsebilities_matrix$sex = T
-women_responsebilities_matrix$sex = F
-all_data = rbind(men_responsebilities_matrix, sample_n(women_responsebilities_matrix, nrow(men_responsebilities_matrix), F))
-all_data_no_id  = select(all_data, -'eid', -'X')
+data_for_logistic_model = data.frame(eid = biobank_residuals_data[[1]]$eid, sex = biobank_residuals_data[[1]]$sex,  value = biobank_residuals_data[[1]]$value)
+for(feature in names(biobank_residuals_data)[-1]){
+  feature_volume_data = data.frame(eid = biobank_residuals_data[[feature]]$eid, biobank_residuals_data[[feature]]$value)
+  data_for_logistic_model = merge(data_for_logistic_model, feature_volume_data, by.x = 'eid', by.y = 'eid')
+}
+names(data_for_logistic_model) = c('eid','sex',names(biobank_residuals_data))
+data_for_logistic_model = select(data_for_logistic_model, -'eid')
+write.csv(data_for_logistic_model, 'residual_data_for_glment.csv', row.names = F)
 ```
 
 ```{r feature quadrant}
@@ -27,11 +28,11 @@ Quad = c(rep('q2_q4',length(q2_q4_features_names)),
 
 ```{r glmnet elastic net model}
 set.seed(6431)
-smp_size <- floor(0.75 * nrow(all_data))
+smp_size <- floor(0.75 * nrow(data_for_logistic_model))
 
-train_ind <- sample(seq_len(nrow(all_data_no_id)), size = smp_size)
-train <- all_data_no_id[train_ind, ]
-validation_set <- all_data_no_id[-train_ind, ]
+train_ind <- sample(seq_len(nrow(data_for_logistic_model)), size = smp_size)
+train <- data_for_logistic_model[train_ind, ]
+validation_set <- data_for_logistic_model[-train_ind, ]
 x_matrix_train = as.matrix(select(train, -sex))
 y_matrix_train = as.matrix(select(train, sex))
 ```
@@ -62,8 +63,11 @@ exp(logistic_regression_model$`1`[1] + final_glm_model$Coefficient[which.max(fin
 ```{r prediction error}
 x_matrix_validation = as.matrix(select(validation_set, -sex))
 predicted_sex = predict(ten_fold_cv, newx = x_matrix_validation, s = "lambda.min", type = "class")
-table(predicted_sex, validation_set$sex)
+prediction_table = table(predicted_sex, validation_set$sex)
+(prediction_table[1,1] + prediction_table[2,2]) / sum(prediction_table)
 ```
+
+
 ```{r correlation}
 interesting_feature = final_glm_model$Feature[which.max(final_glm_model$Coefficient)]
 names(men_responsebilities_matrix)
