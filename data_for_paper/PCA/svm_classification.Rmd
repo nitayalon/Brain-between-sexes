@@ -17,6 +17,14 @@ all_data = rbind(men_responsebilities_matrix, sample_n(women_responsebilities_ma
 all_data_no_id  = select(all_data, -'eid', -'X')
 ```
 
+```{r feature quadrant}
+feature_quadrants = data.frame(Feature = c(q2_q4_features_names,q1_q3_features_names, p_equals_q$feature),
+Quad = c(rep('q2_q4',length(q2_q4_features_names)),
+         rep('q1_q3',length(q1_q3_features_names)),
+         rep('p=q',length(p_equals_q$feature))))
+```
+
+
 ```{r glmnet elastic net model}
 set.seed(6431)
 smp_size <- floor(0.75 * nrow(all_data))
@@ -34,7 +42,33 @@ summary(ten_fold_cv)
 plot(ten_fold_cv)
 ten_fold_cv$lambda.min
 ten_fold_cv$lambda.1se
-coef(ten_fold_cv, s = "lambda.min")
+logistic_regression_model = as.data.frame(as.matrix(coef(ten_fold_cv, s = "lambda.min")))
+logistic_regression_model$Feature = row.names(logistic_regression_model)
+logistic_regression_model$Coefficient = logistic_regression_model$`1`
+```
+
+```{r export the coef matrix}
+logistic_regression_model$Feature = gsub(".", " ", logistic_regression_model$Feature,fixed=TRUE)
+logistic_regression_model$Feature = gsub("  ", " (", logistic_regression_model$Feature,fixed=TRUE)
+write.csv(select(logistic_regression_model, -`1`), file = 'glmnet_results.csv', row.names = F)
+logistic_regression_model_new = read.csv("glmnet_results.csv")
+final_glm_model = merge((logistic_regression_model_new %>% filter(Coefficient != 0)), feature_quadrants)
+write.csv(final_glm_model, "final_glmnet_results.csv")
+final_glm_model[order(final_glm_model$Coefficient,decreasing = T),]
+table(final_glm_model$Quad[abs(final_glm_model$Coefficient) > 2])
+exp(logistic_regression_model$`1`[1] + final_glm_model$Coefficient[which.max(final_glm_model$Coefficient)]) / (1 + exp(logistic_regression_model$`1`[1] + final_glm_model$Coefficient[which.max(final_glm_model$Coefficient)]))
+```
+
+```{r prediction error}
+x_matrix_validation = as.matrix(select(validation_set, -sex))
+predicted_sex = predict(ten_fold_cv, newx = x_matrix_validation, s = "lambda.min", type = "class")
+table(predicted_sex, validation_set$sex)
+```
+```{r correlation}
+interesting_feature = final_glm_model$Feature[which.max(final_glm_model$Coefficient)]
+names(men_responsebilities_matrix)
+hist(men_responsebilities_matrix[,11], xlim = c(0,1), freq = F, col = 'blue')
+hist(women_responsebilities_matrix[,11], xlim = c(0,1), add = T, freq = F, col = 'red')
 ```
 
 
