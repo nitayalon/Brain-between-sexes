@@ -151,3 +151,17 @@ jpeg('two_mixture_model_probability_correlation_matrix_fa_features.jpeg')
 corrplot(combined_correaltion_residuals[FA_features_two_mixture_model,FA_features_two_mixture_model], order = "alphabet",
          tl.cex = 0.8,tl.col="black")
 dev.off()
+
+
+
+# Power anaysis -----------------------------------------------------------
+
+ggplot(h0_and_h1_power_plot_data_no_zeros, aes(x = data, color = sample_size,linetype = hypothesis, size=.9)) + 
+  stat_ecdf(geom = "step",size = 2) + 
+  xlab("X") + 
+  geom_vline(xintercept = vertical_marker$q, linetype = 'dotted', color = 'blue') + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(face="bold", color="black", 
+                                   size=15),
+        axis.text.y = element_text(face="bold", color="black", 
+                                   size=15))

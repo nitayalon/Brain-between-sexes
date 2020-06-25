@@ -166,10 +166,17 @@ h0_and_h1_power_plot_data$sample_size = factor(h0_and_h1_power_plot_data$sample_
 h0_and_h1_power_plot_data_no_zeros <- h0_and_h1_power_plot_data %>% 
 filter(data > 0)
 
+vertical_marker = h0_and_h1_power_plot_data_no_zeros %>% filter(sample_size == "8000" & hypothesis == 'H0') %>% 
+  summarise(q = quantile(data, 0.95))
+
 ggplot(h0_and_h1_power_plot_data_no_zeros, aes(x = data, color = sample_size,linetype = hypothesis)) + 
   stat_ecdf(geom = "step") + 
   xlab("X") + 
-  ggtitle("Emprical CDF of log-likelihood ratio", sub = "H0 and H1") +
-  geom_vline(xintercept = quantile(h0_5000_samples_llrt$data, 0.95), linetype = 'dotted', color = 'blue')
+  geom_vline(xintercept = vertical_marker$q, linetype = 'dotted', color = 'blue') + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(face="bold", color="black", 
+                                   size=7),
+        axis.text.y = element_text(face="bold", color="black", 
+                                   size=7))
 ```
 
