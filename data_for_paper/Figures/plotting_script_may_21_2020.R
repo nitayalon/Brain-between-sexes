@@ -49,13 +49,13 @@ plotGenderHistogram(biobank_residuals_data[[feature_name]],
 
 # Nice plot ---------------------------------------------------------------
 library(dplyr)
-load('data_for_paper/Tables/df_p_vs_q.RData')
+library(ggplot2)
+load('df_p_vs_q.RData')
 ggplot(df_p_vs_q, aes(p,q)) +
   geom_point(aes(colour = bins_for_cohen_d,shape = p_equal_q)) +
   scale_shape_manual(values=c(3,19))+
   geom_vline(xintercept = 0.5) +
   geom_hline(yintercept = 0.5) +
-  ggtitle("Values of p and q", subtitle = "shape is p=q hypothesis") + 
   geom_abline(slope = 1, intercept = 0) + 
   scale_color_manual(name = "Cohen D",
                      values = c("(-0.3,-0.2]" = "red4",
@@ -67,9 +67,9 @@ ggplot(df_p_vs_q, aes(p,q)) +
                      labels = c("<-0.2","0.2<=d<-0.1","-0.1<=d<0.1","0.1<=d<0.2","0.2<=d<3","0.3<=d<0.4")) +
   theme_bw() + 
   theme(axis.text.x = element_text(face="bold", color="black", 
-                                   size=7),
+                                   size=10),
         axis.text.y = element_text(face="bold", color="black", 
-                                   size=7)) +
+                                   size=10)) +
   coord_fixed()
 
 
