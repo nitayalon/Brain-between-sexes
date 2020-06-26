@@ -84,6 +84,8 @@ Separating the regions:
 corrplot(combined_correaltion[volume_features_mosaic_features,volume_features_mosaic_features], 
          tl.cex = 0.5,tl.srt = 45)
 ```
+
+
 ```{r distribution of correlation, include=FALSE}
 sum(abs(combined_correaltion[volume_features_mosaic_features,volume_features_mosaic_features]) < 0.1) / 
   (nrow(combined_correaltion[volume_features_mosaic_features,volume_features_mosaic_features]) * ncol(combined_correaltion[volume_features_mosaic_features,volume_features_mosaic_features]))

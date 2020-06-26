@@ -1,3 +1,6 @@
+library(pbapply)
+library(corrplot)
+
 computeCorrelationMatrix <- function(features_names, replace_responsebilities = TRUE){
   
   if(replace_responsebilities){

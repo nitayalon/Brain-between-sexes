@@ -1,5 +1,12 @@
+
+
+
+
 corrplot(combined_correaltion_residuals[volume_features_single_mixture_model,volume_features_single_mixture_model], 
          order = "alphabet",tl.cex = 0.5,tl.srt = 90,tl.col="black", method = 'number')
+
+str(q2_q4_correlation_matrix)
+
 
 men_cor_residuals_vector <- 
   men_cor_residuals[upper.tri(men_cor_residuals)] %>% 
