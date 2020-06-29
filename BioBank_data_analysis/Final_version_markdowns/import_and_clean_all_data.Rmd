@@ -56,7 +56,10 @@ full_relevant_data <- cbind(demographic_data, relevant_data)
 full_relevant_data %>% 
   mutate(age = 2019 - Year_Of_Birth) %>% 
   group_by(Sex) %>% 
-  summarise(avg = mean(age), std = sd(age), count = n())
+  summarise(avg = mean(age), std = sd(age), count = n(), min = min(age), max = max(age))
+```
+```{r addin ethnicity analysis}
+22063 / length(demographic_data$Ethnic_BG_1)
 ```
 
 

@@ -155,13 +155,23 @@ dev.off()
 
 
 # Power anaysis -----------------------------------------------------------
+library(ggplot2)
+library(dplyr)
+h0_and_h1_power_plot_data_no_zeros = read.csv("data_for_paper/Tables/power_analysis_data.csv")
 
-ggplot(h0_and_h1_power_plot_data_no_zeros, aes(x = data, color = sample_size,linetype = hypothesis, size=.9)) + 
+vertical_marker = h0_and_h1_power_plot_data_no_zeros %>% 
+  filter(hypothesis == "H0" & sample_size == 8000) %>% 
+  summarise(q = quantile(data, 0.95))
+h0_and_h1_power_plot_data_no_zeros$sample_size = as.factor(h0_and_h1_power_plot_data_no_zeros$sample_size)
+ggplot(h0_and_h1_power_plot_data_no_zeros, aes(x = data, color = sample_size, linetype = hypothesis, size=.9)) + 
   stat_ecdf(geom = "step",size = 2) + 
   xlab("X") + 
+  ylab("Chi^2 CDF") + 
   geom_vline(xintercept = vertical_marker$q, linetype = 'dotted', color = 'blue') + 
   theme_bw() + 
   theme(axis.text.x = element_text(face="bold", color="black", 
                                    size=15),
+        axis.title.x = element_text(size = rel(1.5)),
+        axis.title.y = element_text(size = rel(1.5)),
         axis.text.y = element_text(face="bold", color="black", 
                                    size=15))
