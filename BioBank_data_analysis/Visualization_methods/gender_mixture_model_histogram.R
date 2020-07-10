@@ -8,7 +8,7 @@ plot_mix_comps <- function(x, mu, sigma, lambda) {
 
 
 plotGenderHistogram <- function(plot_data,
-                                em_results,
+                                em_results = NULL,
                                 feature_name = NULL,
                                 p = NULL, q = NULL,
                                 two_mixtures = TRUE,
@@ -27,6 +27,8 @@ plotGenderHistogram <- function(plot_data,
                    alpha=.8, 
                    position="identity") + 
     scale_fill_manual(values = alpha(c('tomato','dodgerblue'),.1)) + 
+    xlim(c(-4,4)) +
+    ylim(c(0,0.5))+
     ggtitle(plot_title, subtitle = subtitle) 
   if(two_mixtures)
   {
@@ -54,11 +56,11 @@ plotGenderHistogram <- function(plot_data,
     feature_histogram <- feature_histogram + 
       stat_function(geom = "line",
                     fun = plot_mix_comps,
-                    args = list(mu = key_statistics$avg[2], sigma = sqrt(key_statistics$std[2]), lambda = 1),
+                    args = list(mu = key_statistics$avg[2], sigma = key_statistics$std[2], lambda = 1),
                     colour = "blue", lwd = 1.2) +
       stat_function(geom = "line",
                     fun = plot_mix_comps,
-                    args = list(mu = key_statistics$avg[1], sigma = sqrt(key_statistics$std[1]), lambda = 1),
+                    args = list(mu = key_statistics$avg[1], sigma = key_statistics$std[1], lambda = 1),
                     colour = "red", lwd = 1.0,linetype = "dashed") 
     return(feature_histogram)
   }
