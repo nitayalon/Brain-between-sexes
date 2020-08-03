@@ -9,7 +9,7 @@ pure_men = biobank_residuals_data[[pure_type_feature]] %>% filter(sex == 1) %>% 
 
 ## Now the theoretical
 # Compute the theoretical probabilities
-theoretical_density = function(em_parameters, bins = seq(-4,4,0.5)){
+theoretical_cdf = function(em_parameters, bins = seq(-4,4,0.5)){
 	p	= em_parameters$p
         q	= em_parameters$q
         mu_1	= em_parameters$mu_1
