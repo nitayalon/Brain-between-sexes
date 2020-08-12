@@ -13,23 +13,14 @@ applyStandartizationForFeature <- function(feature_name,
   # Log
   logged_feature_data <- 
     raw_feature_data %>% 
+    mutate(value = round(value, 4)) %>% 
     filter(value > 0) %>% 
     mutate(log_value = log(value))
   
-  # Removing outliers
-  logged_feature_data$trimmed_log_value <- 
-    Winsorize(logged_feature_data$log_value,
-              minval = quantile(logged_feature_data$log_value, 0.001),
-              maxval = quantile(logged_feature_data$log_value, 0.999))
-  
-  final_feature_data <- tibble(
+  feature_data <- tibble(
     eid = logged_feature_data$eid,
     sex = logged_feature_data$sex,
-    value = logged_feature_data$trimmed_log_value)
-  
-  # feature_data <- 
-  #   final_feature_data %>% 
-  #   normalizeResiduales()
-  
+    value = logged_feature_data$log_value)
+
   return(feature_data)
 }

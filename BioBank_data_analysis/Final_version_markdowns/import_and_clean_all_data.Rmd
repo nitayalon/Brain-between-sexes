@@ -82,13 +82,43 @@ save(biobank_residuals_data, file = "~/Desktop/BioBank_residual_data.RData")
 ```
 
 Second data set - log, winsorized, standardize.
+
+Evaluate the number of loss information:
+```{r number of loss data points}
+countNumberOfMissingData = function(feature_name,
+                                           subject_data){
+  filtering_criteria <- !is.na(relevant_data[,feature_name]) & 
+    relevant_data[,feature_name] > 0
+  
+  raw_feature_data <- tibble(
+    eid = subject_data$eid[filtering_criteria],
+    sex = subject_data$Sex[filtering_criteria],
+    value = relevant_data[,feature_name][filtering_criteria])
+  
+  # Log
+  logged_feature_data <- 
+    raw_feature_data %>% 
+    mutate(value = round(value, 4)) %>% 
+    filter(value > 0) %>% 
+    mutate(log_value = log(value))
+  
+  return(nrow(raw_feature_data) - nrow(logged_feature_data))
+}
+
+removed_data = pblapply(list.of.names,function(x){
+countNumberOfMissingData(x,user_data)
+})
+
+hist(unlist(removed_data))
+```
+
+
 ```{r normalizing brain feature data, include=FALSE}
-biobank_standardized_data <- list()
 biobank_standardized_data <- pblapply(list.of.names,function(x){
 methodHelperFeatureNormalization(x,user_data)
 })
 names(biobank_standardized_data) <- list.of.names
-save(biobank_standardized_data, file = "~/Desktop/BioBank_standardized_data.RData")
+save(biobank_standardized_data, file = "~/Human_brain_research/Data/Biobank/BioBank_standardized_data.RData")
 ```
 
 Third data set - log, winsorized, residuals, normalized
@@ -124,10 +154,8 @@ save(biobank_feature_residual_analysis, file = "~/Desktop/biobank_feature_residu
 
 
 ```{r apply full analysis cycle over normalized}
-biobank_feature_standard_analysis <- list()
-
 biobank_feature_standard_analysis <- pblapply(biobank_standardized_data,function(x){
-  BrainFeatureAnalysis(x, including_equal_mixture_model = F)
+  BrainFeatureAnalysis(x)
 })
 names(biobank_feature_standard_analysis) <- list.of.names
 save(biobank_feature_standard_analysis, file = "~/Desktop/biobank_feature_standard_analysis.RData")
