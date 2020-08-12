@@ -38,12 +38,18 @@ length(daphna_names$V1)
 length(names(bio_bank_data))
 length(intersect(list.of.names,daphna_names$V1)) - length(list.of.names)
 ```
-
+```{r list of features names}
+filtered_bio_bank_data <- bio_bank_data[,names(bio_bank_data) != ""]
+total.brain.volume.data <- filtered_bio_bank_data %>% 
+  select("Volume of brain, grey+white matter","Volume of ventricular cerebrospinal fluid")
+names(filtered_bio_bank_data)[1] <- "eid"
+user_data <- select(filtered_bio_bank_data, eid, Sex)
+relevant_data <- bio_bank_data[,names(bio_bank_data) %in% daphna_names$V1]
+list.of.names <- names(relevant_data)
+length(intersect(list.of.names,daphna_names$V1))
+```
 
 ```{r filter relevant features}
-relevant_region <- c(seq(45,167)
-                     ,seq(177,194)
-                     ,seq(195,333))
 demographic_data <- bio_bank_data[,c(2,3,seq(13,15))]
 names(demographic_data) <- c("Sex","Year_Of_Birth",
                              "Ethnic_BG_1",
@@ -59,19 +65,7 @@ full_relevant_data %>%
   summarise(avg = mean(age), std = sd(age), count = n())
 ```
 
-
-```{r list of features names}
-filtered_bio_bank_data <- bio_bank_data[,names(bio_bank_data) != ""]
-total.brain.volume.data <- filtered_bio_bank_data %>% 
-  select("Volume of brain, grey+white matter","Volume of ventricular cerebrospinal fluid")
-names(filtered_bio_bank_data)[1] <- "eid"
-user_data <- select(filtered_bio_bank_data, eid, Sex)
-relevant_data <- bio_bank_data[,names(bio_bank_data) %in% daphna_names$V1]
-list.of.names <- names(relevant_data)
-length(intersect(list.of.names,daphna_names$V1))
-```
-
-```{r}
+```{r count by sex}
 user_data %>% group_by(Sex) %>% summarise(count = n())
 ```
 

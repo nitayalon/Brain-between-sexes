@@ -27,9 +27,9 @@ applyStandartizationForFeature <- function(feature_name,
     sex = logged_feature_data$sex,
     value = logged_feature_data$trimmed_log_value)
   
-  feature_data <- 
-    final_feature_data %>% 
-    normalizeResiduales()
+  # feature_data <- 
+  #   final_feature_data %>% 
+  #   normalizeResiduales()
   
   return(feature_data)
 }
