@@ -147,7 +147,7 @@ BrainFeatureAnalysis(biobank_residuals_data$`Mean FA in middle cerebellar pedunc
 biobank_feature_residual_analysis <- list()
 
 biobank_feature_residual_analysis <- pblapply(biobank_residuals_data,function(x){
-  BrainFeatureAnalysis(x)
+  BrainFeatureAnalysis(x,including_equal_mixture_model = T)
 })
 names(biobank_feature_residual_analysis) <- list.of.names
 save(biobank_feature_residual_analysis, file = "~/Desktop/biobank_feature_residual_analysis.RData")
