@@ -35,7 +35,7 @@ names(bio_bank_data) = columns_names$Description
 daphna_names <- read.delim("~/Desktop/columns_names.txt",header = F)
 original_names <- read.delim("~/Desktop/columns_names_original.txt",header = F)
 length(daphna_names$V1)
-length(original_names$V1)
+length(names(bio_bank_data))
 length(intersect(list.of.names,daphna_names$V1)) - length(list.of.names)
 ```
 

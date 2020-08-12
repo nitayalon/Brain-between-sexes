@@ -2,7 +2,7 @@ library(dplyr)
 library(ggplot2)
 library(KSgeneral)
 
-theoretical_cdf = function(em_parameters, bins = seq(-7,7,0.5)){
+theoretical_cdf = function(em_parameters, bins = seq(-7,7,0.05)){
 	p	= em_parameters$p
         q	= em_parameters$q
         mu_1	= em_parameters$mu_1
@@ -134,3 +134,77 @@ abline(h = 1.358, col = 'black')
 ks_results %>% 
   filter(Feature %in% q1_q3_features_names) %>% 
   select(KS_men, KS_women)
+
+
+# adding cdf plots of the heighest KS feature -----------------------------
+
+max_ks_feature = ks_results$Feature[which.max(ks_results$KS_men)]
+
+sort(ks_results$KS_men,decreasing = T)[1:20]
+sort(ks_results$KS_women,decreasing = T)[1:10]
+
+tenth_ks_feature = (ks_results$Feature[order(ks_results$KS_men,decreasing = T)])[10]
+
+em_parameters_for_llk_analysis = biobank_feature_residual_analysis[[max_ks_feature]]$hypothesis_results$mixture_model$m_parameters
+feature_theoretical_cdf = theoretical_cdf(em_parameters_for_llk_analysis)
+N = biobank_residuals_data[[max_ks_feature]] %>% group_by(sex) %>% summarize(count = n())
+empirical_men_cdf = cumsum(hist((biobank_residuals_data[[max_ks_feature]] %>% filter(sex == 1) %>% select(value))$value, plot = F, breaks = seq(-7,7,0.05))$density) / 20
+empirical_women_cdf = cumsum(hist((biobank_residuals_data[[max_ks_feature]] %>% filter(sex == 0) %>% select(value))$value, plot = F, breaks = seq(-7,7,0.05))$density) / 20
+
+plot(seq(-7,7,0.05)[-1], cumsum(feature_theoretical_cdf$men_density), col = 'blue', type = 'l', lwd = 1.5,
+     ylab = 'CDF', xlab = 'X',cex.lab=1.5, cex.axis = 1.5,)
+lines(seq(-7,7,0.05)[-1], cumsum(feature_theoretical_cdf$women_density), col = 'red', type = 'l', lwd = 1.5)
+lines(seq(-7,7,0.05)[-1], empirical_men_cdf, col = 'blue', type = 'l',lty=2, lwd = 1.5)
+lines(seq(-7,7,0.05)[-1], empirical_women_cdf, col = 'red', type = 'l', lty=2, lwd = 1.5)
+legend(-5, 0.8, legend=c("Men_th", "Women_th","Men_em", "Women_em"),
+       col=c("blue", "red"), lty=c(1,1,2,2), cex=0.8)
+
+empirical_men_pdf = hist((biobank_residuals_data[[max_ks_feature]] %>% filter(sex == 1) %>% select(value))$value, plot = F, breaks = seq(-7,7,0.05))
+empirical_women_pdf = hist((biobank_residuals_data[[max_ks_feature]] %>% filter(sex == 0) %>% select(value))$value, plot = F, breaks = seq(-7,7,0.05))
+
+plot(empirical_men_pdf, col = 'blue', ylim = c(0,300))
+plot(empirical_women_pdf, col = 'red', add = T)
+lines(seq(-7,7,0.05)[-1], feature_theoretical_cdf$men_density, col = 'blue', type = 'l', lwd = 1.5,
+     ylab = 'CDF', xlab = 'X',cex.lab=1.5, cex.axis = 1.5,)
+lines(seq(-7,7,0.05)[-1], feature_theoretical_cdf$women_density, col = 'red', type = 'l', lwd = 1.5)
+legend(-5, 0.8, legend=c("Men_th", "Women_th","Men_em", "Women_em"),
+       col=c("blue", "red"), lty=c(1,1,2,2), cex=0.8)
+
+
+biobank_residuals_data[[max_ks_feature]] %>% group_by(sex) %>% summarize(avg = mean(value))
+plot(empirical_men_cdf - empirical_women_cdf)
+plotGenderHistogram(biobank_residuals_data[[max_ks_feature]],
+                    biobank_feature_residual_analysis[[max_ks_feature]], max_ks_feature)
+plotGenderHistogram(biobank_residuals_data[[tenth_ks_feature]],
+                    biobank_feature_residual_analysis[[tenth_ks_feature]], tenth_ks_feature)
+
+
+# Plot p-q vs KS ----------------------------------------------------------
+
+ks_results %>% 
+  mutate(high_mean_p = ifelse(mu_1 < 0,1-p,p),
+         high_mean_q = ifelse(mu_1 < 0,1-q,q),
+         KS_men_bins = cut(KS_men, c(0,2,5))) %>% 
+ggplot(., aes(high_mean_p,high_mean_q,col = KS_men_bins)) +
+  geom_point()
+
+ks_results_extreme_squares = ks_results %>% 
+  mutate(high_mean_p = ifelse(mu_1 < 0,1-p,p),
+  high_mean_q = ifelse(mu_1 < 0,1-q,q),
+         KS_men_bins = cut(KS_men, c(0,2,5))) %>% 
+  filter(high_mean_p > 0.75 & high_mean_q > 0.75 | high_mean_p < 0.25 & high_mean_q < 0.25) 
+
+ks_results_non_extreme_squares = ks_results %>% 
+  filter(!(Feature %in% ks_results_extreme_squares$Feature))
+
+non_extereme_sample = c(rep(ks_results_non_extreme_squares$KS_men,76),rep(ks_results_non_extreme_squares$KS_women,76))
+extereme_sample = c(rep(ks_results_extreme_squares$KS_men,213),rep(ks_results_extreme_squares$KS_women,213))
+
+ks_range = seq(0,4,length.out = 400)
+non_extrem__survival = sapply(1:400, function(i) {sum(non_extereme_sample > ks_range[i])}) / 32376
+extrem__survival = sapply(1:400, function(i) {sum(extereme_sample > ks_range[i])}) / 32376
+ks_distribution = sapply(seq(1/400,1,1/400), function(x) {cont_ks_c_cdf(x, 400)})
+
+plot(ks_range, non_extrem__survival, type = 'l', col = 'blue', lwd = 2.5, ylab = 'CDF', xlab = 'KS statistic', cex.lab=1.5, cex.axis = 1.5)
+lines(ks_range, extrem__survival, type = 'l', col = 'red', lwd = 2.5)
+lines(seq(1/289,1,1/289) * sqrt(289), ks_distribution, type = 'l', col = 'black', lwd = 2.5)

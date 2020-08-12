@@ -1,0 +1,31 @@
+---
+title: "Fitting Gaussian Mixture Model"
+author: "Nitay Alon"
+date: "8/12/2020"
+output: html_document
+---
+
+In this notebook, a general GMM is fitted to the residual data to find the best fit (in turms of BIC) for multiple clusters.
+
+```{r setup, include=FALSE}
+library(mclust)
+```
+
+Apply the Gaussian Mixture Model for various number of components, but treating the population as one sample *i.e*, $p=q$.
+
+```{r apply the mclust function over one region}
+random_feature = sample(names(biobank_residuals_data),1)
+random_feature_data = biobank_residuals_data[[random_feature]]
+gm_model = mclustBIC(random_feature_data$value, G = seq(from=1,to=10,by=1))
+gm_model
+plot(gm_model)
+```
+
+Apply the function over all features
+```{r apply the mclust function over all regions}
+gm_model = lapply(biobank_residuals_data, function(x){mclustBIC(x$value, G = seq(from=1,to=10,by=1))})
+summary(gm_model[[1]])
+model = Mclust(biobank_residuals_data[[1]]$value, x = gm_model[[1]])
+str(summary(model,parameters = TRUE))
+```
+ 
