@@ -38,6 +38,7 @@ length(daphna_names$V1)
 length(names(bio_bank_data))
 length(intersect(list.of.names,daphna_names$V1)) - length(list.of.names)
 ```
+
 ```{r list of features names}
 filtered_bio_bank_data <- bio_bank_data[,names(bio_bank_data) != ""]
 total.brain.volume.data <- filtered_bio_bank_data %>% 
