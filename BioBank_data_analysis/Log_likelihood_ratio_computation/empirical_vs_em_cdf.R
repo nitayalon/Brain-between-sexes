@@ -208,3 +208,20 @@ ks_distribution = sapply(seq(1/400,1,1/400), function(x) {cont_ks_c_cdf(x, 400)}
 plot(ks_range, non_extrem__survival, type = 'l', col = 'blue', lwd = 2.5, ylab = 'CDF', xlab = 'KS statistic', cex.lab=1.5, cex.axis = 1.5)
 lines(ks_range, extrem__survival, type = 'l', col = 'red', lwd = 2.5)
 lines(seq(1/289,1,1/289) * sqrt(289), ks_distribution, type = 'l', col = 'black', lwd = 2.5)
+lines(seq(1/400,1,1/400) * sqrt(400), ks_distribution, type = 'l', col = 'black', lwd = 2.5)
+
+
+# Adding extra analysis for Science paper ---------------------------------
+
+length(intersect(ks_results_extreme_squares$Feature,
+                 names(pure_type_features_residuals)))
+ks_results_extreme_squares %>% 
+  filter(Feature %in% q1_q3_features$feature) %>% 
+  select(high_mean_p, high_mean_q) %>% 
+  filter(high_mean_p > 0.75 & high_mean_q > 0.75) %>% 
+  filter(high_mean_p < high_mean_q)
+ks_results_extreme_squares %>% 
+  filter(Feature %in% q1_q3_features$feature) %>% 
+  select(high_mean_p, high_mean_q) %>% 
+  filter(high_mean_p < 0.25 & high_mean_q < 0.25) %>% 
+  filter(high_mean_p > high_mean_q)
