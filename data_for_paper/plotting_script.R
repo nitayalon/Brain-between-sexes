@@ -1,19 +1,20 @@
+library(ggplot2)
 jpeg('p_vs_q_residuals_plot_color_indicates_cohen_d_shape_indicates_p_equal_q_or_not.jpeg')
 ggplot(df_p_vs_q, aes(p,q)) +
   geom_point(aes(colour = bins_for_cohen_d,shape = p_equal_q)) +
-  scale_shape_manual(values=c(19, 3))+
+  scale_shape_manual(values=c(3, 19))+
   geom_vline(xintercept = 0.5) +
   geom_hline(yintercept = 0.5) +
   ggtitle("Values of p and q", subtitle = "shape is p=q hypothesis") + 
   geom_abline(slope = 1, intercept = 0) + 
-  scale_color_manual(name = "Cohen D",
+  scale_color_manual(name = "Cohen's d",
                      values = c("(-0.3,-0.2]" = "red4",
                                 "(-0.2,-0.1]" = "red1",
                                 "(-0.1,0.1]" = "orange1",
-                                "(0.1,0.2]" = "darkslategray1",
+                                "(0.1,0.2]" = "deepskyblue2",
                                 "(0.2,0.3]" = "dodgerblue1",
                                 "(0.3,0.4]" = "blue4"),
-                     labels = c("<-0.2","0.2<=d<-0.1","-0.1<=d<0.1","0.1<=d<0.2","0.2<=d<3","0.3<=d<0.4")) +
+                     labels = c("-0.3<=d<-0.2","0.2<=d<-0.1","-0.1<=d<0.1","0.1<=d<0.2","0.2<=d<3","0.3<=d<0.4")) +
   theme_bw() + 
   theme(axis.text.x = element_text(face="bold", color="black", 
                                    size=7),

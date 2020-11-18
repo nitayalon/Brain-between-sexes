@@ -32,6 +32,16 @@ library(dplyr)
 library(Jmisc)
 library(config)
 library(magrittr)
+fitQuadrant <- function(p,q)
+{
+  p_tilde <- as.numeric(p) - 0.5
+  q_tilde <- as.numeric(q) - 0.5
+  if(sign(p_tilde) == sign(q_tilde))
+  {
+    return("Main")
+  }
+  return("Anti")
+}
 ```
 
 ```{r source data for fdr analysis,warning=FALSE,include=FALSE}
