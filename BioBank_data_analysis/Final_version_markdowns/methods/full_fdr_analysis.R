@@ -12,15 +12,16 @@ fullFdrAnalysis <- function(biobank_feature_data)
   
   pvalue_per_feature_df <- t(pvalue_per_feature) %>% as.data.frame() 
   
-  p_and_q_df <- standard_p_and_q %>% as.data.frame()
+  p_and_q_df <- p_and_q %>% as.data.frame()
   
-  cohens_d_per_feature <- sapply(biobank_feature_data, function(x){x$hypothesis_results$cohen_d_test$estimate})
+  cohens_d_per_feature <- sapply(biobank_feature_data, function(x){x$cohen_d_test$estimate})
   
   combined_df <- mergeDataFramesByColumnNames(pvalue_per_feature_df, p_and_q_df)
   
   combined_df <- rbind(combined_df, cohens_d_per_feature)
   rownames(combined_df) <- c("p_values","p","q","Cohen_D")
   combined_df_long <- combined_df %>% t() %>% as.data.frame()
+  names(combined_df_long) =  c("p_values","p","q","Cohen_D")
   combined_df_long$bins_of_pv <- cut(combined_df_long$p_values, c(1e-9,1e-8,1e-3,1e-2,1))
   
   N <- nrow(combined_df_long)

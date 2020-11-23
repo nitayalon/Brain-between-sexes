@@ -14,11 +14,11 @@ plotGenderHistogram <- function(plot_data,
                                 two_mixtures = TRUE,
                                 single_gaussian = F)
 {
-  em_data <- em_results$hypothesis_results$mixture_model$m_parameters
+  #em_data <- em_results$hypothesis_results$mixture_model$m_parameters
+  em_data <- em_results$mixture_model$m_parameters
   myColors <- brewer.pal(5,"Set1")
   names(myColors) <- levels(plot_data$sex)
   colScale <- scale_colour_manual(name = "sex",values = myColors)
-  key_statistics = plot_data %>% group_by(sex) %>% summarize(avg = mean(value), std = sd(value))
   plot_title <- sprintf("Histogram of gender data, feature %s", feature_name, p ,q)
   subtitle <- sprintf("p=%s, q=%s", p ,q)
   feature_histogram <- ggplot(plot_data, aes(x=value, fill=factor(sex))) +
@@ -53,6 +53,7 @@ plotGenderHistogram <- function(plot_data,
   }
   if(single_gaussian)
   {
+    key_statistics = plot_data %>% group_by(sex) %>% summarize(avg = mean(value), std = sd(value))
     feature_histogram <- feature_histogram + 
       stat_function(geom = "line",
                     fun = plot_mix_comps,

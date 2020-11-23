@@ -8,6 +8,7 @@ men_cor_residuals_vector <-
 women_cor_residuals_vector <- 
   women_cor_residuals[upper.tri(women_cor_residuals)] %>% 
   as.vector()
+
 both_genders_residuals_correlation_vector_df = data.frame(index = seq(1,length(sort(men_cor_residuals_vector))),
                                                           men_residual_correlation = sort(men_cor_residuals_vector),
                                                           women_residual_correlation = sort(women_cor_residuals_vector))
