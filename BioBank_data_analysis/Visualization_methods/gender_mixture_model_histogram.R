@@ -23,7 +23,7 @@ plotGenderHistogram <- function(plot_data,
   subtitle <- sprintf("p=%s, q=%s", p ,q)
   feature_histogram <- ggplot(plot_data, aes(x=value, fill=factor(sex))) +
     geom_histogram(aes(y=..density..),
-                   bins = 100, 
+                   bins = 50, 
                    alpha=.8, 
                    position="identity") + 
     scale_fill_manual(values = alpha(c('tomato','dodgerblue'),.1)) + 
