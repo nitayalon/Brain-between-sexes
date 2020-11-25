@@ -1,9 +1,13 @@
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+
 ### 22/11/2020 update - fixing the log(feature) data set
 bio_bank_log_feature_data = 
   tibble(eid = bio_bank_data$`Encoded anonymised participant ID`, 
          sex = bio_bank_data$Sex, 
          log(bio_bank_data[,names(biobank_residuals_data)]))
-write_csv(bio_bank_log_feature_data, 'bio_bank_log_feature_data.csv')
+# write_csv(bio_bank_log_feature_data, 'bio_bank_log_feature_data.csv')
 mask_outliers = function(feature, sex, eid)
 {
   no_na_data = feature[!is.na(feature)]

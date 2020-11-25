@@ -13,14 +13,17 @@ table(log_feature_fdr_analysis$bh_pvalue < 0.05)
 table(log_feature_fdr_analysis$bh_pvalue < 0.1)
 
 ggplot(log_feature_fdr_analysis[log_feature_fdr_analysis$bins_for_fdr %in% levels(log_feature_fdr_analysis$bins_for_fdr)[c(1,2)],], aes(p,q, colour = Cohen_D)) +
-  geom_point(aes(shape = bins_for_fdr)) +
+  geom_point() +
+  # geom_point(aes(shape = bins_for_fdr)) +
   scale_shape_manual(values=c(15, 17))+
   geom_vline(xintercept = 0.5) +
   geom_hline(yintercept = 0.5) +
   ggtitle("Values of p and q", subtitle = "Shape indicate FDR pv") + 
   geom_abline(slope = 1, intercept = 0) + 
-  scale_color_gradient2(midpoint=0, 
-                        low="red", 
-                        mid="white",
-                        high="darkblue", space ="Lab" )
+  theme_bw() + 
+  scale_color_gradient2(midpoint=-0.2, 
+                        low="tomato", 
+                        mid="yellow",
+                        high="dodgerblue", 
+                        space ="Lab" )
 
