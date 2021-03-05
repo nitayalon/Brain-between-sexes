@@ -1,7 +1,8 @@
 windowsFonts(A = windowsFont("Arial Black"))
 plot(ks_range, non_extrem__survival, 
      type = 'l', col = '#A9A9A9', lwd = 2.5, ylab = 'CDF', xlab = 'KS statistic', 
-     cex.lab= 1.5, cex.axis = 1.5, lty = 2,
+     cex.lab= 1.5, cex.axis = 1.5, 
+     lty = 5,
      family="A",
      font=2,
      ps = 24,
