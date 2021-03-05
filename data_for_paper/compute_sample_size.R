@@ -109,13 +109,52 @@ h0_and_h1_power_plot_data <- rbind(h0_1000_samples_llrt, h0_5000_samples_llrt, h
 h0_and_h1_power_plot_data$sample_size = factor(h0_and_h1_power_plot_data$sample_size)
 h0_and_h1_power_plot_data_no_zeros <- h0_and_h1_power_plot_data %>% 
   filter(data > 0)
-ggplot(h0_and_h1_power_plot_data_no_zeros, aes(x = data, color = sample_size,linetype = hypothesis)) + 
+
+# new plot for JN ---------------------------------------------------------
+
+library(dplyr)
+h0_8000_samples_llrt = h0_and_h1_power_plot_data_no_zeros %>% 
+  filter(sample_size == "8000" & hypothesis =="H1") %>% 
+  select(data)
+
+# colourful plot  
+ggplot(h0_and_h1_power_plot_data_no_zeros, aes(x = data, color = sample_size, linetype = hypothesis)) +   
   stat_ecdf(geom = "step") + 
   xlab("X") + 
-  ggtitle("Emprical CDF of log-likelihood ratio", sub = "H0 and H1") +
-  geom_vline(xintercept = quantile(h0_8000_samples_llrt$data, 0.95), linetype = 'dotted', color = 'black') + 
-  theme(axis.text=element_text(size=12),
-        axis.title=element_text(size=14,face="bold")) + 
+  # ggtitle("Emprical CDF of log-likelihood ratio", sub = "H0 and H1") +
+  geom_vline(xintercept = quantile((h0_and_h1_power_plot_data_no_zeros %>% 
+                                     filter(sample_size == "8000" & hypothesis =="H0") %>% 
+                                     select(data))[,1], 0.95), linetype = 'dotted', color = 'black') + 
+  theme(text=element_text(family="Ariel", face="bold", size=28),
+        axis.text=element_text(size=12),
+        axis.title=element_text(size=14,face="bold"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black")) + 
  expand_limits(x = 0, y = 0)
+
+# BW plot  
+# Edit the null hypothesis factor:
+ggplot(h0_and_h1_power_plot_data_for_bw, aes(x = data, color = hypothesis, linetype = sample_size,
+                                             group = interaction(hypothesis, sample_size))) +   
+  stat_ecdf(geom = "step") + 
+  xlab("X") + 
+  geom_vline(xintercept = quantile((h0_and_h1_power_plot_data_for_bw %>% 
+                                     filter(sample_size == "8000" & hypothesis =="H0") %>% 
+                                     select(data))[,1], 0.95), linetype = 'dotted', color = 'black') + 
+  scale_linetype_manual(name = "Sample size", values=c("dotted", 
+                                                       "dotdash",
+                                                       "dashed"))+
+  scale_color_manual(values=c('#000000','#000000'))+
+  theme(text=element_text(family="Ariel", face="bold", size=24),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"),
+        # legend.position = "none"
+        ) + 
+  xlim(c(0,60)) +
+guides(color=FALSE)
 
 
