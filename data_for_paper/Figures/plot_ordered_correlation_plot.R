@@ -16,6 +16,18 @@ legend(0, y=1, legend = c('Men','Women'), fill = c('navyblue','tomato'), cex = 1
 sex_correlations_df = read.csv('sex_correlation_df.csv')
 mens_data = sex_correlations_df$men_residual_correlation
 womens_data = sex_correlations_df$women_residual_correlation
-plot(mens_data[order(mens_data)], type = 'l', col = 'navyblue', cex.axis=1.5, cex.lab=1.5, ylab = 'Correlation coefficient', lwd = 5)
-lines(womens_data[order(womens_data)], type = 'l', col = 'tomato', lwd = 5)
+
+plot(mens_data[order(mens_data)], type = 'l', col = 'navyblue', cex.axis=1.5, cex.lab=1.5, ylab = 'Correlation coefficient', lwd = 1.5)
+lines(womens_data[order(womens_data)], type = 'l', col = 'tomato', lwd = 1.5)
 legend(0, y=1, legend = c('Men','Women'), fill = c('navyblue','tomato'), cex = 1.5)
+
+
+# New plots for JN --------------------------------------------------------
+library(grDevices)
+mens_data = sex_correlations_for_plot$correlation[sex_correlations_for_plot$sex == 'Men']
+womens_data = sex_correlations_for_plot$correlation[sex_correlations_for_plot$sex == 'Women']
+plot(mens_data[order(mens_data)], 
+     type = 'l', col = gray.colors(1), cex.axis=1.5, cex.lab=1.5, ylab = 'Correlation coefficient', lwd = 3)
+lines(womens_data[order(womens_data)], type = 'l', col = 'black', lwd = 3)
+
+
