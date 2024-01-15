@@ -2,47 +2,68 @@ library(dplyr)
 library(ggplot2)
 library(KSgeneral)
 
-theoretical_cdf = function(em_parameters, bins = seq(-7,7,0.05)){
+theoretical_cdf = function(em_parameters, 
+                           pure_type_parameters,
+                           bins){
 	p	= em_parameters$p
         q	= em_parameters$q
         mu_1	= em_parameters$mu_1
 	mu_2	= em_parameters$mu_2
 	sigma_1	= em_parameters$sigma_2_men
 	sigma_2	= em_parameters$sigma_2_women
-	men_density = c()	
-        women_density = c()
+	men_pure_type_density = c()
+	women_pure_type_density = c()
+	men_mixture_model_density = c()	
+  women_mixture_model_density = c()
+  mu_men = pure_type_parameters$men_mean
+  mu_women = pure_type_parameters$women_mean
+  sigma_2_men = pure_type_parameters$sigma_2_men
+  sigma_2_women = pure_type_parameters$sigma_2_women
 	for(i in 1:(length(bins) - 1)){
-	men_density[i] = (p * pnorm(bins[i+1], mu_1, sqrt(sigma_1)) + (1-p) * pnorm(bins[i+1],mu_2,sqrt(sigma_2))) -
+    men_pure_type_density[i] = pnorm(bins[i+1], mu_men, sqrt(sigma_2_men))
+    women_pure_type_density[i] = pnorm(bins[i+1], mu_women, sqrt(sigma_2_women))
+    men_mixture_model_density[i] = (p * pnorm(bins[i+1], mu_1, sqrt(sigma_1)) + (1-p) * pnorm(bins[i+1],mu_2,sqrt(sigma_2))) -
 (p * pnorm(bins[i], mu_1, sqrt(sigma_1)) + (1-p) * pnorm(bins[i],mu_2,sqrt(sigma_2)))
-	women_density[i] = (q * pnorm(bins[i+1], mu_1, sqrt(sigma_1)) + (1-q) * pnorm(bins[i+1],mu_2,sqrt(sigma_2))) -
+	  women_mixture_model_density[i] = (q * pnorm(bins[i+1], mu_1, sqrt(sigma_1)) + (1-q) * pnorm(bins[i+1],mu_2,sqrt(sigma_2))) -
 (q * pnorm(bins[i], mu_1, sqrt(sigma_1)) + (1-q) * pnorm(bins[i],mu_2,sqrt(sigma_2)))
 }
-	return(list(women_density = women_density,
-		    men_density = men_density))
+	return(list(
+	  men_pure_type_density = men_pure_type_density,
+	  women_pure_type_density = women_pure_type_density,
+	  women_mixture_model_density = women_mixture_model_density,
+    men_mixture_model_density = men_mixture_model_density))
 }
 
-features_for_export_new = names(biobank_feature_residual_analysis)
+hist_range = seq(-7,7, 0.5)
+features_for_export_new = names(data_for_analysis)
 ks_results = c()
+
 for(x in features_for_export_new){
-  em_parameters_for_llk_analysis = biobank_feature_residual_analysis[[x]]$hypothesis_results$mixture_model$m_parameters
-  feature_theoretical_cdf = theoretical_cdf(em_parameters_for_llk_analysis)
-  N = biobank_residuals_data[[x]] %>% group_by(sex) %>% summarize(count = n())
-  empirical_men_cdf = cumsum(hist((biobank_residuals_data[[x]] %>% filter(sex == 1) %>% select(value))$value, plot = F, breaks = seq(-7,7,0.5))$density) / 2
-  empirical_women_cdf = cumsum(hist((biobank_residuals_data[[x]] %>% filter(sex == 0) %>% select(value))$value, plot = F, breaks = seq(-7,7,0.5))$density) / 2
-  ks_men = max(abs(empirical_men_cdf - cumsum(feature_theoretical_cdf$men_density)) * sqrt(N[2,2])$count)
-  ks_women = max(abs(empirical_women_cdf - cumsum(feature_theoretical_cdf$women_density)) * sqrt(N[1,2])$count)
-  ks_results = rbind(ks_results, c(ks_men, ks_women))
+  em_parameters_for_llk_analysis = data_for_analysis[[x]]$hypothesis_results$mixture_model$m_parameters
+  pure_type_parameters_for_llk_analysis = data_for_analysis[[x]]$hypothesis_results$pure_types_model
+  feature_theoretical_cdf = theoretical_cdf(em_parameters_for_llk_analysis, pure_type_parameters_for_llk_analysis, hist_range)
+  N = data_for_analysis[[x]]$feature_residuals %>% group_by(sex) %>% summarize(count = n())
+  empirical_men_cdf = cumsum(hist((data_for_analysis[[x]]$feature_residuals %>% filter(sex == 1, !high_outlier, !low_outlier) %>% select(value))$value, plot = F, breaks = hist_range)$density) / 2
+  empirical_women_cdf = cumsum(hist((data_for_analysis[[x]]$feature_residuals %>% filter(sex == 0, !high_outlier, !low_outlier) %>% select(value))$value, plot = F, breaks = hist_range)$density) / 2
+  ks_mixture_model_men = max(abs(empirical_men_cdf - cumsum(feature_theoretical_cdf$men_mixture_model_density)) * sqrt(N[2,2])$count)
+  ks_mixture_model_women = max(abs(empirical_women_cdf - cumsum(feature_theoretical_cdf$women_mixture_model_density)) * sqrt(N[1,2])$count)
+  ks_pure_model_men = max(abs(empirical_men_cdf - feature_theoretical_cdf$men_pure_type_density) * sqrt(N[2,2])$count)
+  ks_pure_model_women = max(abs(empirical_women_cdf - feature_theoretical_cdf$women_pure_type_density) * sqrt(N[1,2])$count)
+  ks_results = rbind(ks_results, c(ks_mixture_model_men, ks_mixture_model_women, 
+                                   ks_pure_model_men, ks_pure_model_women))
 }
-colnames(ks_results) = c('KS_men', 'KS_women')
+
+colnames(ks_results) = c('men_mixture_model_ks', 'women_mixture_model_ks',
+                         'men_pure_model_ks', 'women_pure_model_ks')
 ks_results = as_tibble(ks_results)
 ks_results$Feature = features_for_export_new
-ks_results$p = sapply(biobank_feature_residual_analysis, function(x)x$hypothesis_results$mixture_model$m_parameters$p)
-ks_results$q = sapply(biobank_feature_residual_analysis, function(x)x$hypothesis_results$mixture_model$m_parameters$q)
-ks_results$mu_1 = sapply(biobank_feature_residual_analysis, function(x)x$hypothesis_results$mixture_model$m_parameters$mu_1)
-ks_results$mu_2 = sapply(biobank_feature_residual_analysis, function(x)x$hypothesis_results$mixture_model$m_parameters$mu_2)
-write.csv(ks_results, 'BioBank_data_analysis/Log_likelihood_ratio_computation/ks_results.csv')
+ks_results$p = sapply(data_for_analysis, function(x)x$hypothesis_results$mixture_model$m_parameters$p)
+ks_results$q = sapply(data_for_analysis, function(x)x$hypothesis_results$mixture_model$m_parameters$q)
+ks_results$mu_1 = sapply(data_for_analysis, function(x)x$hypothesis_results$mixture_model$m_parameters$mu_1)
+ks_results$mu_2 = sapply(data_for_analysis, function(x)x$hypothesis_results$mixture_model$m_parameters$mu_2)
+write.csv(ks_results, 'Human_brain_research/BioBank_data_analysis/Log_likelihood_ratio_computation/ks_results.csv')
 
-ks_results = read.csv('BioBank_data_analysis/Log_likelihood_ratio_computation/ks_results.csv')
+ks_results = read.csv('~/BioBank_data_analysis/Log_likelihood_ratio_computation/ks_results.csv')
 plot(ecdf(ks_results$KS_men), col = 'blue')
 points(ecdf(ks_results$KS_women), col = 'red')
 summary(ks_results$KS_men)
@@ -58,25 +79,25 @@ View(ks_results %>% filter())
 
 ks_max_feature = 'Volume of grey matter in Caudate (left)'
 plotGenderHistogram(biobank_residuals_data[[ks_max_feature]],
-                    biobank_feature_residual_analysis[[ks_max_feature]],
+                    data_for_analysis[[ks_max_feature]],
                     ks_max_feature)
-biobank_feature_residual_analysis[[ks_max_feature]]$hypothesis_results$mixture_model$m_parameters
+data_for_analysis[[ks_max_feature]]$hypothesis_results$mixture_model$m_parameters
 
 plot(ecdf((table_for_isaco %>% 
              filter(sex == 1) %>%
              select(value.x))[,1]))
-points(seq(-4,4,0.5)[-1], cumsum(men_women_em_cdf$men_density), type = 'b', col = 'red')
+points(seq(-4,4,0.5)[-1], cumsum(men_women_em_cdf$men_mixture_model_density), type = 'b', col = 'red')
 
-men_women_em_cdf = theoretical_cdf(biobank_feature_residual_analysis[[features_for_export_new[2]]]$hypothesis_results$mixture_model$m_parameters)
+men_women_em_cdf = theoretical_cdf(data_for_analysis[[features_for_export_new[2]]]$hypothesis_results$mixture_model$m_parameters)
 plot(ecdf((table_for_isaco %>% 
 filter(sex == 1) %>%
 select(value.y))[,1]))
-points(seq(-4,4,0.5)[-1], cumsum(men_women_em_cdf$men_density), type = 'b', col = 'red')
+points(seq(-4,4,0.5)[-1], cumsum(men_women_em_cdf$men_mixture_model_density), type = 'b', col = 'red')
 
 plot(ecdf((table_for_isaco %>% 
 filter(sex == 0) %>%
 select(value.y))[,1]))
-points(seq(-4,4,0.5)[-1], cumsum(men_women_em_cdf$women_density), type = 'b', col = 'red')
+points(seq(-4,4,0.5)[-1], cumsum(men_women_em_cdf$women_mixture_model_density), type = 'b', col = 'red')
 
 
 #' 4000 points between 0,4. Compute the cumsum (x > q)
@@ -145,15 +166,15 @@ sort(ks_results$KS_women,decreasing = T)[1:10]
 
 tenth_ks_feature = (ks_results$Feature[order(ks_results$KS_men,decreasing = T)])[10]
 
-em_parameters_for_llk_analysis = biobank_feature_residual_analysis[[max_ks_feature]]$hypothesis_results$mixture_model$m_parameters
+em_parameters_for_llk_analysis = data_for_analysis[[max_ks_feature]]$hypothesis_results$mixture_model$m_parameters
 feature_theoretical_cdf = theoretical_cdf(em_parameters_for_llk_analysis)
 N = biobank_residuals_data[[max_ks_feature]] %>% group_by(sex) %>% summarize(count = n())
 empirical_men_cdf = cumsum(hist((biobank_residuals_data[[max_ks_feature]] %>% filter(sex == 1) %>% select(value))$value, plot = F, breaks = seq(-7,7,0.05))$density) / 20
 empirical_women_cdf = cumsum(hist((biobank_residuals_data[[max_ks_feature]] %>% filter(sex == 0) %>% select(value))$value, plot = F, breaks = seq(-7,7,0.05))$density) / 20
 
-plot(seq(-7,7,0.05)[-1], cumsum(feature_theoretical_cdf$men_density), col = 'blue', type = 'l', lwd = 1.5,
+plot(seq(-7,7,0.05)[-1], cumsum(feature_theoretical_cdf$men_mixture_model_density), col = 'blue', type = 'l', lwd = 1.5,
      ylab = 'CDF', xlab = 'X',cex.lab=1.5, cex.axis = 1.5,)
-lines(seq(-7,7,0.05)[-1], cumsum(feature_theoretical_cdf$women_density), col = 'red', type = 'l', lwd = 1.5)
+lines(seq(-7,7,0.05)[-1], cumsum(feature_theoretical_cdf$women_mixture_model_density), col = 'red', type = 'l', lwd = 1.5)
 lines(seq(-7,7,0.05)[-1], empirical_men_cdf, col = 'blue', type = 'l',lty=2, lwd = 1.5)
 lines(seq(-7,7,0.05)[-1], empirical_women_cdf, col = 'red', type = 'l', lty=2, lwd = 1.5)
 legend(-5, 0.8, legend=c("Men_th", "Women_th","Men_em", "Women_em"),
@@ -164,9 +185,9 @@ empirical_women_pdf = hist((biobank_residuals_data[[max_ks_feature]] %>% filter(
 
 plot(empirical_men_pdf, col = 'blue', ylim = c(0,300))
 plot(empirical_women_pdf, col = 'red', add = T)
-lines(seq(-7,7,0.05)[-1], feature_theoretical_cdf$men_density, col = 'blue', type = 'l', lwd = 1.5,
+lines(seq(-7,7,0.05)[-1], feature_theoretical_cdf$men_mixture_model_density, col = 'blue', type = 'l', lwd = 1.5,
      ylab = 'CDF', xlab = 'X',cex.lab=1.5, cex.axis = 1.5,)
-lines(seq(-7,7,0.05)[-1], feature_theoretical_cdf$women_density, col = 'red', type = 'l', lwd = 1.5)
+lines(seq(-7,7,0.05)[-1], feature_theoretical_cdf$women_mixture_model_density, col = 'red', type = 'l', lwd = 1.5)
 legend(-5, 0.8, legend=c("Men_th", "Women_th","Men_em", "Women_em"),
        col=c("blue", "red"), lty=c(1,1,2,2), cex=0.8)
 
@@ -174,9 +195,9 @@ legend(-5, 0.8, legend=c("Men_th", "Women_th","Men_em", "Women_em"),
 biobank_residuals_data[[max_ks_feature]] %>% group_by(sex) %>% summarize(avg = mean(value))
 plot(empirical_men_cdf - empirical_women_cdf)
 plotGenderHistogram(biobank_residuals_data[[max_ks_feature]],
-                    biobank_feature_residual_analysis[[max_ks_feature]], max_ks_feature)
+                    data_for_analysis[[max_ks_feature]], max_ks_feature)
 plotGenderHistogram(biobank_residuals_data[[tenth_ks_feature]],
-                    biobank_feature_residual_analysis[[tenth_ks_feature]], tenth_ks_feature)
+                    data_for_analysis[[tenth_ks_feature]], tenth_ks_feature)
 
 
 # Plot p-q vs KS ----------------------------------------------------------
@@ -197,12 +218,12 @@ ks_results_extreme_squares = ks_results %>%
 ks_results_non_extreme_squares = ks_results %>% 
   filter(!(Feature %in% ks_results_extreme_squares$Feature))
 
-non_extereme_sample = c(rep(ks_results_non_extreme_squares$KS_men,76),rep(ks_results_non_extreme_squares$KS_women,76))
-extereme_sample = c(rep(ks_results_extreme_squares$KS_men,213),rep(ks_results_extreme_squares$KS_women,213))
+non_extereme_sample = c(rep(ks_results_non_extreme_squares$KS_men,201),rep(ks_results_non_extreme_squares$KS_women,201))
+extereme_sample = c(rep(ks_results_extreme_squares$KS_men,88),rep(ks_results_extreme_squares$KS_women,88))
 
 ks_range = seq(0,4,length.out = 400)
-non_extrem__survival = sapply(1:400, function(i) {sum(non_extereme_sample > ks_range[i])}) / 32376
-extrem__survival = sapply(1:400, function(i) {sum(extereme_sample > ks_range[i])}) / 32376
+non_extrem__survival = sapply(1:400, function(i) {sum(non_extereme_sample > ks_range[i])}) / 80802
+extrem__survival = sapply(1:400, function(i) {sum(extereme_sample > ks_range[i])}) / 15488
 ks_distribution = sapply(seq(1/400,1,1/400), function(x) {cont_ks_c_cdf(x, 400)})
 
 plot(ks_range, non_extrem__survival, type = 'l', col = 'blue', lwd = 2.5, ylab = 'CDF', xlab = 'KS statistic', cex.lab=1.5, cex.axis = 1.5)

@@ -15,21 +15,23 @@ plotGenderHistogram <- function(plot_data,
                                 single_gaussian = F)
 {
   #em_data <- em_results$hypothesis_results$mixture_model$m_parameters
-  em_data <- em_results$mixture_model$m_parameters
+  em_data <- em_results$hypothesis_results$mixture_model$m_parameters
   myColors <- brewer.pal(5,"Set1")
   names(myColors) <- levels(plot_data$sex)
   colScale <- scale_colour_manual(name = "sex",values = myColors)
   plot_title <- sprintf("Histogram of gender data, feature %s", feature_name, p ,q)
   subtitle <- sprintf("p=%s, q=%s", p ,q)
-  feature_histogram <- ggplot(plot_data, aes(x=value, fill=factor(sex))) +
+  feature_histogram <- 
+    ggplot(plot_data, aes(x=value, fill=factor(sex))) +
     geom_histogram(aes(y=..density..),
                    bins = 50, 
                    alpha=.8, 
                    position="identity") + 
     scale_fill_manual(values = alpha(c('tomato','dodgerblue'),.1)) + 
     xlim(c(-4,4)) +
-    ylim(c(0,0.5))+
-    ggtitle(plot_title, subtitle = subtitle) 
+    ylim(c(0,0.8))+
+    ggtitle(plot_title, subtitle = subtitle) +
+    theme(legend.position="none")
   if(two_mixtures)
   {
     feature_histogram <- feature_histogram + 
@@ -48,7 +50,7 @@ plotGenderHistogram <- function(plot_data,
         stat_function(geom = "line",
                       fun = plot_mix_comps,
                       args = list(mu = em_data$mu_2, sigma = sqrt(em_data$sigma_2_women) , lambda = (1 - em_data$q)),
-                      colour = "red", lwd = 1.0,linetype = "dashed") 
+                      colour = "red", lwd = 1.0,linetype = "dashed")
     return(feature_histogram)
   }
   if(single_gaussian)
@@ -62,7 +64,7 @@ plotGenderHistogram <- function(plot_data,
       stat_function(geom = "line",
                     fun = plot_mix_comps,
                     args = list(mu = key_statistics$avg[1], sigma = key_statistics$std[1], lambda = 1),
-                    colour = "red", lwd = 1.0,linetype = "dashed") 
+                    colour = "red", lwd = 1.0,linetype = "dashed")
     return(feature_histogram)
   }
   feature_histogram <- feature_histogram + 
@@ -73,7 +75,7 @@ plotGenderHistogram <- function(plot_data,
     stat_function(geom = "line",
                   fun = plot_mix_comps,
                   args = list(mu = em_data$mu_2, sigma = sqrt(em_data$sigma_2_women) , lambda = (1 - em_data$q)),
-                  colour = "red", lwd = 1.0,linetype = "dashed") 
+                  colour = "red", lwd = 1.0,linetype = "dashed")
   return(feature_histogram)
   
 }

@@ -5,6 +5,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // EM
 List EM(NumericVector men_data, NumericVector women_data, int number_of_iterations, double p, double q, double mu_1, double mu_2, double sigma_2_men, double sigma_2_women);
 RcppExport SEXP _HumanBrainMosaic_EM(SEXP men_dataSEXP, SEXP women_dataSEXP, SEXP number_of_iterationsSEXP, SEXP pSEXP, SEXP qSEXP, SEXP mu_1SEXP, SEXP mu_2SEXP, SEXP sigma_2_menSEXP, SEXP sigma_2_womenSEXP) {

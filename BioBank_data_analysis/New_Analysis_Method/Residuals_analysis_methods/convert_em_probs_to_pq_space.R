@@ -5,7 +5,7 @@
 convertEMProbabiltiesToPQSpace <- function(em_results)
 {
   stopifnot(length(em_results) > 0)
-  m_parameters <- lapply(em_results, function(x){x$mixture_model$m_parameters})
+  m_parameters <- lapply(em_results, function(x){x$hypothesis_results$mixture_model$m_parameters})
   unified_m_parameters <- lapply(m_parameters, function(x){adaptProbabilitiesToSize(x)})
   return(unified_m_parameters)
 }
@@ -25,16 +25,32 @@ adaptProbabilitiesToSize <- function(m_parameters)
   }
 }
 
+adjustResponsebilitiesToHighMean <- function(em_results)
+{
+  m_parameters <- em_results$hypothesis_results$mixture_model$m_parameters
+  mu_1_negative <- m_parameters$mu_1 > 0
+  men_responsebilities <- em_results$hypothesis_results$mixture_model$men_responsebilities
+  women_responsebilities <- em_results$hypothesis_results$mixture_model$women_responsebilities
+  if(mu_1_negative)
+  {
+    men_responsebilities$responsebility <- 1 - men_responsebilities$responsebility
+    women_responsebilities$responsebility <- 1 - women_responsebilities$responsebility
+  }  
+  return(list(men_responsebilities = men_responsebilities,
+              women_responsebilities = women_responsebilities))
+}
+
+
 pullPvaluePerHypothesis <- function(em_results)
 {
   sapply(em_results, function(x){
-    max(1e-6, 1 - pchisq(2 * x$pure_types_vs_mixture_model_llr, 1))})
+    max(1e-6, 1 - pchisq(2 * x$hypothesis_results$pure_types_vs_mixture_model_llr, 1))})
 }
 
 equalProbabilityMixturePV <- function(em_results)
 {
   sapply(em_results, function(x){
-    max(1e-6, 1 - pchisq(2 * x$equal_proportions_vs_mixture_model_llr,2))})
+    max(1e-6, 1 - pchisq(2 * x$hypothesis_results$equal_proportions_vs_mixture_model_llr,2))})
 }
 
 

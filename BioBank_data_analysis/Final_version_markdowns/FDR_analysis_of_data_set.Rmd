@@ -56,11 +56,14 @@ load("~/Human_brain_research/BioBank_data_analysis/Final_data_for_analysis/BioBa
 The first analysis is of the residual data.
 
 ```{r prepare data for analysis, include = FALSE}
+biobank_feature_residual_analysis <- biobank_full_analysis_list
 feature_residual_m_parameters <- convertEMProbabiltiesToPQSpace(biobank_feature_residual_analysis)
 residual_p_and_q <- sapply(feature_residual_m_parameters, function(x){c(x$p, x$q)})
 ```
 
 ```{r histogram of t-test and cohen-d}
+sapply(biobank_feature_residual_analysis, function(x){x$hypothesis_results$cohen_d_test$estimate}) %>% 
+  data.frame()
 hist(sapply(biobank_feature_residual_analysis, function(x){x$hypothesis_results$cohen_d_test$estimate}),
      xlab = "Cohen-D", main = "Histogram of Cohen D", sub = "Residual data")
 
@@ -73,6 +76,7 @@ hist(sapply(biobank_feature_residual_analysis, function(x){x$hypothesis_results$
 ## P-Value color schema pure vs mixture
 
 First we add a coloring schema based on the *p-value* of the llrt, when the hypothesis is pure type vs mixture model. 
+
 ```{r pure type vs mixture model colouring schema, include=FALSE,warning=FALSE}
 pvalue_per_feature_residuals <- pullPvaluePerHypothesis(biobank_feature_residual_analysis)
 
@@ -106,6 +110,7 @@ ggplot(combined_df_long_resid, aes(p,q, colour = Cohen_D)) +
 ### FDR
 
 The following figure plots the FDR corrected $p-values$, point color indicate feature quadrant, horizontal lines indicate significance levels.
+
 ```{r fdr procedure, include = FALSE}
 N <- nrow(combined_df_long_resid)
 combined_df_long_sorted_residuals <- combined_df_long_resid[order(combined_df_long_resid$p_values,decreasing = F),]
@@ -172,17 +177,31 @@ write.csv(pure_types_residual_model_table, file = "pure_types_features_residual_
 
 
 ```{r fdr p value by quadrant, warnings = FALSE}
-ggplot(combined_df_long_sorted_residuals[combined_df_long_sorted_residuals$bins_for_fdr %in% levels(combined_df_long_sorted_residuals$bins_for_fdr)[c(1,2)],], aes(p,q, colour = Cohen_D)) +
-  geom_point(aes(shape = bins_for_fdr)) +
-  scale_shape_manual(values=c(15, 17))+
+combined_df_long_sorted_residuals %>% 
+  filter(bins_for_fdr %in% levels(combined_df_long_sorted_residuals$bins_for_fdr)[c(1,2)]) %>% 
+  mutate(Cohen_D_bins = cut(Cohen_D, c(-0.4,-0.3,-0.2,-0.1,0.1,0.2,0.3,0.4))) %>% 
+  ggplot(aes(p,q, colour = Cohen_D_bins)) +
+  geom_point() +
+  scale_shape_manual(values=c(3, 19))+
   geom_vline(xintercept = 0.5) +
   geom_hline(yintercept = 0.5) +
-  ggtitle("Values of p and q", subtitle = "Shape indicate FDR pv") + 
+  ggtitle("Values of p and q", subtitle = "shape is p=q hypothesis") + 
   geom_abline(slope = 1, intercept = 0) + 
-  scale_color_gradient2(midpoint=0, 
-                        low="red", 
-                        mid="white",
-                        high="darkblue", space ="Lab" )
+  scale_color_manual(name = "Cohen's d",
+                     values = c("(-0.3,-0.2]" = "red4",
+                                "(-0.2,-0.1]" = "red1",
+                                "(-0.1,0.1]" = "orange1",
+                                "(0.1,0.2]" = "deepskyblue2",
+                                "(0.2,0.3]" = "dodgerblue1",
+                                "(0.3,0.4]" = "blue4"),
+                     labels = c("-0.3<=d<-0.2","0.2<=d<-0.1","-0.1<=d<0.1","0.1<=d<0.2","0.2<=d<3","0.3<=d<0.4")) +
+  theme_bw() + 
+  theme(axis.text.x = element_text(face="bold", color="black", 
+                                   size=7),
+        axis.text.y = element_text(face="bold", color="black", 
+                                   size=7)) +
+  coord_fixed()
+  
 ```
 
 ```{r fdr p value by quadrant, warnings = FALSE}
@@ -199,6 +218,7 @@ ggplot(combined_df_long_sorted_residuals[combined_df_long_sorted_residuals$bins_
 ```
 
 ### Combined data sets plot
+
 This section was added at 26/01/2019
 
 ```{r validating data sets sizes}
@@ -215,10 +235,10 @@ non_pure_types_features_data_set <- combined_df_long_sorted_residuals[combined_d
 non_pure_types_features_data_set$feature_name = rownames(non_pure_types_features_data_set)
 
 str(non_pure_types_features_data_set)
-combined_df_resid_equal_probs_sorted$feature_name <- as.character(combined_df_resid_equal_probs_sorted$feature_name)
-
 non_pure_types_features_data_set_with_equal_mixture_model_hypothesis <- 
-  inner_join(non_pure_types_features_data_set,combined_df_resid_equal_probs_sorted,
+combined_df_resid_equal_probs_sorted %>% 
+  mutate(feature_name = feature) %>% 
+  inner_join(non_pure_types_features_data_set,
              by = 'feature_name')
 str(non_pure_types_features_data_set_with_equal_mixture_model_hypothesis)
 ```
@@ -314,19 +334,40 @@ combined_df_resid_equal_probs_sorted %>%
 ```
 
 ```{r plot FDR bins for pure mixture vs mosaic mixture }
-ggplot(combined_df_resid_equal_probs_sorted, aes(p,q, colour = Cohen_D)) +
+combined_df_resid_equal_probs_sorted %>% 
+  mutate(Cohen_D_bins = cut(Cohen_D, c(-0.4,-0.3,-0.2,-0.1,0.1,0.2,0.3,0.4))) %>% 
+  ggplot(aes(p,q, colour = Cohen_D_bins)) +
   geom_point(aes(shape = p_equal_q)) +
-  scale_shape_manual(values=c(3, 19))+
+  scale_shape_manual(values=c(3, 19), guide = "none")+
   geom_vline(xintercept = 0.5) +
   geom_hline(yintercept = 0.5) +
-  ggtitle("Values of p and q", subtitle = "shape is p=q hypothesis") + 
+  #ggtitle("Values of p and q", subtitle = "shape is p=q hypothesis") + 
   geom_abline(slope = 1, intercept = 0) + 
-  scale_color_gradient2(midpoint=0, 
-                        low="darkblue", 
-                        mid="yellow",
-                        high="red", space ="Lab" ) +
+  scale_color_manual(name = "Cohen's d",
+                     values = c("(-0.3,-0.2]" = "red4",
+                                "(-0.2,-0.1]" = "red1",
+                                "(-0.1,0.1]" = "orange1",
+                                "(0.1,0.2]" = "deepskyblue2",
+                                "(0.2,0.3]" = "dodgerblue1",
+                                "(0.3,0.4]" = "blue4"),
+                     labels = c("-0.3<=d<-0.2","0.2<=d<-0.1","-0.1<=d<0.1","0.1<=d<0.2","0.2<=d<3","0.3<=d<0.4")) +
+  theme_bw() + 
+  theme(axis.text.x = element_text(face="bold", color="black", 
+                                   size=10),
+        axis.text.y = element_text(face="bold", color="black", 
+                                   size=10),
+        panel.border = element_blank()) +
   coord_fixed()
 ```
+```{r exporting q2 q4 features}
+q2_q4_features_names <- 
+  combined_df_resid_equal_probs_sorted %>% 
+  filter(!p_equal_q) %>% 
+  filter(p < 0.5 & q > 0.5 | p > 0.5 & q < 0.5) %>% 
+  select(feature)
+```
+
+
 
 #### Selecting extreme gender oriented features
 ```{r p equal q features, include=FALSE}
