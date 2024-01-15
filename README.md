@@ -1,2 +1,2 @@
-# Human_brain_research
+# Brain structure difference between sexes 
 This code base contains the code used to produce the "Analyzing brain data by sex: Are we asking the right question?" paper (Alon, Meilijson, Joel). To reproduce the results run the
