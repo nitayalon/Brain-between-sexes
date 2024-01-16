@@ -45,9 +45,7 @@ theme_set(theme_classic(base_size = base_size))
 
 ## Loading the data
 
-load("~/Dapha_joel/Human_brain_research/new_model_with_age/BioBank_data_full_analysis_no_age_30_09_2022.RData")
-# load("~/Dapha_joel/Human_brain_research/new_model_with_age/BioBank_data_full_analysis_with_age_13_04_2022.RData")
-data_for_analysis <- biobank_without_age_
+data_for_analysis <- #Path to data
 
 # Converting from EM space to p-q space
 original_p_q <- sapply(data_for_analysis, function(x){x$hypothesis_results$mixture_model$m_parameters})
