@@ -1,4 +1,0 @@
-﻿UK BioBank data description
-In the attached tables the responsibilities (posterior probabilities) of the residual data, for men and women separately, for pure type-features (see methods section in the paper for a detailed description).
-The eid column is the user id provided by the UK BioBank. The other columns titles are the feature name and the values correspond to the probability that an individual “samples” from the high mean Gaussian distribution given its sex.
-
