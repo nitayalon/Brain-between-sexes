@@ -9,12 +9,12 @@ library(DescTools)
 library(effsize)
 library(mixtools)
 
-source("~/Dapha_joel/process_biobank_data.R")
-source("~/Dapha_joel/Human_brain_research/Mixture_models/source_script.R")
-sourceAll("~/Dapha_joel/Human_brain_research/Mixture_models/Log_normal_mixture_model/Grid_Search/llk_computation/")
-sourceAll("~/Dapha_joel/Human_brain_research/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/")
-sourceAll("~/Dapha_joel/Human_brain_research/Mixture_models/Log_normal_mixture_model/Grid_Search/llk_computation/")
-sourceAll("~/Dapha_joel/Human_brain_research/BioBank_data_analysis/Hypothesis_testing_methods/")
+source("~process_biobank_data.R")
+source("~/Human_brain_research/Mixture_models/source_script.R")
+sourceAll("~/Human_brain_research/Mixture_models/Log_normal_mixture_model/Grid_Search/llk_computation/")
+sourceAll("~/Human_brain_research/BioBank_data_analysis/New_Analysis_Method/Residuals_analysis_methods/")
+sourceAll("~/Human_brain_research/Mixture_models/Log_normal_mixture_model/Grid_Search/llk_computation/")
+sourceAll("~/Human_brain_research/BioBank_data_analysis/Hypothesis_testing_methods/")
 
 total_brain_data$eid <- total_data$id
 total_brain_data$age = total_data$age_when_attanded_biobank_scan
