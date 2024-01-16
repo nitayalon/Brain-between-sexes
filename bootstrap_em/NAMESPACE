@@ -1,4 +1,0 @@
-useDynLib(HumanBrainMosaic)
-import(Rcpp)
-importFrom(Rcpp, evalCpp)
-exportPattern("^[[:alpha:]]+")

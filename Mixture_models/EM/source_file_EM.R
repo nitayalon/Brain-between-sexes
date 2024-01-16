@@ -1,7 +1,0 @@
-library(Jmisc)
-sourceAll("~/Dapha_joel/Human_brain_research/Mixture_models/EM/Estep/")
-sourceAll("~/Dapha_joel/Human_brain_research/Mixture_models/EM/Mstep/")
-sourceAll("~/Dapha_joel/Human_brain_research/Mixture_models/EM/EM/")
-source("~/Dapha_joel/Human_brain_research/Mixture_models/EM/EM_Class/source_EM_class.R")
-source("~/Dapha_joel/Human_brain_research/Mixture_models/compute_log_likelihood_for_normal.R")
-source("~/Dapha_joel/Human_brain_research/Mixture_models/EM/main_function_for_gender_mixture_model.R")
