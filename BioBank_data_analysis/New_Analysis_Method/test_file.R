@@ -6,7 +6,7 @@ library(dplyr)
 library(ggplot2)
 library(Jmisc)
 
-source("~/Documents/Human_brain_research/DAPHNA_JOEL/Mixture_models/source_script.R")
+source("Mixture_models/source_script.R")
 total.brain.volum.data <- bio.bank.data %>% select("X25010.2.0","X25004.2.0")
 
 # Apply LM on a single feature:
